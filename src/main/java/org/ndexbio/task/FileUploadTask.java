@@ -3,6 +3,8 @@ package org.ndexbio.task;
 import java.io.File;
 
 import org.ndexbio.common.exceptions.NdexException;
+import org.ndexbio.orientdb.domain.Status;
+import org.ndexbio.rest.models.Task;
 import org.ndexbio.service.helpers.Configuration;
 import org.ndexbio.task.exel.parser.ExcelFileParser;
 import org.ndexbio.task.sif.SIFFileParser;
@@ -23,6 +25,8 @@ public class FileUploadTask extends NdexTask {
 
 	private final String filename;
 	private static final Logger logger = LoggerFactory.getLogger(FileUploadTask.class);
+	
+	private Status taskStatus;
 
 	public FileUploadTask(String taskId) throws IllegalArgumentException,
 			SecurityException, NdexException {
@@ -35,21 +39,32 @@ public class FileUploadTask extends NdexTask {
 		}
 	}
 
-	@Override
-	public void run() {		
-		this.processFile();
-	}
 	
+
+	@Override
+	public Task call() throws Exception {
+		this.processFile();
+		return this.getTask();
+	}
+
+	
+	protected String getFilename() {
+		return this.filename;
+		
+	}
 	
 	private void processFile ()  {
 		logger.info("Processing file: " +this.getFilename());
+		this.taskStatus = Status.PROCESSING;
 		File file = new File(this.getFilename());
 		switch(com.google.common.io.Files.getFileExtension(this.getFilename()) ){
 	      case("sif"):
 	    	  try {
 				final SIFFileParser sifParser = new SIFFileParser(file.getAbsolutePath());
 				  sifParser.parseSIFFile();
+				  this.taskStatus = Status.COMPLETED;
 			} catch (Exception e) {
+				this.taskStatus =Status.COMPLETED_WITH_ERRORS;
 				logger.error(e.getMessage());
 			}
 	      break;
@@ -57,10 +72,13 @@ public class FileUploadTask extends NdexTask {
 	    	  try {
 				final XbelFileParser xbelParser = new XbelFileParser(file.getAbsolutePath());
 					if (!xbelParser.getValidationState().isValid()){
+						this.taskStatus =Status.COMPLETED_WITH_ERRORS;
 						throw new NdexException("XBEL file is has invalid elements.");
 					}	
 					xbelParser.parseXbelFile();
+					 this.taskStatus = Status.COMPLETED;
 			} catch (Exception e) {
+				this.taskStatus =Status.COMPLETED_WITH_ERRORS;
 				logger.error(e.getMessage());
 			}
 	      break;
@@ -69,20 +87,20 @@ public class FileUploadTask extends NdexTask {
 	    	  try {
 				final ExcelFileParser excelParser = new ExcelFileParser(file.getAbsolutePath());
 				  excelParser.parseExcelFile();
+				  this.taskStatus = Status.COMPLETED;
 			} catch (Exception e) {
+				this.taskStatus =Status.COMPLETED_WITH_ERRORS;
 				logger.error(e.getMessage());
 			}
 	      default:
 	         file.delete();
 	        logger.error
 	         	("The uploaded file type is not supported; must be SIF, XBEL, or XLSX.");
+	        this.taskStatus =Status.COMPLETED_WITH_ERRORS;
 	         
 	}
 	}
 
-	protected String getFilename() {
-		return this.filename;
-		
-	}
+	
 
 }

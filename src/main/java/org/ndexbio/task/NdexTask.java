@@ -1,12 +1,16 @@
 package org.ndexbio.task;
 
+import java.util.concurrent.Callable;
+
 import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.exceptions.ObjectNotFoundException;
 import org.ndexbio.orientdb.domain.Status;
 import org.ndexbio.orientdb.persistence.NdexTaskService;
 import org.ndexbio.rest.models.Task;
 
-public abstract class NdexTask implements Runnable {
+
+
+public abstract class NdexTask implements Callable<Task> {
 	
 	private final String taskId;
 	
@@ -33,7 +37,7 @@ public abstract class NdexTask implements Runnable {
 		this.taskService.updateTask(this.getTask());
 	}
 
-	@Override
-	public abstract void run() ;
+	public abstract Task call() throws Exception;
+	
 
 }
