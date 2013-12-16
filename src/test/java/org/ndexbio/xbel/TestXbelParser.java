@@ -19,12 +19,12 @@ public class TestXbelParser {
 	
 	public TestXbelParser(String fn) {
 		this.xbelFileName = fn;
-		logger.info("Validating XBEL file: " +fn);
-		logger.info("Memory usage prior to validation = " +
+		System.out.println("Validating XBEL file: " +fn);
+		System.out.println("Memory usage prior to validation = " +
 		ResourceMonitor.INSTANCE.getMemoryMbUsage().toString() +" Mb");
 		this.validationState = new XbelFileValidator(fn).getValidationState();
-		logger.info("Validation state = " +this.validationState.getValidationMessage());
-		logger.info("Memory usage post validation = " +
+		System.out.println("Validation state = " +this.validationState.getValidationMessage());
+		System.out.println("Memory usage post validation = " +
 				ResourceMonitor.INSTANCE.getMemoryMbUsage().toString() +" Mb");
 		if(this.validationState.isValid()){
 			this.parseXBelFile();
@@ -40,7 +40,7 @@ public class TestXbelParser {
 		if(args.length > 0 ){
 			filename = args[0];
 		} else {
-			 filename = "small_corpus.xbel";
+			 filename = "tiny_corpus.xbel";
 		}
 		TestXbelParser parser = new TestXbelParser(filename);
 		
