@@ -12,7 +12,8 @@ public class XbelParserApp {
 		if(args.length > 0 ){
 			filename = args[0];
 		} else {
-			 filename = "tiny_corpus.xbel";
+			 filename = "/home/fcriscuo/selventa/large_corpus.xbel";
+			// filename = "/home/fcriscuo/selventa/selventa_full.xbel";
 		}
 		XbelFileParser parser = new XbelFileParser(filename);
 		if (parser.getValidationState().isValid()){

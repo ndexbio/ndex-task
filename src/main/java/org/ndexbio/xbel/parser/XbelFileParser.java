@@ -9,6 +9,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
 
+import org.ndexbio.common.cache.NdexIdentifierCache;
 import org.ndexbio.orientdb.domain.INetwork;
 import org.ndexbio.xbel.parser.XbelFileValidator.ValidationState;
 import org.ndexbio.xbel.service.OrientdbNetworkFactory;
@@ -67,6 +68,9 @@ public class XbelFileParser {
 			this.processHeaderAndCreateNetwork();
 			this.processNamespaces();
 			this.processStatementGroups();
+			// at this point we can clear the identifier cache to reduce memory requirements
+			logger.info("Clearing identifier cache");
+			NdexIdentifierCache.INSTANCE.accessIdentifierCache().invalidateAll();
 			// persist the network domain model, commit the transaction, close database connection
 			XBelNetworkService.getInstance().persistNewNetwork();
 		} catch (Exception e) {
@@ -83,6 +87,7 @@ public class XbelFileParser {
 			reader.parse(this.getXmlFile());
 		} catch (IOException | SAXException e) {
 			logger.error(e.getMessage());
+			throw new Exception(e);
 		}
 		String networkTitle = this.headerSplitter.getHeader().getName();
 		this.network = OrientdbNetworkFactory.INSTANCE.createTestNetwork(networkTitle);
@@ -90,23 +95,25 @@ public class XbelFileParser {
 		logger.info("New testnetwork created for XBEL: " +network.getTitle());
 	}
 
-	private void processNamespaces() {
+	private void processNamespaces() throws Exception {
 		logger.info("Parsing namespaces from " + this.getXmlFile());
 		reader.setContentHandler(nsSplitter);
 		try {
 			reader.parse(this.getXmlFile());
 		} catch (IOException | SAXException e) {
 			logger.error(e.getMessage());
+			throw new Exception(e);
 		}
 	}
 	
-	private void processStatementGroups() {
+	private void processStatementGroups() throws Exception {
 		logger.info("Parsing statement groups from " + this.getXmlFile());
 		reader.setContentHandler(sgSplitter);
 		try {
 			reader.parse(this.getXmlFile());
 		} catch (IOException | SAXException e) {
 			logger.error(e.getMessage());
+			throw new Exception(e);
 		}
 	}
 
