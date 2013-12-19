@@ -3,16 +3,17 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>org.ndexbio</groupId>
-	<artifactId>ndexbio-xbel</artifactId>
+	<artifactId>ndex-task</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
-	<name>ndexbio-xbel</name>
+	<name>ndex-task</name>
 	<url>http://maven.apache.org</url>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
+
 
 	<repositories>
 		<repository>
@@ -30,6 +31,13 @@
 
 
 	<dependencies>
+
+		<dependency>
+			<groupId>org.ndexbio</groupId>
+			<artifactId>ndex-common</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+
 		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-all</artifactId>
@@ -44,6 +52,12 @@
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
 			<version>15.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<version>1.0.13</version>
 		</dependency>
 
 		<dependency>
@@ -170,6 +184,12 @@
 
 
 	<build>
+	
+		<resources>
+     <resource>
+       <directory>xbel</directory>
+     </resource>
+   </resources>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -179,6 +199,28 @@
 					<source>1.7</source>
 					<target>1.7</target>
 				</configuration>
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<configuration>
+					<descriptorRefs>
+						<descriptorRef>jar-with-dependencies</descriptorRef>
+					</descriptorRefs>
+					<archive>
+						<manifest>
+							<mainClass>org.ndexbio.task.NdexTaskDispatcher</mainClass>
+						</manifest>
+					</archive>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 
 
