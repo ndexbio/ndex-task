@@ -22,7 +22,10 @@ import org.ndexbio.xbel.model.Function;
 import org.ndexbio.xbel.model.Namespace;
 import org.ndexbio.xbel.model.Parameter;
 import org.ndexbio.xbel.model.Relationship;
+import org.ndexbio.xbel.parser.XbelFileParser;
 import org.ndexbio.rest.models.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
@@ -37,6 +40,8 @@ import com.google.common.base.Strings;
 public class XBelNetworkService {
 
 	private static XBelNetworkService instance;
+	private static final Logger logger = LoggerFactory
+			.getLogger(XBelNetworkService.class);
 
 	private NDExPersistenceService persistenceService;
 	private static Joiner idJoiner = Joiner.on(":").skipNulls();
@@ -54,8 +59,26 @@ public class XBelNetworkService {
 				.getNDExPersistenceService();
 	}
 
+	public INetwork getCurrentNetwork() {
+		return this.persistenceService.getCurrentNetwork();
+	}
+
 	public INetwork createNewNetwork() throws Exception {
 		return this.persistenceService.getCurrentNetwork();
+	}
+
+	public void commitCurrentNetwork() throws NdexException  {
+		try {
+			this.persistenceService.commitCurrentNetwork();
+		} catch (NdexException e) {
+			logger.error(e.getMessage());
+			e.printStackTrace();
+			// roll back
+			this.rollbackCurrentTransaction();
+			throw new NdexException(e.getMessage());
+		}
+		
+		
 	}
 
 	public IUser createNewUser(String username) {
@@ -83,7 +106,7 @@ public class XBelNetworkService {
 	}
 
 	public IBaseTerm createIBaseTerm(Parameter p, Long jdexId)
-			throws ExecutionException {
+			throws ExecutionException, NdexException {
 		Preconditions
 				.checkArgument(null != p, "A Parameter object is required");
 		Preconditions.checkArgument(null != jdexId && jdexId.longValue() > 0,
@@ -95,10 +118,12 @@ public class XBelNetworkService {
 
 		bt.setName(p.getValue());
 		// resolve INamespace reference for this parameter from cache
-
 		bt.setTermNamespace(persistenceService.findNamespaceByPrefix(p.getNs()));
 		bt.setJdexId(jdexId.toString());
+		this.getCurrentNetwork().addTerm(bt);
+		this.commitCurrentNetwork();
 		return bt;
+		
 	}
 
 	/*
@@ -107,17 +132,23 @@ public class XBelNetworkService {
 	 * orientdb database being created
 	 */
 	public INamespace createINamespace(Namespace ns, Long jdexId)
-			throws ExecutionException {
+			throws NdexException, ExecutionException {
 		Preconditions.checkArgument(null != ns,
 				"A Namespace object is required");
 		Preconditions.checkArgument(null != jdexId && jdexId.longValue() > 0,
 				"A valid jdex id is required");
-		INamespace newNamespace = persistenceService
-				.findOrCreateINamespace(jdexId);
-		newNamespace.setJdexId(jdexId.toString());
-		newNamespace.setPrefix(ns.getPrefix());
-		newNamespace.setUri(ns.getResourceLocation());
-		return newNamespace;
+		INamespace newNamespace;
+		
+			newNamespace = persistenceService.findOrCreateINamespace(jdexId);
+			newNamespace.setJdexId(jdexId.toString());
+			newNamespace.setPrefix(ns.getPrefix());
+			newNamespace.setUri(ns.getResourceLocation());
+			// connect this namespace to the current network and commit
+			this.getCurrentNetwork().addNamespace(newNamespace);
+			this.commitCurrentNetwork();
+			return newNamespace;
+		
+
 	}
 
 	/*
@@ -125,27 +156,35 @@ public class XBelNetworkService {
 	 * object n.b. this method may result in a new vertex in the orientdb
 	 * database being created
 	 */
-	public ICitation findOrCreateICitation(Citation citation)
-			throws ExecutionException {
+	public ICitation findOrCreateICitation(Citation citation) throws NdexException, ExecutionException {
 		Preconditions.checkArgument(null != citation,
 				"A Citation object is required");
 		String citationIdentifier = idJoiner.join("CITATION",
 				citation.getName(), citation.getReference());
-		Long jdexId = NdexIdentifierCache.INSTANCE.accessIdentifierCache().get(
-				citationIdentifier);
-		boolean persisted = persistenceService.isEntityPersisted(jdexId);
-		ICitation iCitation = persistenceService.findOrCreateICitation(jdexId);
-		if (persisted)
+		
+			Long jdexId = NdexIdentifierCache.INSTANCE.accessIdentifierCache()
+					.get(citationIdentifier);
+			boolean persisted = persistenceService.isEntityPersisted(jdexId);
+			ICitation iCitation = persistenceService
+					.findOrCreateICitation(jdexId);
+			if (persisted)
+				return iCitation;
+			iCitation.setJdexId(jdexId.toString());
+			iCitation.setTitle(citation.getName());
+			iCitation.setType(citation.getType().value());
+			if (null != citation.getAuthorGroup()
+					&& null != citation.getAuthorGroup().getAuthor()) {
+				iCitation
+						.setContributors(citation.getAuthorGroup().getAuthor());
+			}
+			this.getCurrentNetwork().addCitation(iCitation);
+			this.commitCurrentNetwork();
 			return iCitation;
-		iCitation.setJdexId(jdexId.toString());
-		iCitation.setTitle(citation.getName());
-		iCitation.setType(citation.getType().value());
-		if (null != citation.getAuthorGroup() && null != citation.getAuthorGroup().getAuthor()) {
-			iCitation.setContributors(citation.getAuthorGroup().getAuthor());
-		}
-		return iCitation;
+		
 
 	}
+
+
 
 	/*
 	 * public method to map a XBEL model evidence string in the context of a
@@ -153,7 +192,7 @@ public class XBelNetworkService {
 	 * new vertex in the orientdb database being created
 	 */
 	public ISupport findOrCreateISupport(String evidenceString,
-			ICitation iCitation) throws ExecutionException {
+			ICitation iCitation) throws ExecutionException, NdexException {
 		Preconditions.checkArgument(null != evidenceString,
 				"An evidence string is required");
 		String supportIdentifier = idJoiner.join("SUPPORT",
@@ -169,12 +208,14 @@ public class XBelNetworkService {
 		if (null != iCitation) {
 			iSupport.setSupportCitation(iCitation);
 		}
+		this.getCurrentNetwork().addSupport(iSupport);
+		this.commitCurrentNetwork();
 		return iSupport;
 	}
 
 	public void createIEdge(INode subjectNode, INode objectNode,
 			IBaseTerm predicate, ISupport support, ICitation citation)
-			throws ExecutionException {
+			throws ExecutionException, NdexException {
 		if (null != objectNode && null != subjectNode && null != predicate) {
 			Long jdexId = JdexIdService.INSTANCE.getNextJdexId();
 			IEdge edge = persistenceService.findOrCreateIEdge(jdexId);
@@ -186,10 +227,11 @@ public class XBelNetworkService {
 				edge.addSupport(support);
 			}
 			if (null != citation) {
-				edge.addCitation(citation);
+				edge.addCitation(citation);			
 			}
-			System.out.println("Created edge " + edge.getJdexId());
-		} 
+			this.getCurrentNetwork().addNdexEdge(edge);
+			this.commitCurrentNetwork();
+		}
 	}
 
 	/*
@@ -198,7 +240,7 @@ public class XBelNetworkService {
 	 * database
 	 */
 	public IBaseTerm findOrCreateParameter(Parameter parameter)
-			throws ExecutionException {
+			throws ExecutionException, NdexException {
 		if (null == parameter.getNs())
 			parameter.setNs("BEL");
 		String identifier = idJoiner.join("BASE", parameter.getNs(),
@@ -209,7 +251,7 @@ public class XBelNetworkService {
 	}
 
 	public IBaseTerm findOrCreatePredicate(Relationship relationship)
-			throws ExecutionException {
+			throws ExecutionException, NdexException {
 		Parameter parameter = new Parameter();
 		parameter.setNs("BEL");
 		parameter.setValue(relationship.name());
@@ -221,7 +263,7 @@ public class XBelNetworkService {
 	}
 
 	public IBaseTerm findOrCreateFunction(Function function)
-			throws ExecutionException {
+			throws ExecutionException, NdexException {
 		Parameter parameter = new Parameter();
 		parameter.setNs("BEL");
 		parameter.setValue(function.name());
@@ -233,7 +275,7 @@ public class XBelNetworkService {
 	}
 
 	public INode findOrCreateINodeForIFunctionTerm(IFunctionTerm representedTerm)
-			throws ExecutionException {
+			throws ExecutionException, NdexException {
 		String nodeIdentifier = idJoiner.join("NODE",
 				representedTerm.getJdexId());
 		Long jdexId = NdexIdentifierCache.INSTANCE.accessIdentifierCache().get(
@@ -244,6 +286,8 @@ public class XBelNetworkService {
 			return iNode;
 		iNode.setJdexId(jdexId.toString());
 		iNode.setRepresents(representedTerm);
+		this.getCurrentNetwork().addNdexNode(iNode);
+		this.commitCurrentNetwork();
 		return iNode;
 	}
 
