@@ -5,6 +5,7 @@ import java.util.concurrent.ExecutionException;
 import org.ndexbio.common.cache.NdexIdentifierCache;
 import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.orientdb.domain.IBaseTerm;
+import org.ndexbio.orientdb.domain.ICitation;
 import org.ndexbio.orientdb.domain.IEdge;
 import org.ndexbio.orientdb.domain.INamespace;
 import org.ndexbio.orientdb.domain.INetwork;
@@ -70,38 +71,74 @@ public class SIFNetworkService {
 		this.persistenceService.abortTransaction();
 	}
 
-	public IBaseTerm findOrCreateIBaseTerm(String name, Long jdexId)
+	public IBaseTerm findOrCreateIBaseTerm(String name, INamespace namespace, Long jdexId)
 			throws ExecutionException {
 		Preconditions.checkArgument(null != name, "A name is required");
 		boolean persisted = persistenceService.isEntityPersisted(jdexId);
 		final IBaseTerm bt = persistenceService.findOrCreateIBaseTerm(jdexId);
 		if (persisted) return bt;
 		bt.setName(name);
+		bt.setTermNamespace(namespace);
 		bt.setJdexId(jdexId.toString());
 		this.persistenceService.getCurrentNetwork().addTerm(bt);
+		System.out.println("Created baseTerm " 
+				+ bt.getTermNamespace().getPrefix() + " " 
+				+ bt.getTermNamespace().getUri() + " "
+				+ bt.getName());
 		return bt;
 	}
 
-	/*
-	 * public method to map a XBEL model namespace object to a orientdb
-	 * INamespace object n.b. this method may result in a new vertex in the
-	 * orientdb database being created
-	 */
-	public INamespace createINamespace(Namespace ns, Long jdexId)
+
+	public INamespace findOrCreateINamespace(String uri, String prefix)
 			throws ExecutionException {
-		Preconditions.checkArgument(null != ns,
-				"A Namespace object is required");
-		Preconditions.checkArgument(null != jdexId && jdexId.longValue() > 0,
-				"A valid jdex id is required");
-		INamespace newNamespace = persistenceService
+		String namespaceIdentifier = null;
+		if (uri == null && prefix == null){
+			prefix = "LOCAL";
+			namespaceIdentifier = "NAMESPACE:LOCAL";
+		} else if (prefix != null){
+			namespaceIdentifier = idJoiner.join("NAMESPACE", prefix);
+		} else if (uri != null){
+			prefix = this.findPrefixForNamespaceURI(uri);
+			if (prefix != null){
+				namespaceIdentifier = idJoiner.join("NAMESPACE", prefix);				
+			} else {
+				namespaceIdentifier = idJoiner.join("NAMESPACE", uri);	
+			}	
+		}
+		
+		if (uri == null && prefix != null){
+			uri = findURIForNamespacePrefix(prefix);
+		}
+		
+		Long jdexId = NdexIdentifierCache.INSTANCE.accessIdentifierCache().get(
+				namespaceIdentifier);
+		boolean persisted = persistenceService.isEntityPersisted(jdexId);
+		INamespace iNamespace = persistenceService
 				.findOrCreateINamespace(jdexId);
-		newNamespace.setJdexId(jdexId.toString());
-		newNamespace.setPrefix(ns.getPrefix());
-		newNamespace.setUri(ns.getResourceLocation());
-		this.persistenceService.getCurrentNetwork().addNamespace(newNamespace);
-		return newNamespace;
+		if (persisted) return iNamespace;
+
+		// Not persisted, fill out blank Namespace
+		iNamespace.setJdexId(jdexId.toString());
+		if (prefix != null) iNamespace.setPrefix(prefix);
+		if (uri != null) iNamespace.setUri(uri);
+		this.persistenceService.getCurrentNetwork().addNamespace(iNamespace);
+		System.out.println("Created namespace " + iNamespace.getPrefix() + " " + iNamespace.getUri());
+		return iNamespace;
 	}
 
+	private String findPrefixForNamespaceURI(String uri) {
+		if (uri.equals("http://biopax.org/generated/group/")) return "GROUP";
+		if (uri.equals("http://identifiers.org/uniprot/")) return "UniProt";
+		if (uri.equals("http://purl.org/pc2/4/")) return "PathwayCommons2";
+		System.out.println("No Prefix for " + uri);
+		
+		return null;
+	}
+	
+	private String findURIForNamespacePrefix(String prefix){
+		if (prefix.equals("UniProt")) return "http://identifiers.org/uniprot/";
+		return null;
+	}
 
 	public INode findOrCreateINode(IBaseTerm baseTerm)
 			throws ExecutionException {
@@ -119,8 +156,27 @@ public class SIFNetworkService {
 		return iNode;
 
 	}
+	
+	public ICitation findOrCreateICitation(String type, String identifier) throws NdexException, ExecutionException {
+		String citationIdentifier = idJoiner.join("CITATION",
+				type, identifier);
+		
+			Long jdexId = NdexIdentifierCache.INSTANCE.accessIdentifierCache()
+					.get(citationIdentifier);
+			boolean persisted = persistenceService.isEntityPersisted(jdexId);
+			ICitation iCitation = persistenceService
+					.findOrCreateICitation(jdexId);
+			if (persisted)
+				return iCitation;
+			iCitation.setJdexId(jdexId.toString());
+			iCitation.setType(type);
+			iCitation.setIdentifier(identifier);
+			System.out.println("Created citation " + iCitation.getType() + ":" + iCitation.getIdentifier());
+			this.persistenceService.getCurrentNetwork().addCitation(iCitation);
+			return iCitation;
+	}
 
-	public void createIEdge(INode subjectNode, INode objectNode,
+	public IEdge createIEdge(INode subjectNode, INode objectNode,
 			IBaseTerm predicate)
 			throws ExecutionException {
 		if (null != objectNode && null != subjectNode && null != predicate) {
@@ -131,24 +187,35 @@ public class SIFNetworkService {
 			edge.setPredicate(predicate);
 			edge.setObject(objectNode);
 			this.persistenceService.getCurrentNetwork().addNdexEdge(edge);
-			System.out.println("Created edge " + edge.getJdexId());
+			return edge;
+			//System.out.println("Created edge " + edge.getJdexId());
 		} 
+		return null;
+	}
+	
+	private String getNamespaceIdentifier(INamespace namespace){
+		if (namespace.getPrefix() != null ) return namespace.getPrefix();
+		return namespace.getUri();
 	}
 
-	public IBaseTerm findOrCreateNodeBaseTerm(String name)
+	public IBaseTerm findOrCreateNodeBaseTerm(String identifier, INamespace namespace)
 			throws ExecutionException {
-		String identifier = idJoiner.join("BASE", name);
+		String jdexCacheId = idJoiner.join("BASE", identifier, getNamespaceIdentifier(namespace));
 		Long jdexId = NdexIdentifierCache.INSTANCE.accessTermCache().get(
-				identifier);
-		return this.findOrCreateIBaseTerm(name, jdexId);
+				jdexCacheId);
+		return this.findOrCreateIBaseTerm(identifier, namespace, jdexId);
 	}
 
-	public IBaseTerm findOrCreatePredicate(String name)
+	public IBaseTerm findOrCreatePredicate(String identifier, INamespace namespace)
 			throws ExecutionException {
-		String identifier = idJoiner.join("PREDICATE", name);
+		String jdexCacheId = idJoiner.join("PREDICATE", identifier, getNamespaceIdentifier(namespace));
 		Long jdexId = NdexIdentifierCache.INSTANCE.accessTermCache().get(
-				identifier);
-		return this.findOrCreateIBaseTerm(name, jdexId);
+				jdexCacheId);
+		return this.findOrCreateIBaseTerm(identifier, namespace, jdexId);
+	}
+
+	public void setFormat(String format) {
+		persistenceService.getCurrentNetwork().setFormat(format);	
 	}
 
 

@@ -19,7 +19,7 @@ import org.ndexbio.rest.models.Task;
 			if( task.getType() == TaskType.PROCESS_UPLOADED_NETWORK) {
 				return new FileUploadTask(taskId);
 			}
-			throw new IllegalArgumentException("TTask type: " +task.getType() +" is not supported");
+			throw new IllegalArgumentException("Task type: " +task.getType() +" is not supported");
 		} catch (IllegalArgumentException | SecurityException | NdexException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

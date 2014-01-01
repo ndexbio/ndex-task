@@ -76,7 +76,7 @@ public class FileUploadTask extends NdexTask {
 				if (!xbelParser.getValidationState().isValid()) {
 					this.taskStatus = Status.COMPLETED_WITH_ERRORS;
 					throw new NdexException(
-							"XBEL file is has invalid elements.");
+							"XBEL file fails XML schema validation - one or more elements do not meet XBEL specification.");
 				}
 				xbelParser.parseXbelFile();
 				this.taskStatus = Status.COMPLETED;
@@ -98,7 +98,7 @@ public class FileUploadTask extends NdexTask {
 			}
 		default:
 			file.delete();
-			logger.error("The uploaded file type is not supported; must be SIF, XBEL, or XLSX.");
+			logger.error("The uploaded file type is not supported; must be SIF, XBEL, XLS or XLSX.");
 			this.taskStatus = Status.COMPLETED_WITH_ERRORS;
 
 		}
