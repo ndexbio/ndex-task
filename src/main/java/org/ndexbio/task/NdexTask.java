@@ -1,12 +1,11 @@
 package org.ndexbio.task;
 
 import java.util.concurrent.Callable;
-
 import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.exceptions.ObjectNotFoundException;
-import org.ndexbio.orientdb.domain.Status;
+import org.ndexbio.common.models.data.Status;
+import org.ndexbio.common.models.object.Task;
 import org.ndexbio.orientdb.persistence.NdexTaskService;
-import org.ndexbio.rest.models.Task;
 
 
 

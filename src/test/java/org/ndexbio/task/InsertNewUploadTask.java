@@ -8,15 +8,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Date;
-
 import org.ndexbio.common.exceptions.*;
+import org.ndexbio.common.helpers.Configuration;
+import org.ndexbio.common.helpers.IdConverter;
+import org.ndexbio.common.models.data.*;
+import org.ndexbio.common.models.object.*;
 import org.ndexbio.orientdb.persistence.OrientDBConnectionService;
-import org.ndexbio.orientdb.domain.*;
-import org.ndexbio.rest.models.*;
-import org.ndexbio.service.helpers.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import com.google.common.base.Preconditions;
 import com.orientechnologies.orient.core.id.ORID;
 
@@ -109,7 +108,7 @@ public class InsertNewUploadTask {
 	        Preconditions.checkArgument(null!= newTask,"The task to create is empty.");
 			
 	        
-	        final ORID userRid = RidConverter.convertToRid(this.getLoggedInUser().getId());
+	        final ORID userRid = IdConverter.toRid(this.getLoggedInUser().getId());
 
 	        try
 	        {
@@ -128,7 +127,7 @@ public class InsertNewUploadTask {
 	            _orientDbGraph.getBaseGraph().commit();
 	            logger.info("file upload task for " + task.getResource() +" created");
 
-	            newTask.setId(RidConverter.convertToJid((ORID) task.asVertex().getId()));
+	            newTask.setId(IdConverter.toJid((ORID) task.asVertex().getId()));
 	            return newTask;
 	        }
 	        catch (Exception e)

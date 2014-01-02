@@ -1,13 +1,12 @@
 package org.ndexbio.task;
 
 import java.io.File;
-
 import org.ndexbio.common.exceptions.NdexException;
-import org.ndexbio.orientdb.domain.Status;
-import org.ndexbio.rest.models.Task;
-import org.ndexbio.service.helpers.Configuration;
-import org.ndexbio.task.exel.parser.ExcelFileParser;
-import org.ndexbio.task.sif.SIFFileParser;
+import org.ndexbio.common.helpers.Configuration;
+import org.ndexbio.common.models.data.Status;
+import org.ndexbio.common.models.object.Task;
+import org.ndexbio.task.parsingengines.ExcelParser;
+import org.ndexbio.task.parsingengines.SifParser;
 import org.ndexbio.xbel.parser.XbelFileParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,9 +59,9 @@ public class FileUploadTask extends NdexTask {
 		switch (com.google.common.io.Files.getFileExtension(this.getFilename())) {
 		case ("sif"):
 			try {
-				final SIFFileParser sifParser = new SIFFileParser(
+				final SifParser sifParser = new SifParser(
 						file.getAbsolutePath());
-				sifParser.parseSIFFile();
+				sifParser.parseFile();
 				this.taskStatus = Status.COMPLETED;
 			} catch (Exception e) {
 				this.taskStatus = Status.COMPLETED_WITH_ERRORS;
@@ -88,9 +87,9 @@ public class FileUploadTask extends NdexTask {
 		case ("xlsx"):
 		case ("xls"):
 			try {
-				final ExcelFileParser excelParser = new ExcelFileParser(
+				final ExcelParser excelParser = new ExcelParser(
 						file.getAbsolutePath());
-				excelParser.parseExcelFile();
+				excelParser.parseFile();
 				this.taskStatus = Status.COMPLETED;
 			} catch (Exception e) {
 				this.taskStatus = Status.COMPLETED_WITH_ERRORS;

@@ -3,14 +3,12 @@ package org.ndexbio.xbel.parser;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
-
 import org.ndexbio.common.cache.NdexIdentifierCache;
-import org.ndexbio.orientdb.domain.INetwork;
+import org.ndexbio.common.models.data.INetwork;
 import org.ndexbio.xbel.parser.XbelFileValidator.ValidationState;
 import org.ndexbio.xbel.service.OrientdbNetworkFactory;
 import org.ndexbio.xbel.service.XBelNetworkService;
@@ -21,7 +19,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
-
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;

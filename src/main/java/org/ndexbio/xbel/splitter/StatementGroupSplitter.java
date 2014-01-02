@@ -4,18 +4,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
-
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-
 import org.ndexbio.common.cache.NdexIdentifierCache;
 import org.ndexbio.common.exceptions.NdexException;
-import org.ndexbio.orientdb.domain.IBaseTerm;
-import org.ndexbio.orientdb.domain.ICitation;
-import org.ndexbio.orientdb.domain.IFunctionTerm;
-import org.ndexbio.orientdb.domain.INode;
-import org.ndexbio.orientdb.domain.ISupport;
-import org.ndexbio.orientdb.domain.ITerm;
+import org.ndexbio.common.models.data.IBaseTerm;
+import org.ndexbio.common.models.data.ICitation;
+import org.ndexbio.common.models.data.IFunctionTerm;
+import org.ndexbio.common.models.data.INode;
+import org.ndexbio.common.models.data.ISupport;
+import org.ndexbio.common.models.data.ITerm;
 import org.ndexbio.orientdb.persistence.NDExPersistenceService;
 import org.ndexbio.orientdb.persistence.NDExPersistenceServiceFactory;
 import org.ndexbio.xbel.model.AnnotationGroup;
@@ -29,7 +27,6 @@ import org.ndexbio.xbel.model.Term;
 import org.ndexbio.xbel.service.XBelNetworkService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;

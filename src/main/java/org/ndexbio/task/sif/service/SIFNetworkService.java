@@ -1,24 +1,21 @@
 package org.ndexbio.task.sif.service;
 
 import java.util.concurrent.ExecutionException;
-
 import org.ndexbio.common.cache.NdexIdentifierCache;
 import org.ndexbio.common.exceptions.NdexException;
-import org.ndexbio.orientdb.domain.IBaseTerm;
-import org.ndexbio.orientdb.domain.ICitation;
-import org.ndexbio.orientdb.domain.IEdge;
-import org.ndexbio.orientdb.domain.INamespace;
-import org.ndexbio.orientdb.domain.INetwork;
-import org.ndexbio.orientdb.domain.INetworkMembership;
-import org.ndexbio.orientdb.domain.INode;
-import org.ndexbio.orientdb.domain.IUser;
+import org.ndexbio.common.models.data.IBaseTerm;
+import org.ndexbio.common.models.data.ICitation;
+import org.ndexbio.common.models.data.IEdge;
+import org.ndexbio.common.models.data.INamespace;
+import org.ndexbio.common.models.data.INetwork;
+import org.ndexbio.common.models.data.INetworkMembership;
+import org.ndexbio.common.models.data.INode;
+import org.ndexbio.common.models.data.IUser;
+import org.ndexbio.common.models.object.SearchParameters;
+import org.ndexbio.common.models.object.SearchResult;
 import org.ndexbio.orientdb.persistence.NDExPersistenceService;
 import org.ndexbio.orientdb.persistence.NDExPersistenceServiceFactory;
-import org.ndexbio.rest.models.SearchParameters;
-import org.ndexbio.rest.models.SearchResult;
 import org.ndexbio.service.JdexIdService;
-import org.ndexbio.xbel.model.*;
-
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;

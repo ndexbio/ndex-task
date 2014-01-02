@@ -2,16 +2,13 @@ package org.ndexbio.xbel.service;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.ndexbio.common.exceptions.NdexException;
-import org.ndexbio.orientdb.domain.INetwork;
-import org.ndexbio.orientdb.domain.INetworkMembership;
-import org.ndexbio.orientdb.domain.IUser;
-import org.ndexbio.orientdb.domain.Permissions;
-import org.ndexbio.rest.models.*;
+import org.ndexbio.common.models.data.INetwork;
+import org.ndexbio.common.models.data.INetworkMembership;
+import org.ndexbio.common.models.data.IUser;
+import org.ndexbio.common.models.data.Permissions;
+import org.ndexbio.common.models.object.*;
 import org.ndexbio.xbel.service.XBelNetworkService;
-
-
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 

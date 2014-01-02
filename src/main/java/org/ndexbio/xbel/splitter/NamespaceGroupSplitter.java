@@ -1,13 +1,11 @@
 package org.ndexbio.xbel.splitter;
 
 import java.util.concurrent.ExecutionException;
-
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-
 import org.ndexbio.common.cache.NdexIdentifierCache;
 import org.ndexbio.common.exceptions.NdexException;
-import org.ndexbio.orientdb.domain.INamespace;
+import org.ndexbio.common.models.data.INamespace;
 import org.ndexbio.orientdb.persistence.NDExPersistenceService;
 import org.ndexbio.orientdb.persistence.NDExPersistenceServiceFactory;
 import org.ndexbio.xbel.model.Namespace;

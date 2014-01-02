@@ -7,11 +7,10 @@ import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-
 import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.exceptions.ObjectNotFoundException;
+import org.ndexbio.common.models.object.Task;
 import org.ndexbio.orientdb.persistence.NdexTaskService;
-import org.ndexbio.rest.models.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
