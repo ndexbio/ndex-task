@@ -8,6 +8,7 @@ import org.ndexbio.xbel.parser.XbelFileParser;
 
 public class TestParsingEngine
 {
+	/*
     @Test
     public void parseExcelFile() throws Exception
     {
@@ -51,4 +52,5 @@ public class TestParsingEngine
         if (xbelParser.getValidationState().isValid())
             xbelParser.parseXbelFile();
     }
+    */
 }
