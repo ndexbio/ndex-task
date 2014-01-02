@@ -19,7 +19,7 @@ public class TestParsingEngine
     private static IUser _testUser = null;
 
     @BeforeClass
-    public static void setupUser(String[] args) throws Exception
+    public static void setupUser() throws Exception
     {
         SearchParameters searchParameters = new SearchParameters();
         searchParameters.setSearchString(_testUserName);
@@ -36,7 +36,7 @@ public class TestParsingEngine
             e.printStackTrace();
         }
     }
-
+/*
     @Test
     public void parseExcelFile() throws Exception
     {
@@ -94,10 +94,12 @@ public class TestParsingEngine
         sifParser.parseFile();
     }
 
+*/
+    
     @Test
     public void parseLargeSifFile() throws Exception
     {
-        final URL galNetworkUrl = getClass().getResource("Glucocorticoid_receptor_regulatory_network.sif");
+        final URL galNetworkUrl = getClass().getResource("/resources/Glucocorticoid_receptor_regulatory_network.SIF");
         final SifParser sifParser = new SifParser(galNetworkUrl.toURI().getPath());
         sifParser.setNetwork(SIFNetworkService.getInstance().createNewNetwork());
         INetworkMembership membership = SIFNetworkService.getInstance().createNewMember();
@@ -116,8 +118,8 @@ public class TestParsingEngine
     @Test
     public void parseXbelFile() throws Exception
     {
-        final URL galNetworkUrl = getClass().getResource("/resources/tiny-corpus.xbel");
-        final XbelParser xbelParser = new XbelParser(galNetworkUrl.toURI().getPath());
+        final URL xbelNetworkURL = getClass().getResource("/resources/tiny-corpus.xbel");
+        final XbelParser xbelParser = new XbelParser(xbelNetworkURL.toURI().getPath());
 
         if (!xbelParser.getValidationState().isValid())
             Assert.fail("tiny-corpus.xbel is invalid.");
@@ -135,7 +137,7 @@ public class TestParsingEngine
 
         xbelParser.parseFile();
     }
-
+/*
     @Test
     public void parseLargeXbelFile() throws Exception
     {
@@ -158,4 +160,5 @@ public class TestParsingEngine
 
         xbelParser.parseFile();
     }
+    */
 }
