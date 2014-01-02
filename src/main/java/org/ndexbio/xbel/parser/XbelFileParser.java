@@ -3,10 +3,12 @@ package org.ndexbio.xbel.parser;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
+
 import org.ndexbio.common.cache.NdexIdentifierCache;
 import org.ndexbio.common.models.data.INetwork;
 import org.ndexbio.xbel.parser.XbelFileValidator.ValidationState;
@@ -19,6 +21,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
+
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -42,14 +46,19 @@ public class XbelFileParser {
 	private NamespaceGroupSplitter nsSplitter;
 	private StatementGroupSplitter sgSplitter;
 	private HeaderSplitter headerSplitter;
+	private String ownerName;
 	
 	private INetwork network;
 	private static final Logger logger = LoggerFactory.getLogger(XbelFileParser.class);
 
-	public XbelFileParser(String fn) throws JAXBException {
+	public XbelFileParser(String fn, String ownerName) throws JAXBException {
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(fn),
 				"A filename is required");
-		
+		/*
+		 * maintain a  default user for legacy tests
+		 * TODO: refactor legacy tests & remove default user
+		 */
+		this.setOwnerName(Objects.firstNonNull(ownerName, "jstegall"));
 		this.xmlFile = new File(fn).toURI().toString();
 		this.validationState = new XbelFileValidator(fn).getValidationState();
 		logger.info(this.validationState.getValidationMessage());
@@ -87,9 +96,10 @@ public class XbelFileParser {
 			throw new Exception(e);
 		}
 		String networkTitle = this.headerSplitter.getHeader().getName();
-		this.network = OrientdbNetworkFactory.INSTANCE.createTestNetwork(networkTitle);
+		this.network = XBelNetworkService.getInstance().createNewNetwork(this.getOwnerName(), networkTitle);
+		//this.network = OrientdbNetworkFactory.INSTANCE.createTestNetwork(networkTitle);
 		
-		logger.info("New testnetwork created for XBEL: " +network.getTitle());
+		logger.info("New test network created for XBEL: " +network.getTitle());
 	}
 
 	private void processNamespaces() throws Exception {
@@ -138,6 +148,14 @@ public class XbelFileParser {
 
 	public String getXmlFile() {
 		return xmlFile;
+	}
+
+	public String getOwnerName() {
+		return ownerName;
+	}
+
+	private void setOwnerName(String ownerName) {
+		this.ownerName = ownerName;
 	}
 	
 	

@@ -71,7 +71,7 @@ public class FileUploadTask extends NdexTask {
 		case ("xbel"):
 			try {
 				final XbelFileParser xbelParser = new XbelFileParser(
-						file.getAbsolutePath());
+						file.getAbsolutePath(),this.getTask().getOwner().getUsername());
 				if (!xbelParser.getValidationState().isValid()) {
 					this.taskStatus = Status.COMPLETED_WITH_ERRORS;
 					throw new NdexException(

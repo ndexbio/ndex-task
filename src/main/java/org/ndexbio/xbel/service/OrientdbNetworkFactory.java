@@ -22,42 +22,9 @@ public enum OrientdbNetworkFactory {
 	private String testUserName = "jstegall";
 	
 	public INetwork createTestNetwork(String title) throws Exception {
-		 final INetwork testNetwork = XBelNetworkService.getInstance().createNewNetwork();
-		
-		 List<Membership> membershipList = new ArrayList<Membership>();
-			Membership membership = new Membership();
-			IUser testUser = this.resolveUserUserByUsername(testUserName);
-			INetworkMembership newMember = XBelNetworkService.getInstance().createNewMember();
-			//membership.setResourceId();
-			membership.setResourceName(testUser.getUsername());
-			membership.setPermissions(Permissions.ADMIN);
-			membershipList.add(membership);
-			testNetwork.addMember(newMember);
-			testNetwork.setTitle(title);
-			// commit new network
+		 final INetwork testNetwork = XBelNetworkService.getInstance().createNewNetwork(testUserName, title);
 			XBelNetworkService.getInstance().commitCurrentNetwork();
 		 return  testNetwork;
 	}
-	 public IUser resolveUserUserByUsername(String userName) {
-	    	Preconditions.checkArgument(!Strings.isNullOrEmpty(userName), 
-	    			"A username is required");
-			SearchParameters searchParameters = new SearchParameters();
-			searchParameters.setSearchString(userName);
-			searchParameters.setSkip(0);
-			searchParameters.setTop(1);
-
-			try {
-				SearchResult<IUser> result = XBelNetworkService.getInstance().findUsers(searchParameters);
-				return  (IUser) result.getResults().iterator().next();
-				
-			} catch (NdexException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-				
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();		
-			}
-			return null;
-		}
+	
 }

@@ -1,8 +1,10 @@
 package org.ndexbio.xbel.service;
 
 import java.util.concurrent.ExecutionException;
+
 import org.ndexbio.orientdb.persistence.NDExPersistenceService;
 import org.ndexbio.orientdb.persistence.NDExPersistenceServiceFactory;
+import org.ndexbio.service.CommonNetworkService;
 import org.ndexbio.service.JdexIdService;
 import org.ndexbio.common.cache.NdexIdentifierCache;
 import org.ndexbio.common.exceptions.NdexException;
@@ -25,6 +27,7 @@ import org.ndexbio.xbel.model.Relationship;
 import org.ndexbio.xbel.parser.XbelFileParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
@@ -35,13 +38,13 @@ import com.google.common.base.Strings;
  * The primary justification for this class is to separate the use of XBel
  * model objects from identically named NDEx model objects
  */
-public class XBelNetworkService {
+public class XBelNetworkService extends CommonNetworkService {
 
 	private static XBelNetworkService instance;
 	private static final Logger logger = LoggerFactory
 			.getLogger(XBelNetworkService.class);
 
-	private NDExPersistenceService persistenceService;
+	
 	private static Joiner idJoiner = Joiner.on(":").skipNulls();
 
 	public static XBelNetworkService getInstance() {
@@ -53,18 +56,10 @@ public class XBelNetworkService {
 
 	private XBelNetworkService() {
 		super();
-		this.persistenceService = NDExPersistenceServiceFactory.INSTANCE
-				.getNDExPersistenceService();
+		
 	}
 
-	public INetwork getCurrentNetwork() {
-		return this.persistenceService.getCurrentNetwork();
-	}
-
-	public INetwork createNewNetwork() throws Exception {
-		return this.persistenceService.getCurrentNetwork();
-	}
-
+	
 	public void commitCurrentNetwork() throws NdexException  {
 		try {
 			this.persistenceService.commitCurrentNetwork();
@@ -76,32 +71,8 @@ public class XBelNetworkService {
 			throw new NdexException(e.getMessage());
 		}
 		
-		
 	}
 
-	public IUser createNewUser(String username) {
-		Preconditions.checkArgument(!Strings.isNullOrEmpty(username));
-		IUser user = this.persistenceService.getCurrentUser();
-		user.setUsername(username);
-		return user;
-	}
-
-	public INetworkMembership createNewMember() {
-		return this.persistenceService.createNetworkMembership();
-	}
-
-	public SearchResult<IUser> findUsers(SearchParameters searchParameters)
-			throws NdexException {
-		return this.persistenceService.findUsers(searchParameters);
-	}
-
-	public void persistNewNetwork() {
-		this.persistenceService.persistNetwork();
-	}
-
-	public void rollbackCurrentTransaction() {
-		this.persistenceService.abortTransaction();
-	}
 
 	public IBaseTerm createIBaseTerm(Parameter p, Long jdexId)
 			throws ExecutionException, NdexException {
@@ -181,8 +152,6 @@ public class XBelNetworkService {
 		
 
 	}
-
-
 
 	/*
 	 * public method to map a XBEL model evidence string in the context of a
