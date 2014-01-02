@@ -6,6 +6,7 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 
 import org.ndexbio.common.cache.NdexIdentifierCache;
+import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.orientdb.domain.INamespace;
 import org.ndexbio.orientdb.persistence.NDExPersistenceService;
 import org.ndexbio.orientdb.persistence.NDExPersistenceServiceFactory;
@@ -53,6 +54,9 @@ public class NamespaceGroupSplitter extends XBelSplitter {
 			} catch (ExecutionException e1) {
 				logger.error(e1.getMessage());
 				e1.printStackTrace();
+			} catch (NdexException e) {
+				logger.error(e.getMessage());
+				e.printStackTrace();
 			}	
 		   
 		        for( Namespace ns : ng.getNamespace()){
@@ -69,9 +73,13 @@ public class NamespaceGroupSplitter extends XBelSplitter {
 						
 						logger.error(e.getMessage());
 						e.printStackTrace();
+					} catch (NdexException e) {
+						logger.error(e.getMessage());
+						e.printStackTrace();
 					}
-		        	logger.info("done with namespaces");
+		        	
 		        }
+		        logger.info("done with namespaces");
 		        
 	}	
 	

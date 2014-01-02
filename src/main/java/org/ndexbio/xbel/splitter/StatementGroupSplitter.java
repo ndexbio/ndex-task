@@ -9,6 +9,7 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 
 import org.ndexbio.common.cache.NdexIdentifierCache;
+import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.orientdb.domain.IBaseTerm;
 import org.ndexbio.orientdb.domain.ICitation;
 import org.ndexbio.orientdb.domain.IFunctionTerm;
@@ -51,7 +52,7 @@ public class StatementGroupSplitter extends XBelSplitter {
 	}
 
 	@Override
-	protected void process() throws JAXBException, ExecutionException {
+	protected void process() throws JAXBException, ExecutionException, NdexException {
 		// instantiate outer level StatementGroup
 		StatementGroup sg = (StatementGroup) unmarshallerHandler.getResult();
 		this.processStatementGroup(sg);
@@ -59,7 +60,7 @@ public class StatementGroupSplitter extends XBelSplitter {
 	}
 
 	private void processStatementGroup(StatementGroup sg)
-			throws ExecutionException {
+			throws ExecutionException, NdexException {
 		processStatementGroup(sg, null, null);
 	}
 
@@ -72,7 +73,8 @@ public class StatementGroupSplitter extends XBelSplitter {
 	// is true for Supports.
 	private void processStatementGroup(StatementGroup sg,
 			ISupport outerSupport, ICitation outerCitation)
-			throws ExecutionException {
+			throws ExecutionException, NdexException {
+		
 		// process the Annotation group for this Statement Group
 		AnnotationGroup annotationGroup = sg.getAnnotationGroup();
 
@@ -112,7 +114,7 @@ public class StatementGroupSplitter extends XBelSplitter {
 
 	private ISupport supportFromAnnotationGroup(
 			AnnotationGroup annotationGroup, ICitation citation)
-			throws ExecutionException {
+			throws ExecutionException, NdexException {
 		if (null == annotationGroup)
 			return null;
 		for (Object object : annotationGroup
@@ -128,7 +130,7 @@ public class StatementGroupSplitter extends XBelSplitter {
 	}
 
 	private ICitation citationFromAnnotationGroup(
-			AnnotationGroup annotationGroup) throws ExecutionException {
+			AnnotationGroup annotationGroup) throws ExecutionException, NdexException {
 		if (null == annotationGroup)
 			return null;
 		for (Object object : annotationGroup
@@ -145,11 +147,10 @@ public class StatementGroupSplitter extends XBelSplitter {
 	 * process statement group
 	 */
 	private void processStatements(StatementGroup sg, ISupport support,
-			ICitation citation) throws ExecutionException {
+			ICitation citation) throws ExecutionException, NdexException {
 		List<Statement> statementList = sg.getStatement();
 		for (Statement statement : statementList) {
-			// System.out.println("Processing Statement: "
-			// + statement.getRelationship().toString());
+			 
 
 			// if (false){
 			if (null != statement.getSubject()) {
@@ -178,7 +179,7 @@ public class StatementGroupSplitter extends XBelSplitter {
 	}
 
 	private INode processStatementSubject(Subject sub)
-			throws ExecutionException {
+			throws ExecutionException, NdexException {
 		if (null == sub) {
 			return null;
 		}
@@ -197,14 +198,14 @@ public class StatementGroupSplitter extends XBelSplitter {
 	}
 
 	private INode processStatementObject(org.ndexbio.xbel.model.Object obj)
-			throws ExecutionException {
+			throws ExecutionException, NdexException {
 		if (null == obj) {
 			return null;
 		}
 		try {
 			if (null != obj.getStatement()) {
-				System.out.println("Object has internal statement "
-						+ obj.getStatement().getRelationship().toString());
+				//System.out.println("Object has internal statement "
+				//		+ obj.getStatement().getRelationship().toString());
 			} else {
 				IFunctionTerm representedTerm = this.processFunctionTerm(obj
 						.getTerm());
@@ -221,7 +222,7 @@ public class StatementGroupSplitter extends XBelSplitter {
 	}
 
 	private IFunctionTerm processFunctionTerm(Term term)
-			throws ExecutionException {
+			throws ExecutionException, NdexException {
 		// XBEL "Term" corresponds to NDEx FunctionTerm
 		IBaseTerm function = XBelNetworkService.getInstance()
 				.findOrCreateFunction(term.getFunction());
@@ -246,7 +247,7 @@ public class StatementGroupSplitter extends XBelSplitter {
 	 * containing the namespace and term value.
 	 */
 	private List<ITerm>  processInnerTerms(Term term)
-			throws ExecutionException {
+			throws ExecutionException, NdexException {
 		
 		List<ITerm> childList = Lists.newArrayList();
 

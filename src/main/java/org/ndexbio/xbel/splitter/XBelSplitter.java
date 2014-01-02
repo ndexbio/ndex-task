@@ -8,6 +8,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.UnmarshallerHandler;
 
+import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.xbel.model.NamespaceGroup;
 import org.xml.sax.Attributes;
 import org.xml.sax.Locator;
@@ -140,7 +141,7 @@ public abstract class XBelSplitter extends XMLFilterImpl {
 				try {
 
 					 process();
-				} catch (JAXBException | ExecutionException je) {
+				} catch (JAXBException | NdexException | ExecutionException je) {
 					// error was found during the unmarshalling.
 					// you can either abort the processing by throwing a
 					// SAXException,
@@ -182,5 +183,5 @@ public abstract class XBelSplitter extends XMLFilterImpl {
 
 	}
 	
-	protected abstract void process() throws JAXBException, ExecutionException;
+	protected abstract void process() throws JAXBException, ExecutionException, NdexException;
 }

@@ -37,7 +37,8 @@ public enum OrientdbNetworkFactory {
 			membershipList.add(membership);
 			testNetwork.addMember(newMember);
 			testNetwork.setTitle(title);
-		 
+			// commit new network
+			XBelNetworkService.getInstance().commitCurrentNetwork();
 		 return  testNetwork;
 	}
 	 public IUser resolveUserUserByUsername(String userName) {
