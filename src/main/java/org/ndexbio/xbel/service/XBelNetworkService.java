@@ -22,7 +22,6 @@ import org.ndexbio.xbel.model.Function;
 import org.ndexbio.xbel.model.Namespace;
 import org.ndexbio.xbel.model.Parameter;
 import org.ndexbio.xbel.model.Relationship;
-import org.ndexbio.xbel.parser.XbelFileParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.google.common.base.Joiner;

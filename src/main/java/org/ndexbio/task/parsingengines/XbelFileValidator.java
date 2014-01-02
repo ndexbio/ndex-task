@@ -1,4 +1,4 @@
-package org.ndexbio.xbel.parser;
+package org.ndexbio.task.parsingengines;
 
 import java.io.File;
 import java.io.IOException;
