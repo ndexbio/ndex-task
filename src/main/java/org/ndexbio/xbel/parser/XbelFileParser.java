@@ -11,7 +11,8 @@ import javax.xml.parsers.SAXParserFactory;
 
 import org.ndexbio.common.cache.NdexIdentifierCache;
 import org.ndexbio.common.models.data.INetwork;
-import org.ndexbio.xbel.parser.XbelFileValidator.ValidationState;
+import org.ndexbio.task.parsingengines.XbelFileValidator;
+import org.ndexbio.task.parsingengines.XbelFileValidator.ValidationState;
 import org.ndexbio.xbel.service.OrientdbNetworkFactory;
 import org.ndexbio.xbel.service.XBelNetworkService;
 import org.ndexbio.xbel.splitter.HeaderSplitter;

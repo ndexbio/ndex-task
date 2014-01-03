@@ -9,6 +9,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+
 import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.models.data.IBaseTerm;
 import org.ndexbio.common.models.data.ICitation;
@@ -17,9 +18,11 @@ import org.ndexbio.common.models.data.INamespace;
 import org.ndexbio.common.models.data.INetwork;
 import org.ndexbio.common.models.data.INode;
 import org.ndexbio.task.sif.service.SIFNetworkService;
+
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import com.google.common.io.Files;
 
 /*
  * Lines in the SIF file specify a source node, a relationship type
@@ -36,18 +39,21 @@ public class SifParser implements IParsingEngine
     private final String extendedBinarySIFPropertiesHeader = "NAME	ORGANISM	URI	DATASOURCE";
     private final List<String> msgBuffer;
     private INetwork network;
+    private String ownerName;
 
     
     
-    public SifParser(String fn) throws Exception
+    public SifParser(String fn, String ownerName) throws Exception
     {
         Preconditions.checkArgument(!Strings.isNullOrEmpty(fn), "A filename is required");
+        Preconditions.checkArgument(!Strings.isNullOrEmpty(fn), "A network owner name is required");
+        this.setOwnerName(ownerName);
         this.msgBuffer = Lists.newArrayList();
         this.sifFile = new File(fn);
         this.sifURI = sifFile.toURI().toString();
+        
     }
 
-    
     
     public List<String> getMsgBuffer()
     {
@@ -69,9 +75,11 @@ public class SifParser implements IParsingEngine
         return network;
     }
 
-    public void setNetwork(INetwork network)
+    private void setNetwork() throws NdexException
     {
-        this.network = network;
+    	String title = Files.getNameWithoutExtension(this.sifFile.getName());
+    	SIFNetworkService.getInstance().createNewNetwork(this.getOwnerName(),
+    			title);
     }
 
     
@@ -89,6 +97,7 @@ public class SifParser implements IParsingEngine
     {
         try
         {
+        	this.setNetwork();
             this.getMsgBuffer().add("Parsing lines from " + this.getSIFURI());
             BufferedReader bufferedReader;
             
@@ -428,4 +437,15 @@ public class SifParser implements IParsingEngine
 
         return iBaseTerm;
     }
+
+
+
+	public String getOwnerName() {
+		return ownerName;
+	}
+
+
+ private void setOwnerName(String ownerName) {
+		this.ownerName = ownerName;
+	}
 }

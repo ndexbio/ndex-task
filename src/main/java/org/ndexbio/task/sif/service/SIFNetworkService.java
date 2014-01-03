@@ -1,30 +1,30 @@
 package org.ndexbio.task.sif.service;
 
 import java.util.concurrent.ExecutionException;
+
 import org.ndexbio.common.cache.NdexIdentifierCache;
 import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.models.data.IBaseTerm;
 import org.ndexbio.common.models.data.ICitation;
 import org.ndexbio.common.models.data.IEdge;
 import org.ndexbio.common.models.data.INamespace;
-import org.ndexbio.common.models.data.INetwork;
-import org.ndexbio.common.models.data.INetworkMembership;
 import org.ndexbio.common.models.data.INode;
-import org.ndexbio.common.models.data.IUser;
-import org.ndexbio.common.models.object.SearchParameters;
-import org.ndexbio.common.models.object.SearchResult;
-import org.ndexbio.orientdb.persistence.NDExPersistenceService;
-import org.ndexbio.orientdb.persistence.NDExPersistenceServiceFactory;
+import org.ndexbio.service.CommonNetworkService;
 import org.ndexbio.service.JdexIdService;
+
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 
-public class SIFNetworkService {
+/*
+ * Subclass of CommonNetworkService implements database operations specific to 
+ * SIF-formatted files
+ */
+
+public class SIFNetworkService extends CommonNetworkService {
 
 	private static SIFNetworkService instance;
 
-	private NDExPersistenceService persistenceService;
+	
 	private static Joiner idJoiner = Joiner.on(":").skipNulls();
 
 	public static SIFNetworkService getInstance() {
@@ -36,36 +36,6 @@ public class SIFNetworkService {
 
 	private SIFNetworkService() {
 		super();
-		this.persistenceService = NDExPersistenceServiceFactory.INSTANCE
-				.getNDExPersistenceService();
-	}
-
-	public INetwork createNewNetwork() throws Exception {
-		return this.persistenceService.getCurrentNetwork();
-	}
-
-	public IUser createNewUser(String username) {
-		Preconditions.checkArgument(!Strings.isNullOrEmpty(username));
-		IUser user = this.persistenceService.getCurrentUser();
-		user.setUsername(username);
-		return user;
-	}
-
-	public INetworkMembership createNewMember() {
-		return this.persistenceService.createNetworkMembership();
-	}
-
-	public SearchResult<IUser> findUsers(SearchParameters searchParameters)
-			throws NdexException {
-		return this.persistenceService.findUsers(searchParameters);
-	}
-
-	public void persistNewNetwork() {
-		this.persistenceService.persistNetwork();
-	}
-
-	public void rollbackCurrentTransaction() {
-		this.persistenceService.abortTransaction();
 	}
 
 	public IBaseTerm findOrCreateIBaseTerm(String name, INamespace namespace, Long jdexId)

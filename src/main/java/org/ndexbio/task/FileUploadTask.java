@@ -1,18 +1,20 @@
 package org.ndexbio.task;
 
 import java.io.File;
+
 import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.helpers.Configuration;
 import org.ndexbio.common.models.data.Status;
 import org.ndexbio.common.models.object.Task;
 import org.ndexbio.task.parsingengines.*;
+import org.ndexbio.xbel.parser.XbelFileParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /*
  * This class represents a NdexTask subclass that is responsible
  * for uploading a specified data file into a new NDEx network in
- * orientdb. A paricular file parser is slected based on the file type.
+ * orientdb. A particular file parser is selected based on the file type.
  * Since this class is invoked based on a Task registered in the orientdb 
  * database, no user authentication is required.
  * 
@@ -58,7 +60,7 @@ public class FileUploadTask extends NdexTask {
 		case ("sif"):
 			try {
 				final SifParser sifParser = new SifParser(
-						file.getAbsolutePath());
+						file.getAbsolutePath(),this.getTask().getOwner().getUsername());
 				sifParser.parseFile();
 				this.taskStatus = Status.COMPLETED;
 			} catch (Exception e) {
@@ -68,18 +70,15 @@ public class FileUploadTask extends NdexTask {
 			break;
 		case ("xbel"):
 			try {
-<<<<<<< HEAD
-				final XbelParser xbelParser = new XbelParser(file.getAbsolutePath());
-=======
 				final XbelFileParser xbelParser = new XbelFileParser(
 						file.getAbsolutePath(),this.getTask().getOwner().getUsername());
->>>>>>> refs/heads/feature/Feature-task02Jan2014
+
 				if (!xbelParser.getValidationState().isValid()) {
 					this.taskStatus = Status.COMPLETED_WITH_ERRORS;
 					throw new NdexException(
 							"XBEL file fails XML schema validation - one or more elements do not meet XBEL specification.");
 				}
-				xbelParser.parseFile();
+				xbelParser.parseXbelFile();
 				this.taskStatus = Status.COMPLETED;
 			} catch (Exception e) {
 				this.taskStatus = Status.COMPLETED_WITH_ERRORS;
@@ -90,7 +89,7 @@ public class FileUploadTask extends NdexTask {
 		case ("xls"):
 			try {
 				final ExcelParser excelParser = new ExcelParser(
-						file.getAbsolutePath());
+						file.getAbsolutePath(),this.getTask().getOwner().getUsername());
 				excelParser.parseFile();
 				this.taskStatus = Status.COMPLETED;
 			} catch (Exception e) {

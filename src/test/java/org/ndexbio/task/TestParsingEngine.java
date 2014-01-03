@@ -36,26 +36,9 @@ public class TestParsingEngine
             e.printStackTrace();
         }
     }
+
+    
 /*
-    @Test
-    public void parseExcelFile() throws Exception
-    {
-        final URL smallExcelNetworkUrl = getClass().getResource("/resources/small-excel-network.xls");
-        final ExcelParser excelParser = new ExcelParser(smallExcelNetworkUrl.toURI().getPath());
-//        excelParser.setNetwork(SIFNetworkService.getInstance().createNewNetwork());
-//        INetworkMembership membership = SIFNetworkService.getInstance().createNewMember();
-//        membership.setMember(_testUser);
-//        membership.setPermissions(Permissions.ADMIN);
-//        INetwork network = excelParser.getNetwork();
-//        membership.setNetwork(network);
-//        network.setIsPublic(true);
-//        
-//        _testUser.addNetwork(membership);
-//        network.addMember(membership);
-
-        excelParser.parseFile();
-    }
-
     @Test
     public void parseLargeExcelFile() throws Exception
     {
@@ -100,18 +83,8 @@ public class TestParsingEngine
     public void parseLargeSifFile() throws Exception
     {
         final URL galNetworkUrl = getClass().getResource("/resources/Glucocorticoid_receptor_regulatory_network.SIF");
-        final SifParser sifParser = new SifParser(galNetworkUrl.toURI().getPath());
-        sifParser.setNetwork(SIFNetworkService.getInstance().createNewNetwork());
-        INetworkMembership membership = SIFNetworkService.getInstance().createNewMember();
-        membership.setMember(_testUser);
-        membership.setPermissions(Permissions.ADMIN);
-        INetwork network = sifParser.getNetwork();
-        membership.setNetwork(network);
-        network.setIsPublic(true);
-        
-        _testUser.addNetwork(membership);
-        network.addMember(membership);
-
+        final SifParser sifParser = new SifParser(galNetworkUrl.toURI().getPath(),_testUserName);
+        System.out.println("Parsing SIF : " + galNetworkUrl.toURI().getPath());
         sifParser.parseFile();
     }
 
@@ -119,44 +92,35 @@ public class TestParsingEngine
     public void parseXbelFile() throws Exception
     {
         final URL xbelNetworkURL = getClass().getResource("/resources/tiny-corpus.xbel");
-        final XbelParser xbelParser = new XbelParser(xbelNetworkURL.toURI().getPath());
+        final XbelParser xbelParser = new XbelParser(xbelNetworkURL.toURI().getPath(),
+        		_testUserName);
 
         if (!xbelParser.getValidationState().isValid())
             Assert.fail("tiny-corpus.xbel is invalid.");
-        
-//        xbelParser.setNetwork(SIFNetworkService.getInstance().createNewNetwork());
-//        INetworkMembership membership = SIFNetworkService.getInstance().createNewMember();
-//        membership.setMember(_testUser);
-//        membership.setPermissions(Permissions.ADMIN);
-//        INetwork network = xbelParser.getNetwork();
-//        membership.setNetwork(network);
-//        network.setIsPublic(true);
-//        
-//        _testUser.addNetwork(membership);
-//        network.addMember(membership);
-
+        System.out.println("Parsing XBEL : " + xbelNetworkURL.toURI().getPath());
         xbelParser.parseFile();
+    }
+    @Test
+    public void parseExcelFile() throws Exception
+    {
+        final URL smallExcelNetworkUrl = getClass().getResource("/resources/small-excel-network.xls");
+        final ExcelParser excelParser = new ExcelParser(smallExcelNetworkUrl.toURI().getPath(),
+        		_testUserName);
+
+        System.out.println("Parsing Excel file : " + smallExcelNetworkUrl.toURI().getPath());
+       excelParser.parseFile();
     }
 /*
     @Test
     public void parseLargeXbelFile() throws Exception
     {
         final URL galNetworkUrl = getClass().getResource("/resources/small-corpus.xbel");
-        final XbelParser xbelParser = new XbelParser(galNetworkUrl.toURI().getPath());
+        final XbelParser xbelParser = new XbelParser(galNetworkUrl.toURI().getPath(),	_testUserName);
 
         if (!xbelParser.getValidationState().isValid())
             Assert.fail("small-corpus.xbel is invalid.");
         
-//        xbelParser.setNetwork(SIFNetworkService.getInstance().createNewNetwork());
-//        INetworkMembership membership = SIFNetworkService.getInstance().createNewMember();
-//        membership.setMember(_testUser);
-//        membership.setPermissions(Permissions.ADMIN);
-//        INetwork network = xbelParser.getNetwork();
-//        membership.setNetwork(network);
-//        network.setIsPublic(true);
-//        
-//        _testUser.addNetwork(membership);
-//        network.addMember(membership);
+
 
         xbelParser.parseFile();
     }

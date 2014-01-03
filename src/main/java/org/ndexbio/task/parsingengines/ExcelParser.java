@@ -31,12 +31,16 @@ public class ExcelParser implements IParsingEngine
     private final String excelURI;
     private final List<String> msgBuffer;
     private INetwork network;
+    private String ownerName;
 
 
 
-    public ExcelParser(String fileName) throws Exception
+    public ExcelParser(String fileName, String ownerName) throws Exception
     {
         Preconditions.checkArgument(!Strings.isNullOrEmpty(fileName), "A filename is required");
+        Preconditions.checkArgument(!Strings.isNullOrEmpty(ownerName), 
+        		"A network owner name is required");
+        this.setOwnerName(ownerName);
         this.msgBuffer = Lists.newArrayList();
         this.excelFile = new File(fileName);
         this.excelURI = excelFile.toURI().toString();
@@ -78,7 +82,7 @@ public class ExcelParser implements IParsingEngine
 
         try
         {
-            this.createNetwork();
+           
 
 
             // Get the workbook instance for XLS file
@@ -130,7 +134,8 @@ public class ExcelParser implements IParsingEngine
     private void createNetwork() throws Exception
     {
         String networkTitle = this.excelFile.getName();
-        this.network = OrientdbNetworkFactory.INSTANCE.createTestNetwork(networkTitle);
+        this.network = ExcelNetworkService.getInstance()
+        		.createNewNetwork(this.getOwnerName(), networkTitle);
         this.network.setFormat("NDExExcel");
         this.getMsgBuffer().add("New Excel: " + network.getTitle());
     }
@@ -237,4 +242,16 @@ public class ExcelParser implements IParsingEngine
         }
         return "";
     }
+
+
+
+	public String getOwnerName() {
+		return ownerName;
+	}
+
+
+
+	private void setOwnerName(String ownerName) {
+		this.ownerName = ownerName;
+	}
 }
