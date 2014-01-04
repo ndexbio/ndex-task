@@ -1,9 +1,7 @@
-package org.ndexbio.xbel.service;
+package org.ndexbio.task.service.network;
 
 import java.util.concurrent.ExecutionException;
 
-import org.ndexbio.orientdb.persistence.NDExPersistenceService;
-import org.ndexbio.orientdb.persistence.NDExPersistenceServiceFactory;
 import org.ndexbio.service.CommonNetworkService;
 import org.ndexbio.service.JdexIdService;
 import org.ndexbio.common.cache.NdexIdentifierCache;
@@ -19,6 +17,8 @@ import org.ndexbio.common.models.data.INode;
 import org.ndexbio.common.models.data.ISupport;
 import org.ndexbio.common.models.data.IUser;
 import org.ndexbio.common.models.object.*;
+import org.ndexbio.common.persistence.NDExPersistenceService;
+import org.ndexbio.common.persistence.NDExPersistenceServiceFactory;
 import org.ndexbio.xbel.model.Citation;
 import org.ndexbio.xbel.model.Function;
 import org.ndexbio.xbel.model.Namespace;
@@ -37,28 +37,20 @@ import com.google.common.base.Strings;
  * The primary justification for this class is to separate the use of XBel
  * model objects from identically named NDEx model objects
  */
-public class XBelNetworkService extends CommonNetworkService {
+public class XBelNetworkService extends CommonNetworkService  {
 
-	private static XBelNetworkService instance;
+	
 	private static final Logger logger = LoggerFactory
 			.getLogger(XBelNetworkService.class);
 
 	
 	private static Joiner idJoiner = Joiner.on(":").skipNulls();
 
-	public static XBelNetworkService getInstance() {
-		if (null == instance) {
-			instance = new XBelNetworkService();
-		}
-		return instance;
+	public XBelNetworkService() {
+		super();	
 	}
 
-	private XBelNetworkService() {
-		super();
-		
-	}
 
-	
 	public void commitCurrentNetwork() throws NdexException  {
 		try {
 			this.persistenceService.commitCurrentNetwork();
@@ -71,7 +63,6 @@ public class XBelNetworkService extends CommonNetworkService {
 		}
 		
 	}
-
 
 	public IBaseTerm createIBaseTerm(Parameter p, Long jdexId)
 			throws ExecutionException, NdexException {
@@ -90,8 +81,7 @@ public class XBelNetworkService extends CommonNetworkService {
 		bt.setJdexId(jdexId.toString());
 		this.getCurrentNetwork().addTerm(bt);
 		this.commitCurrentNetwork();
-		return bt;
-		
+		return bt;	
 	}
 
 	/*
@@ -99,6 +89,7 @@ public class XBelNetworkService extends CommonNetworkService {
 	 * INamespace object n.b. this method may result in a new vertex in the
 	 * orientdb database being created
 	 */
+	
 	public INamespace createINamespace(Namespace ns, Long jdexId)
 			throws NdexException, ExecutionException {
 		Preconditions.checkArgument(null != ns,
@@ -115,8 +106,7 @@ public class XBelNetworkService extends CommonNetworkService {
 			this.getCurrentNetwork().addNamespace(newNamespace);
 			this.commitCurrentNetwork();
 			return newNamespace;
-		
-
+	
 	}
 
 	/*
@@ -124,6 +114,7 @@ public class XBelNetworkService extends CommonNetworkService {
 	 * object n.b. this method may result in a new vertex in the orientdb
 	 * database being created
 	 */
+	
 	public ICitation findOrCreateICitation(Citation citation) throws NdexException, ExecutionException {
 		Preconditions.checkArgument(null != citation,
 				"A Citation object is required");
@@ -149,7 +140,6 @@ public class XBelNetworkService extends CommonNetworkService {
 			this.commitCurrentNetwork();
 			return iCitation;
 		
-
 	}
 
 	/*
@@ -157,6 +147,7 @@ public class XBelNetworkService extends CommonNetworkService {
 	 * Citation to a orientdb ISupport object n.b. this method may result in a
 	 * new vertex in the orientdb database being created
 	 */
+	
 	public ISupport findOrCreateISupport(String evidenceString,
 			ICitation iCitation) throws ExecutionException, NdexException {
 		Preconditions.checkArgument(null != evidenceString,
@@ -179,6 +170,7 @@ public class XBelNetworkService extends CommonNetworkService {
 		return iSupport;
 	}
 
+	
 	public void createIEdge(INode subjectNode, INode objectNode,
 			IBaseTerm predicate, ISupport support, ICitation citation)
 			throws ExecutionException, NdexException {
@@ -205,6 +197,7 @@ public class XBelNetworkService extends CommonNetworkService {
 	 * IBaseTerm object n.b. this method creates a vertex in the orientdb
 	 * database
 	 */
+	
 	public IBaseTerm findOrCreateParameter(Parameter parameter)
 			throws ExecutionException, NdexException {
 		if (null == parameter.getNs())
@@ -216,6 +209,7 @@ public class XBelNetworkService extends CommonNetworkService {
 		return this.createIBaseTerm(parameter, jdexId);
 	}
 
+	
 	public IBaseTerm findOrCreatePredicate(Relationship relationship)
 			throws ExecutionException, NdexException {
 		Parameter parameter = new Parameter();
@@ -228,6 +222,7 @@ public class XBelNetworkService extends CommonNetworkService {
 		return this.createIBaseTerm(parameter, jdexId);
 	}
 
+	
 	public IBaseTerm findOrCreateFunction(Function function)
 			throws ExecutionException, NdexException {
 		Parameter parameter = new Parameter();
@@ -240,6 +235,7 @@ public class XBelNetworkService extends CommonNetworkService {
 		return this.createIBaseTerm(parameter, jdexId);
 	}
 
+	
 	public INode findOrCreateINodeForIFunctionTerm(IFunctionTerm representedTerm)
 			throws ExecutionException, NdexException {
 		String nodeIdentifier = idJoiner.join("NODE",
@@ -256,5 +252,15 @@ public class XBelNetworkService extends CommonNetworkService {
 		this.commitCurrentNetwork();
 		return iNode;
 	}
-
+	
+	public boolean isEntityPersisted(Long jdexId){
+		return this.getPersistenceService().isEntityPersisted(jdexId);
+	}
+	
+	
+	public IFunctionTerm findOrCreateIFunctionTerm(Long jdexId) throws ExecutionException{
+		return this.getPersistenceService().findOrCreateIFunctionTerm(jdexId);
+	}
+	
+	
 }

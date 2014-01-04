@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
@@ -13,8 +14,9 @@ import org.apache.poi.ss.usermodel.Row;
 import org.ndexbio.common.models.data.IBaseTerm;
 import org.ndexbio.common.models.data.INetwork;
 import org.ndexbio.common.models.data.INode;
-import org.ndexbio.orientdb.persistence.ExcelNetworkService;
-import org.ndexbio.xbel.service.OrientdbNetworkFactory;
+import org.ndexbio.task.service.network.ExcelNetworkService;
+
+
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -31,18 +33,22 @@ public class ExcelParser implements IParsingEngine
     private final String excelURI;
     private final List<String> msgBuffer;
     private INetwork network;
+    private String ownerName;
+    private ExcelNetworkService networkService;
 
 
 
-    public ExcelParser(String fileName) throws Exception
+    public ExcelParser(String fileName, String ownerName) throws Exception
     {
         Preconditions.checkArgument(!Strings.isNullOrEmpty(fileName), "A filename is required");
+        Preconditions.checkArgument(!Strings.isNullOrEmpty(ownerName), 
+        		"A network owner name is required");
+        this.setOwnerName(ownerName);
+        this.networkService = new ExcelNetworkService();
         this.msgBuffer = Lists.newArrayList();
         this.excelFile = new File(fileName);
         this.excelURI = excelFile.toURI().toString();
     }
-    
-    
     
     public File getExcelFile()
     {
@@ -72,13 +78,14 @@ public class ExcelParser implements IParsingEngine
         catch (FileNotFoundException e1)
         {
             this.getMsgBuffer().add("Could not read " + this.getExcelURI());
+            this.networkService.rollbackCurrentTransaction();  // close connection to database
             // e1.printStackTrace();
             return;
         }
 
         try
         {
-            this.createNetwork();
+           
 
 
             // Get the workbook instance for XLS file
@@ -115,14 +122,14 @@ public class ExcelParser implements IParsingEngine
 
             // persist the network domain model, commit the transaction, close
             // database connection
-            ExcelNetworkService.getInstance().persistNewNetwork();
+            this.networkService.persistNewNetwork();
         }
         catch (Exception e)
         {
             // rollback current transaction and close the database connection
-            ExcelNetworkService.getInstance().rollbackCurrentTransaction();
+            this.networkService.rollbackCurrentTransaction();
             e.printStackTrace();
-        }
+        } 
     }
 
     
@@ -130,7 +137,8 @@ public class ExcelParser implements IParsingEngine
     private void createNetwork() throws Exception
     {
         String networkTitle = this.excelFile.getName();
-        this.network = OrientdbNetworkFactory.INSTANCE.createTestNetwork(networkTitle);
+        this.network = this.networkService
+        		.createNewNetwork(this.getOwnerName(), networkTitle);
         this.network.setFormat("NDExExcel");
         this.getMsgBuffer().add("New Excel: " + network.getTitle());
     }
@@ -138,10 +146,10 @@ public class ExcelParser implements IParsingEngine
 
     private INode addNode(String name) throws ExecutionException
     {
-        IBaseTerm term = ExcelNetworkService.getInstance().findOrCreateNodeBaseTerm(name);
+        IBaseTerm term = this.networkService.findOrCreateNodeBaseTerm(name);
         if (null != term)
         {
-            INode node = ExcelNetworkService.getInstance().findOrCreateINode(term);
+            INode node = this.networkService.findOrCreateINode(term);
             return node;
         }
         return null;
@@ -152,8 +160,8 @@ public class ExcelParser implements IParsingEngine
     {
         INode subjectNode = addNode(subject);
         INode objectNode = addNode(object);
-        IBaseTerm predicateTerm = ExcelNetworkService.getInstance().findOrCreatePredicate(predicate);
-        ExcelNetworkService.getInstance().createIEdge(subjectNode, objectNode, predicateTerm);
+        IBaseTerm predicateTerm = this.networkService.findOrCreatePredicate(predicate);
+        this.networkService.createIEdge(subjectNode, objectNode, predicateTerm);
 
     }
 
@@ -237,4 +245,16 @@ public class ExcelParser implements IParsingEngine
         }
         return "";
     }
+
+
+
+	public String getOwnerName() {
+		return ownerName;
+	}
+
+
+
+	private void setOwnerName(String ownerName) {
+		this.ownerName = ownerName;
+	}
 }

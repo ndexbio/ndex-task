@@ -2,15 +2,17 @@ package org.ndexbio.task.parsingengines;
 
 import java.io.File;
 import java.io.IOException;
+
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
+
 import org.ndexbio.common.cache.NdexIdentifierCache;
 import org.ndexbio.common.models.data.INetwork;
 import org.ndexbio.task.parsingengines.XbelFileValidator.ValidationState;
-import org.ndexbio.xbel.service.OrientdbNetworkFactory;
-import org.ndexbio.xbel.service.XBelNetworkService;
+import org.ndexbio.task.service.network.XBelNetworkService;
+
 import org.ndexbio.xbel.splitter.HeaderSplitter;
 import org.ndexbio.xbel.splitter.NamespaceGroupSplitter;
 import org.ndexbio.xbel.splitter.StatementGroupSplitter;
@@ -18,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
+
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
@@ -40,21 +43,27 @@ public class XbelParser implements IParsingEngine
     private StatementGroupSplitter sgSplitter;
     private HeaderSplitter headerSplitter;
     private INetwork network;
+    private String ownerName;
+    private XBelNetworkService networkService;
     private static final Logger logger = LoggerFactory.getLogger(XbelParser.class);
 
     
     
-    public XbelParser(String fn) throws JAXBException
+    public XbelParser(String fn, String ownerName) throws JAXBException
     {
         Preconditions.checkArgument(!Strings.isNullOrEmpty(fn), "A filename is required");
+        Preconditions.checkArgument(!Strings.isNullOrEmpty(ownerName),
+        		"A network owner name is required");
 
         this.xmlFile = new File(fn).toURI().toString();
+        this.setOwnerName(ownerName);
         this.validationState = new XbelFileValidator(fn).getValidationState();
         logger.info(this.validationState.getValidationMessage());
         this.context = JAXBContext.newInstance("org.ndexbio.xbel.model");
         this.nsSplitter = new NamespaceGroupSplitter(context);
         this.sgSplitter = new StatementGroupSplitter(context);
         this.headerSplitter = new HeaderSplitter(context);
+        this.networkService = new XBelNetworkService();
         this.initReader();
     }
 
@@ -73,12 +82,12 @@ public class XbelParser implements IParsingEngine
             NdexIdentifierCache.INSTANCE.accessIdentifierCache().invalidateAll();
             // persist the network domain model, commit the transaction, close
             // database connection
-            XBelNetworkService.getInstance().persistNewNetwork();
+            this.networkService.persistNewNetwork();
         }
         catch (Exception e)
         {
             // rollback current transaction and close the database connection
-            XBelNetworkService.getInstance().rollbackCurrentTransaction();
+            this.networkService.rollbackCurrentTransaction();
             e.printStackTrace();
         }
 
@@ -97,7 +106,8 @@ public class XbelParser implements IParsingEngine
             throw new Exception(e);
         }
         String networkTitle = this.headerSplitter.getHeader().getName();
-        this.network = OrientdbNetworkFactory.INSTANCE.createTestNetwork(networkTitle);
+        this.network = this.networkService.createNewNetwork(this.getOwnerName(), networkTitle);
+       
 
         logger.info("New testnetwork created for XBEL: " + network.getTitle());
     }
@@ -165,6 +175,18 @@ public class XbelParser implements IParsingEngine
     {
         return xmlFile;
     }
+
+
+
+	public String getOwnerName() {
+		return ownerName;
+	}
+
+
+
+	private void setOwnerName(String ownerName) {
+		this.ownerName = ownerName;
+	}
 
 
 

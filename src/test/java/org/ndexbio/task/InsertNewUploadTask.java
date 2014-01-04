@@ -8,14 +8,16 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Date;
+
 import org.ndexbio.common.exceptions.*;
 import org.ndexbio.common.helpers.Configuration;
 import org.ndexbio.common.helpers.IdConverter;
 import org.ndexbio.common.models.data.*;
 import org.ndexbio.common.models.object.*;
-import org.ndexbio.orientdb.persistence.OrientDBConnectionService;
+import org.ndexbio.common.persistence.orientdb.OrientDBNoTxConnectionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.google.common.base.Preconditions;
 import com.orientechnologies.orient.core.id.ORID;
 
@@ -71,7 +73,7 @@ public class InsertNewUploadTask {
 		} else {
 			testFile = "/tmp/tiny_corpus.xbel";
 		}
-		logger.info("Schedulting " +testFile +" for loading");
+		logger.info("Scheduling " +testFile +" for loading");
 		InsertNewUploadTask test = new InsertNewUploadTask(testFile);
 		test.persistFileUploadTask();
 
@@ -96,7 +98,7 @@ public class InsertNewUploadTask {
 		return sb.toString();
 	}
 	
-	class LocalDataService extends OrientDBConnectionService {
+	class LocalDataService extends OrientDBNoTxConnectionService {
 		
 		LocalDataService() {
 			super();

@@ -163,6 +163,7 @@ public abstract class XBelSplitter extends XMLFilterImpl {
 	 * 
 	 * For JAXB unmarshaller to correctly unmarshal documents, it needs to know
 	 * all the effective namespace declarations.
+	 * n.b. these are XSD namespaces not NDEx namespaces
 	 */
 	private NamespaceSupport namespaces = new NamespaceSupport();
 

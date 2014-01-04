@@ -2,8 +2,6 @@ package org.ndexbio.xbel.parser;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
-
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
@@ -11,9 +9,9 @@ import javax.xml.parsers.SAXParserFactory;
 
 import org.ndexbio.common.cache.NdexIdentifierCache;
 import org.ndexbio.common.models.data.INetwork;
-import org.ndexbio.xbel.parser.XbelFileValidator.ValidationState;
-import org.ndexbio.xbel.service.OrientdbNetworkFactory;
-import org.ndexbio.xbel.service.XBelNetworkService;
+import org.ndexbio.task.parsingengines.XbelFileValidator;
+import org.ndexbio.task.parsingengines.XbelFileValidator.ValidationState;
+import org.ndexbio.task.service.network.XBelNetworkService;
 import org.ndexbio.xbel.splitter.HeaderSplitter;
 import org.ndexbio.xbel.splitter.NamespaceGroupSplitter;
 import org.ndexbio.xbel.splitter.StatementGroupSplitter;
@@ -25,7 +23,6 @@ import org.xml.sax.XMLReader;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
 
 /*
  * represents a parser that can map an file conforming to the XBEL schema to
@@ -49,6 +46,7 @@ public class XbelFileParser {
 	private String ownerName;
 	
 	private INetwork network;
+	private XBelNetworkService networkService;
 	private static final Logger logger = LoggerFactory.getLogger(XbelFileParser.class);
 
 	public XbelFileParser(String fn, String ownerName) throws JAXBException {
@@ -78,10 +76,10 @@ public class XbelFileParser {
 			logger.info("Clearing identifier cache");
 			NdexIdentifierCache.INSTANCE.accessIdentifierCache().invalidateAll();
 			// persist the network domain model, commit the transaction, close database connection
-			XBelNetworkService.getInstance().persistNewNetwork();
+			this.networkService.persistNewNetwork();
 		} catch (Exception e) {
 			// rollback current transaction and close the database connection
-			XBelNetworkService.getInstance().rollbackCurrentTransaction();
+			this.networkService.rollbackCurrentTransaction();
 			e.printStackTrace();
 		} 
 		
@@ -96,8 +94,7 @@ public class XbelFileParser {
 			throw new Exception(e);
 		}
 		String networkTitle = this.headerSplitter.getHeader().getName();
-		this.network = XBelNetworkService.getInstance().createNewNetwork(this.getOwnerName(), networkTitle);
-		//this.network = OrientdbNetworkFactory.INSTANCE.createTestNetwork(networkTitle);
+		this.network = this.networkService.createNewNetwork(this.getOwnerName(), networkTitle);
 		
 		logger.info("New test network created for XBEL: " +network.getTitle());
 	}
