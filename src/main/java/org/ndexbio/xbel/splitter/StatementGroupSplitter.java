@@ -4,8 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
+
 import org.ndexbio.common.cache.NdexIdentifierCache;
 import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.models.data.IBaseTerm;
@@ -14,8 +16,9 @@ import org.ndexbio.common.models.data.IFunctionTerm;
 import org.ndexbio.common.models.data.INode;
 import org.ndexbio.common.models.data.ISupport;
 import org.ndexbio.common.models.data.ITerm;
-import org.ndexbio.orientdb.persistence.NDExPersistenceService;
-import org.ndexbio.orientdb.persistence.NDExPersistenceServiceFactory;
+import org.ndexbio.common.persistence.NDExPersistenceService;
+import org.ndexbio.common.persistence.NDExPersistenceServiceFactory;
+import org.ndexbio.task.service.network.XBelNetworkService;
 import org.ndexbio.xbel.model.AnnotationGroup;
 import org.ndexbio.xbel.model.Citation;
 import org.ndexbio.xbel.model.Function;
@@ -24,9 +27,9 @@ import org.ndexbio.xbel.model.Statement;
 import org.ndexbio.xbel.model.StatementGroup;
 import org.ndexbio.xbel.model.Subject;
 import org.ndexbio.xbel.model.Term;
-import org.ndexbio.xbel.service.XBelNetworkService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -35,8 +38,9 @@ import com.google.common.collect.Maps;
 public class StatementGroupSplitter extends XBelSplitter {
 	private static final String xmlElement = "statementGroup";
 	private static Joiner idJoiner = Joiner.on(":").skipNulls();
-	private NDExPersistenceService persistenceService;
+	
 	private static final Logger logger = LoggerFactory.getLogger(StatementGroupSplitter.class);
+	private XBelNetworkService networkService;
 
 	public StatementGroupSplitter(JAXBContext context) {
 		super(context, xmlElement);
@@ -44,8 +48,8 @@ public class StatementGroupSplitter extends XBelSplitter {
 		 * this class persists XBEL data into orientdb establish a reference to
 		 * the persistence service
 		 */
-		this.persistenceService = NDExPersistenceServiceFactory.INSTANCE
-				.getNDExPersistenceService();
+		this.networkService = new XBelNetworkService();
+		
 	}
 
 	@Override
@@ -119,7 +123,7 @@ public class StatementGroupSplitter extends XBelSplitter {
 			if (object instanceof String) {
 				// No explicit type for Evidence, therefore if it is a string,
 				// its an Evidence and we find/create an ISupport
-				return XBelNetworkService.getInstance().findOrCreateISupport(
+				return this.networkService.findOrCreateISupport(
 						(String) object, citation);
 			}
 		}
@@ -133,7 +137,7 @@ public class StatementGroupSplitter extends XBelSplitter {
 		for (Object object : annotationGroup
 				.getAnnotationOrEvidenceOrCitation()) {
 			if (object instanceof Citation) {
-				return XBelNetworkService.getInstance().findOrCreateICitation(
+				return this.networkService.findOrCreateICitation(
 						(Citation) object);
 			}
 		}
@@ -162,13 +166,13 @@ public class StatementGroupSplitter extends XBelSplitter {
 				// In that case, we can create an edge
 
 				if (null != statement.getRelationship()) {
-					IBaseTerm predicate = XBelNetworkService.getInstance()
+					IBaseTerm predicate = this.networkService
 							.findOrCreatePredicate(statement.getRelationship());
 
 					INode objectNode = this.processStatementObject(statement
 							.getObject());
 
-					XBelNetworkService.getInstance().createIEdge(subjectNode,
+					this.networkService.createIEdge(subjectNode,
 							objectNode, predicate, support, citation);
 				}
 			}
@@ -183,7 +187,7 @@ public class StatementGroupSplitter extends XBelSplitter {
 		try {
 			IFunctionTerm representedTerm = this.processFunctionTerm(sub
 					.getTerm());
-			INode subjectNode = XBelNetworkService.getInstance()
+			INode subjectNode = this.networkService
 					.findOrCreateINodeForIFunctionTerm(representedTerm);
 			return subjectNode;
 		} catch (ExecutionException e) {
@@ -206,7 +210,7 @@ public class StatementGroupSplitter extends XBelSplitter {
 			} else {
 				IFunctionTerm representedTerm = this.processFunctionTerm(obj
 						.getTerm());
-				INode objectNode = XBelNetworkService.getInstance()
+				INode objectNode = this.networkService
 						.findOrCreateINodeForIFunctionTerm(representedTerm);
 				return objectNode;
 			}
@@ -221,7 +225,7 @@ public class StatementGroupSplitter extends XBelSplitter {
 	private IFunctionTerm processFunctionTerm(Term term)
 			throws ExecutionException, NdexException {
 		// XBEL "Term" corresponds to NDEx FunctionTerm
-		IBaseTerm function = XBelNetworkService.getInstance()
+		IBaseTerm function = this.networkService
 				.findOrCreateFunction(term.getFunction());
 
 		List<ITerm> childITermList = this.processInnerTerms(term);
@@ -255,7 +259,7 @@ public class StatementGroupSplitter extends XBelSplitter {
 				childList.add(functionTerm);
 
 			} else if (item instanceof Parameter) {
-				IBaseTerm baseTerm = XBelNetworkService.getInstance()
+				IBaseTerm baseTerm = this.networkService
 						.findOrCreateParameter((Parameter) item);
 				childList.add(baseTerm);
 			} else {
@@ -280,8 +284,9 @@ public class StatementGroupSplitter extends XBelSplitter {
 			List<ITerm> childList) {
 		try {
 			Long jdexId = generateFunctionTermJdexId(function, childList);
-			boolean persisted = persistenceService.isEntityPersisted(jdexId);
-			IFunctionTerm ft = persistenceService
+			
+			boolean persisted = this.networkService.isEntityPersisted(jdexId);
+			IFunctionTerm ft = this.networkService
 					.findOrCreateIFunctionTerm(jdexId);
 			if (persisted)
 				return ft;

@@ -17,7 +17,7 @@ import org.ndexbio.common.models.data.IEdge;
 import org.ndexbio.common.models.data.INamespace;
 import org.ndexbio.common.models.data.INetwork;
 import org.ndexbio.common.models.data.INode;
-import org.ndexbio.task.sif.service.SIFNetworkService;
+import org.ndexbio.task.service.network.SIFNetworkService;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
@@ -40,6 +40,7 @@ public class SifParser implements IParsingEngine
     private final List<String> msgBuffer;
     private INetwork network;
     private String ownerName;
+    private SIFNetworkService networkService;
 
     
     
@@ -51,6 +52,7 @@ public class SifParser implements IParsingEngine
         this.msgBuffer = Lists.newArrayList();
         this.sifFile = new File(fn);
         this.sifURI = sifFile.toURI().toString();
+        this.networkService = new SIFNetworkService();
         
     }
 
@@ -78,7 +80,7 @@ public class SifParser implements IParsingEngine
     private void setNetwork() throws NdexException
     {
     	String title = Files.getNameWithoutExtension(this.sifFile.getName());
-    	SIFNetworkService.getInstance().createNewNetwork(this.getOwnerName(),
+    	this.networkService.createNewNetwork(this.getOwnerName(),
     			title);
     }
 
@@ -115,22 +117,22 @@ public class SifParser implements IParsingEngine
             if (extendedBinarySIF)
             {
                 this.processExtendedBinarySIF(bufferedReader);
-                SIFNetworkService.getInstance().setFormat("EXTENDED_BINARY_SIF");
+                this.networkService.setFormat("EXTENDED_BINARY_SIF");
             }
             else
             {
                 boolean tabDelimited = scanForTabs();
                 this.processSimpleSIFLines(tabDelimited, bufferedReader);
-                SIFNetworkService.getInstance().setFormat("BINARY_SIF");
+                this.networkService.setFormat("BINARY_SIF");
             }
 
             // close database connection
-            SIFNetworkService.getInstance().persistNewNetwork();
+            this.networkService.persistNewNetwork();
         }
         catch (Exception e)
         {
             // delete network and close the database connection
-            SIFNetworkService.getInstance().rollbackCurrentTransaction();
+        	this.networkService.rollbackCurrentTransaction();
             e.printStackTrace();
         }
     }
@@ -323,7 +325,7 @@ public class SifParser implements IParsingEngine
         String[] citationStringElements = citationString.split(":");
         if (citationStringElements.length == 2)
         {
-            ICitation citation = SIFNetworkService.getInstance().findOrCreateICitation(citationStringElements[0], citationStringElements[1]);
+            ICitation citation = this.networkService.findOrCreateICitation(citationStringElements[0], citationStringElements[1]);
             edge.addCitation(citation);
         }
     }
@@ -369,7 +371,7 @@ public class SifParser implements IParsingEngine
         IBaseTerm term = findOrCreateBaseTerm(name);
         if (null != term)
         {
-            INode node = SIFNetworkService.getInstance().findOrCreateINode(term);
+            INode node = this.networkService.findOrCreateINode(term);
             return node;
         }
         return null;
@@ -380,7 +382,7 @@ public class SifParser implements IParsingEngine
         INode subjectNode = addNode(subject);
         INode objectNode = addNode(object);
         IBaseTerm predicateTerm = findOrCreateBaseTerm(predicate);
-        return SIFNetworkService.getInstance().createIEdge(subjectNode, objectNode, predicateTerm);
+        return this.networkService.createIEdge(subjectNode, objectNode, predicateTerm);
 
     }
 
@@ -403,8 +405,8 @@ public class SifParser implements IParsingEngine
             {
                 String identifier = path.substring(path.lastIndexOf('/') + 1);
                 String namespaceURI = termString.substring(0, termString.lastIndexOf('/') + 1);
-                INamespace namespace = SIFNetworkService.getInstance().findOrCreateINamespace(namespaceURI, null);
-                iBaseTerm = SIFNetworkService.getInstance().findOrCreateNodeBaseTerm(identifier, namespace);
+                INamespace namespace = this.networkService.findOrCreateINamespace(namespaceURI, null);
+                iBaseTerm = this.networkService.findOrCreateNodeBaseTerm(identifier, namespace);
                 return iBaseTerm;
             }
 
@@ -424,8 +426,8 @@ public class SifParser implements IParsingEngine
         {
             String identifier = termStringComponents[1];
             String prefix = termStringComponents[0];
-            INamespace namespace = SIFNetworkService.getInstance().findOrCreateINamespace(prefix, null);
-            iBaseTerm = SIFNetworkService.getInstance().findOrCreateNodeBaseTerm(identifier, namespace);
+            INamespace namespace = this.networkService.findOrCreateINamespace(prefix, null);
+            iBaseTerm = this.networkService.findOrCreateNodeBaseTerm(identifier, namespace);
             return iBaseTerm;
         }
 
@@ -433,7 +435,7 @@ public class SifParser implements IParsingEngine
         // find or create the namespace for prefix "LOCAL" and use that as the
         // namespace.
 
-        iBaseTerm = SIFNetworkService.getInstance().findOrCreateNodeBaseTerm(termString, SIFNetworkService.getInstance().findOrCreateINamespace(null, "LOCAL"));
+        iBaseTerm = this.networkService.findOrCreateNodeBaseTerm(termString, this.networkService.findOrCreateINamespace(null, "LOCAL"));
 
         return iBaseTerm;
     }

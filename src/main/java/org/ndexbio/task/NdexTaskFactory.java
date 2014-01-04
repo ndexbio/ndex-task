@@ -3,7 +3,7 @@ package org.ndexbio.task;
 import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.models.data.TaskType;
 import org.ndexbio.common.models.object.Task;
-import org.ndexbio.orientdb.persistence.NdexTaskService;
+import org.ndexbio.common.persistence.orientdb.NdexTaskService;
 
 /*
  * Singleton responsible for instantiating the appropriate implementation

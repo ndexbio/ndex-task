@@ -1,6 +1,7 @@
 package org.ndexbio.task;
 
 import java.net.URL;
+
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -11,7 +12,7 @@ import org.ndexbio.common.models.data.Permissions;
 import org.ndexbio.common.models.object.SearchParameters;
 import org.ndexbio.common.models.object.SearchResult;
 import org.ndexbio.task.parsingengines.*;
-import org.ndexbio.task.sif.service.SIFNetworkService;
+import org.ndexbio.task.service.network.SIFNetworkService;
 
 public class TestParsingEngine
 {
@@ -28,7 +29,8 @@ public class TestParsingEngine
 
         try
         {
-            SearchResult<IUser> result = SIFNetworkService.getInstance().findUsers(searchParameters);
+        	
+            SearchResult<IUser> result = (new SIFNetworkService()).findUsers(searchParameters);
             _testUser = (IUser)result.getResults().iterator().next(); 
         }
         catch (Exception e)
