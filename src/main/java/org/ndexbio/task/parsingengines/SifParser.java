@@ -330,7 +330,7 @@ public class SifParser implements IParsingEngine
         }
     }
 
-    private void processExtendedBinarySIFAliases(BufferedReader bufferedReader) throws IOException
+    private void processExtendedBinarySIFAliases(BufferedReader bufferedReader) throws IOException, ExecutionException
     {
 
         // "PARTICIPANT	PARTICIPANT_TYPE	PARTICIPANT_NAME	UNIFICATION_XREF	RELATIONSHIP_XREF";
@@ -350,7 +350,31 @@ public class SifParser implements IParsingEngine
             }
             else
             {
-                System.out.println("aliases: " + line);
+                // System.out.println("aliases: " + line);
+            	// Process one line of aliases
+            	String[] tokens = null;
+                tokens = line.split("\t");
+                if (tokens.length < 3) break;
+                String participantIdentifier = tokens[0];
+                // find the node that represents the term specified by the participantIdentifier
+                INode participant = findNode(participantIdentifier);
+                if (participant == null) break;
+                // not yet using type and name, will set node properties with them later
+                //String type = tokens[1];
+                //String name = tokens[2];
+                
+                if (tokens.length < 4 ) break;
+                String[] unificationAliases = tokens[3].split(";");
+                for (String alias : unificationAliases){
+                	participant.addAlias(findOrCreateBaseTerm(alias));
+                }
+                
+                if (tokens.length < 5 ) break;
+                String[] relationshipAliases = tokens[4].split(";");
+                for (String alias : relationshipAliases){
+                	participant.addRelatedTerm(findOrCreateBaseTerm(alias));
+                }
+            	
             }
         }
 
@@ -376,6 +400,17 @@ public class SifParser implements IParsingEngine
         }
         return null;
     }
+    
+    private INode findNode(String identifier) throws ExecutionException
+    {  
+    	IBaseTerm term = findBaseTerm(identifier);
+        if (null != term)
+        {
+            INode node = term.getRepresentedNode();
+            return node;
+        }
+        return null;
+    }
 
     private IEdge addEdge(String subject, String predicate, String object) throws ExecutionException
     {
@@ -384,6 +419,60 @@ public class SifParser implements IParsingEngine
         IBaseTerm predicateTerm = findOrCreateBaseTerm(predicate);
         return this.networkService.createIEdge(subjectNode, objectNode, predicateTerm);
 
+    }
+    
+    private IBaseTerm findBaseTerm(String termString){
+        // case 1 : termString is a URI
+        // example: http://identifiers.org/uniprot/P19838
+        // treat the last element in the URI as the identifier and the rest as
+        // the namespace URI
+        // find or create the namespace based on the URI
+        // when creating, set the prefix based on the PREFIX-URI table for known
+        // namespaces, otherwise do not set.
+        //
+        IBaseTerm iBaseTerm = null;
+        try
+        {
+            URI termStringURI = new URI(termString);
+            String path = termStringURI.getPath();
+            if (path.indexOf("/") != -1)
+            {
+                String identifier = path.substring(path.lastIndexOf('/') + 1);
+                String namespaceURI = termString.substring(0, termString.lastIndexOf('/') + 1);
+                INamespace namespace = SIFNetworkService.getInstance().findINamespace(namespaceURI, null);
+                iBaseTerm = SIFNetworkService.getInstance().findIBaseTerm(identifier, namespace);
+                return iBaseTerm;
+            }
+
+        }
+        catch (URISyntaxException e)
+        {
+            // ignore and move on to next case
+        }
+
+        // case 2: termString is of the form NamespacePrefix:Identifier
+        // find or create the namespace based on the prefix
+        // when creating, set the URI based on the PREFIX-URI table for known
+        // namespaces, otherwise do not set.
+        //
+        String[] termStringComponents = termString.split(":");
+        if (termStringComponents.length == 2)
+        {
+            String identifier = termStringComponents[1];
+            String prefix = termStringComponents[0];
+            INamespace namespace = SIFNetworkService.getInstance().findINamespace(prefix, null);
+            iBaseTerm = SIFNetworkService.getInstance().findIBaseTerm(identifier, namespace);
+            return iBaseTerm;
+        }
+
+        // case 3: termString cannot be parsed, use it as the identifier.
+        // find or create the namespace for prefix "LOCAL" and use that as the
+        // namespace.
+
+        iBaseTerm = SIFNetworkService.getInstance().findIBaseTerm(termString, SIFNetworkService.getInstance().findINamespace(null, "LOCAL"));
+
+        return iBaseTerm;
+    	
     }
 
     private IBaseTerm findOrCreateBaseTerm(String termString) throws ExecutionException
