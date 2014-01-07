@@ -139,8 +139,8 @@ public class ExcelParser implements IParsingEngine
         String networkTitle = this.excelFile.getName();
         this.network = this.networkService
         		.createNewNetwork(this.getOwnerName(), networkTitle);
-        this.network.setFormat("NDExExcel");
-        this.getMsgBuffer().add("New Excel: " + network.getTitle());
+        this.network.getMetadata().put("Format",  "Excel");
+        this.getMsgBuffer().add("New Excel: " + network.getName());
     }
 
 

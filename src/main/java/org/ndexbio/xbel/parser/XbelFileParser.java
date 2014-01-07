@@ -96,7 +96,7 @@ public class XbelFileParser {
 		String networkTitle = this.headerSplitter.getHeader().getName();
 		this.network = this.networkService.createNewNetwork(this.getOwnerName(), networkTitle);
 		
-		logger.info("New test network created for XBEL: " +network.getTitle());
+		logger.info("New test network created for XBEL: " +network.getName());
 	}
 
 	private void processNamespaces() throws Exception {

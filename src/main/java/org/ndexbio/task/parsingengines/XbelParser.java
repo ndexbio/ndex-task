@@ -109,7 +109,7 @@ public class XbelParser implements IParsingEngine
         this.network = this.networkService.createNewNetwork(this.getOwnerName(), networkTitle);
        
 
-        logger.info("New testnetwork created for XBEL: " + network.getTitle());
+        logger.info("New testnetwork created for XBEL: " + network.getName());
     }
 
     private void processNamespaces() throws Exception

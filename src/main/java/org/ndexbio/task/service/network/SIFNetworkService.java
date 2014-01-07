@@ -9,8 +9,8 @@ import org.ndexbio.common.models.data.ICitation;
 import org.ndexbio.common.models.data.IEdge;
 import org.ndexbio.common.models.data.INamespace;
 import org.ndexbio.common.models.data.INode;
+import org.ndexbio.common.JdexIdService;
 import org.ndexbio.service.CommonNetworkService;
-import org.ndexbio.service.JdexIdService;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
@@ -204,7 +204,7 @@ public class SIFNetworkService extends CommonNetworkService {
 	}
 
 	public void setFormat(String format) {
-		persistenceService.getCurrentNetwork().setFormat(format);	
+		persistenceService.getCurrentNetwork().getMetadata().put("Format", format);	
 	}
 
 

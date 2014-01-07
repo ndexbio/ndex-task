@@ -3,28 +3,16 @@ package org.ndexbio.task.service.network;
 import java.util.concurrent.ExecutionException;
 
 import org.ndexbio.common.cache.NdexIdentifierCache;
-import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.models.data.IBaseTerm;
-import org.ndexbio.common.models.data.ICitation;
 import org.ndexbio.common.models.data.IEdge;
-import org.ndexbio.common.models.data.IFunctionTerm;
 import org.ndexbio.common.models.data.INamespace;
-import org.ndexbio.common.models.data.INetwork;
-import org.ndexbio.common.models.data.INetworkMembership;
 import org.ndexbio.common.models.data.INode;
-import org.ndexbio.common.models.data.ISupport;
-import org.ndexbio.common.models.data.IUser;
 import org.ndexbio.common.models.object.*;
 import org.ndexbio.service.CommonNetworkService;
-import org.ndexbio.service.JdexIdService;
-import org.ndexbio.xbel.model.Citation;
-import org.ndexbio.xbel.model.Function;
-import org.ndexbio.xbel.model.Parameter;
-import org.ndexbio.xbel.model.Relationship;
+import org.ndexbio.common.JdexIdService;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 
 public class ExcelNetworkService extends CommonNetworkService  {
 
