@@ -204,7 +204,8 @@ public class SIFNetworkService extends CommonNetworkService {
 	}
 
 	public void setFormat(String format) {
-		persistenceService.getCurrentNetwork().getMetadata().put("Format", format);	
+	    if (persistenceService.getCurrentNetwork().getMetadata() != null)
+	        persistenceService.getCurrentNetwork().getMetadata().put("Format", format);	
 	}
 
 
