@@ -334,7 +334,7 @@ public class SifParser implements IParsingEngine
     {
 
         // "PARTICIPANT	PARTICIPANT_TYPE	PARTICIPANT_NAME	UNIFICATION_XREF	RELATIONSHIP_XREF";
-        System.out.println("NO-OP processing for Aliases");
+        System.out.println("\nProcessing Aliases\n");
         String line;
         while ((line = bufferedReader.readLine()) != null)
         {
@@ -421,7 +421,7 @@ public class SifParser implements IParsingEngine
 
     }
     
-    private IBaseTerm findBaseTerm(String termString){
+    private IBaseTerm findBaseTerm(String termString) throws ExecutionException{
         // case 1 : termString is a URI
         // example: http://identifiers.org/uniprot/P19838
         // treat the last element in the URI as the identifier and the rest as
@@ -435,12 +435,12 @@ public class SifParser implements IParsingEngine
         {
             URI termStringURI = new URI(termString);
             String path = termStringURI.getPath();
-            if (path.indexOf("/") != -1)
+            if (path != null && path.indexOf("/") != -1)
             {
                 String identifier = path.substring(path.lastIndexOf('/') + 1);
                 String namespaceURI = termString.substring(0, termString.lastIndexOf('/') + 1);
-                INamespace namespace = SIFNetworkService.getInstance().findINamespace(namespaceURI, null);
-                iBaseTerm = SIFNetworkService.getInstance().findIBaseTerm(identifier, namespace);
+                INamespace namespace = this.networkService.findINamespace(namespaceURI, null);
+                iBaseTerm = this.networkService.findNodeBaseTerm(identifier, namespace);
                 return iBaseTerm;
             }
 
@@ -456,12 +456,12 @@ public class SifParser implements IParsingEngine
         // namespaces, otherwise do not set.
         //
         String[] termStringComponents = termString.split(":");
-        if (termStringComponents.length == 2)
+        if (termStringComponents != null && termStringComponents.length == 2)
         {
             String identifier = termStringComponents[1];
             String prefix = termStringComponents[0];
-            INamespace namespace = SIFNetworkService.getInstance().findINamespace(prefix, null);
-            iBaseTerm = SIFNetworkService.getInstance().findIBaseTerm(identifier, namespace);
+            INamespace namespace = this.networkService.findINamespace(null, prefix);
+            iBaseTerm = this.networkService.findNodeBaseTerm(identifier, namespace);
             return iBaseTerm;
         }
 
@@ -469,7 +469,7 @@ public class SifParser implements IParsingEngine
         // find or create the namespace for prefix "LOCAL" and use that as the
         // namespace.
 
-        iBaseTerm = SIFNetworkService.getInstance().findIBaseTerm(termString, SIFNetworkService.getInstance().findINamespace(null, "LOCAL"));
+        iBaseTerm = this.networkService.findNodeBaseTerm(termString, this.networkService.findINamespace(null, "LOCAL"));
 
         return iBaseTerm;
     	
@@ -490,7 +490,7 @@ public class SifParser implements IParsingEngine
         {
             URI termStringURI = new URI(termString);
             String path = termStringURI.getPath();
-            if (path.indexOf("/") != -1)
+            if (path != null && path.indexOf("/") != -1)
             {
                 String identifier = path.substring(path.lastIndexOf('/') + 1);
                 String namespaceURI = termString.substring(0, termString.lastIndexOf('/') + 1);
@@ -511,11 +511,11 @@ public class SifParser implements IParsingEngine
         // namespaces, otherwise do not set.
         //
         String[] termStringComponents = termString.split(":");
-        if (termStringComponents.length == 2)
+        if (termStringComponents != null && termStringComponents.length == 2)
         {
             String identifier = termStringComponents[1];
             String prefix = termStringComponents[0];
-            INamespace namespace = this.networkService.findOrCreateINamespace(prefix, null);
+            INamespace namespace = this.networkService.findOrCreateINamespace(null, prefix);
             iBaseTerm = this.networkService.findOrCreateNodeBaseTerm(identifier, namespace);
             return iBaseTerm;
         }

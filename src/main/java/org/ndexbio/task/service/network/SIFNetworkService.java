@@ -47,24 +47,23 @@ public class SIFNetworkService extends CommonNetworkService {
 				+ bt.getName());
 		return bt;
 	}
+	
+	public INamespace findINamespace(String uri, String prefix) throws ExecutionException{
 
-
+		String namespaceIdentifier = getNamespaceIdentifier(uri, prefix);
+		Long jdexId = NdexIdentifierCache.INSTANCE.accessIdentifierCache().get(
+				namespaceIdentifier);
+		boolean persisted = persistenceService.isEntityPersisted(jdexId);
+		if (persisted){
+			return persistenceService.findOrCreateINamespace(jdexId);
+		} else {
+			return null;
+		}
+	}
+	
 	public INamespace findOrCreateINamespace(String uri, String prefix)
 			throws ExecutionException {
-		String namespaceIdentifier = null;
-		if (uri == null && prefix == null){
-			prefix = "LOCAL";
-			namespaceIdentifier = "NAMESPACE:LOCAL";
-		} else if (prefix != null){
-			namespaceIdentifier = idJoiner.join("NAMESPACE", prefix);
-		} else if (uri != null){
-			prefix = this.findPrefixForNamespaceURI(uri);
-			if (prefix != null){
-				namespaceIdentifier = idJoiner.join("NAMESPACE", prefix);				
-			} else {
-				namespaceIdentifier = idJoiner.join("NAMESPACE", uri);	
-			}	
-		}
+		String namespaceIdentifier = getNamespaceIdentifier(uri, prefix);
 		
 		if (uri == null && prefix != null){
 			uri = findURIForNamespacePrefix(prefix);
@@ -79,6 +78,7 @@ public class SIFNetworkService extends CommonNetworkService {
 
 		// Not persisted, fill out blank Namespace
 		iNamespace.setJdexId(jdexId.toString());
+		if (prefix == null) prefix = this.findPrefixForNamespaceURI(uri);
 		if (prefix != null) iNamespace.setPrefix(prefix);
 		if (uri != null) iNamespace.setUri(uri);
 		this.persistenceService.getCurrentNetwork().addNamespace(iNamespace);
@@ -86,19 +86,6 @@ public class SIFNetworkService extends CommonNetworkService {
 		return iNamespace;
 	}
 
-	private String findPrefixForNamespaceURI(String uri) {
-		if (uri.equals("http://biopax.org/generated/group/")) return "GROUP";
-		if (uri.equals("http://identifiers.org/uniprot/")) return "UniProt";
-		if (uri.equals("http://purl.org/pc2/4/")) return "PathwayCommons2";
-		System.out.println("No Prefix for " + uri);
-		
-		return null;
-	}
-	
-	private String findURIForNamespacePrefix(String prefix){
-		if (prefix.equals("UniProt")) return "http://identifiers.org/uniprot/";
-		return null;
-	}
 
 	public INode findOrCreateINode(IBaseTerm baseTerm)
 			throws ExecutionException {
@@ -157,13 +144,55 @@ public class SIFNetworkService extends CommonNetworkService {
 		if (namespace.getPrefix() != null ) return namespace.getPrefix();
 		return namespace.getUri();
 	}
+	
+	private String getNamespaceIdentifier(String uri, String prefix){
+		String namespaceIdentifier = null;
+		if (uri == null && prefix == null){
+			prefix = "LOCAL";
+			namespaceIdentifier = "NAMESPACE:LOCAL";
+		} else if (prefix != null){
+			namespaceIdentifier = idJoiner.join("NAMESPACE", prefix);
+		} else if (uri != null){
+			prefix = this.findPrefixForNamespaceURI(uri);
+			if (prefix != null){
+				namespaceIdentifier = idJoiner.join("NAMESPACE", prefix);				
+			} else {
+				namespaceIdentifier = idJoiner.join("NAMESPACE", uri);	
+			}	
+		}
+		return namespaceIdentifier;
+	}
 
+	private String findPrefixForNamespaceURI(String uri) {
+		if (uri.equals("http://biopax.org/generated/group/")) return "GROUP";
+		if (uri.equals("http://identifiers.org/uniprot/")) return "UniProt";
+		if (uri.equals("http://purl.org/pc2/4/")) return "PathwayCommons2";
+		System.out.println("No Prefix for " + uri);
+		
+		return null;
+	}
+	
+	private String findURIForNamespacePrefix(String prefix){
+		if (prefix.equals("UniProt")) return "http://identifiers.org/uniprot/";
+		return null;
+	}
+	
 	public IBaseTerm findOrCreateNodeBaseTerm(String identifier, INamespace namespace)
 			throws ExecutionException {
 		String jdexCacheId = idJoiner.join("BASE", identifier, getNamespaceIdentifier(namespace));
 		Long jdexId = NdexIdentifierCache.INSTANCE.accessTermCache().get(
 				jdexCacheId);
 		return this.findOrCreateIBaseTerm(identifier, namespace, jdexId);
+	}
+	
+	public IBaseTerm findNodeBaseTerm(String identifier, INamespace namespace)
+			throws ExecutionException {
+		String jdexCacheId = idJoiner.join("BASE", identifier, getNamespaceIdentifier(namespace));
+		Long jdexId = NdexIdentifierCache.INSTANCE.accessTermCache().get(
+				jdexCacheId);
+		boolean persisted = persistenceService.isEntityPersisted(jdexId);
+		if (persisted) return persistenceService.findOrCreateIBaseTerm(jdexId);
+		return null;
 	}
 
 	public IBaseTerm findOrCreatePredicate(String identifier, INamespace namespace)
