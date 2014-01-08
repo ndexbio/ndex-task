@@ -84,9 +84,9 @@ public class TestParsingEngine
     @Test
     public void parseLargeSifFile() throws Exception
     {
-        final URL galNetworkUrl = getClass().getResource("/resources/Glucocorticoid_receptor_regulatory_network.SIF");
-        final SifParser sifParser = new SifParser(galNetworkUrl.toURI().getPath(),_testUserName);
-        System.out.println("Parsing SIF : " + galNetworkUrl.toURI().getPath());
+        final URL url = getClass().getResource("/resources/Glucocorticoid_receptor_regulatory_network.SIF");
+        final SifParser sifParser = new SifParser(url.toURI().getPath(),_testUserName);
+        System.out.println("Parsing SIF : " + url.toURI().getPath());
         sifParser.parseFile();
     }
 
@@ -102,6 +102,8 @@ public class TestParsingEngine
         System.out.println("Parsing XBEL : " + xbelNetworkURL.toURI().getPath());
         xbelParser.parseFile();
     }
+    
+    /*
     @Test
     public void parseExcelFile() throws Exception
     {
@@ -112,7 +114,7 @@ public class TestParsingEngine
         System.out.println("Parsing Excel file : " + smallExcelNetworkUrl.toURI().getPath());
        excelParser.parseFile();
     }
-/*
+
     @Test
     public void parseLargeXbelFile() throws Exception
     {

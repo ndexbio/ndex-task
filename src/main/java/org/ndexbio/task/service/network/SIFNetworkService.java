@@ -203,11 +203,5 @@ public class SIFNetworkService extends CommonNetworkService {
 		return this.findOrCreateIBaseTerm(identifier, namespace, jdexId);
 	}
 
-	public void setFormat(String format) {
-	    if (persistenceService.getCurrentNetwork().getMetadata() != null)
-	        persistenceService.getCurrentNetwork().getMetadata().put("Format", format);	
-	}
-
-
 
 }

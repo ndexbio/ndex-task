@@ -3,6 +3,7 @@ package org.ndexbio.task.parsingengines;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -15,7 +16,6 @@ import org.ndexbio.common.models.data.IBaseTerm;
 import org.ndexbio.common.models.data.INetwork;
 import org.ndexbio.common.models.data.INode;
 import org.ndexbio.task.service.network.ExcelNetworkService;
-
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
@@ -131,15 +131,13 @@ public class ExcelParser implements IParsingEngine
             e.printStackTrace();
         } 
     }
-
-    
-    
+  
     private void createNetwork() throws Exception
     {
         String networkTitle = this.excelFile.getName();
         this.network = this.networkService
         		.createNewNetwork(this.getOwnerName(), networkTitle);
-        this.network.getMetadata().put("Format",  "Excel");
+        this.networkService.setFormat("NDEX_EXCEL");
         this.getMsgBuffer().add("New Excel: " + network.getName());
     }
 

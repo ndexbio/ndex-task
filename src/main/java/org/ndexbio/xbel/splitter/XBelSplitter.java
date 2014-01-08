@@ -9,6 +9,7 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.UnmarshallerHandler;
 
 import org.ndexbio.common.exceptions.NdexException;
+import org.ndexbio.task.service.network.XBelNetworkService;
 import org.ndexbio.xbel.model.NamespaceGroup;
 import org.xml.sax.Attributes;
 import org.xml.sax.Locator;
@@ -29,6 +30,7 @@ public abstract class XBelSplitter extends XMLFilterImpl {
 
 	protected final JAXBContext context;
 	protected final String xmlElement;
+	protected final XBelNetworkService networkService;
 
 	protected final String belURI = "http://belframework.org/schema/1.0/xbel";
 	/**
@@ -53,9 +55,10 @@ public abstract class XBelSplitter extends XMLFilterImpl {
 		this.locator = locator;
 	}
 
-	protected XBelSplitter(JAXBContext context, String anElement) {
+	protected XBelSplitter(JAXBContext context, XBelNetworkService networkService, String anElement) {
 		this.context = context;
 		this.xmlElement = anElement;
+		this.networkService = networkService;
 	}
 
 	public void startElement(String namespaceURI, String localName,
