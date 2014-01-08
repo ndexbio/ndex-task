@@ -61,9 +61,9 @@ public class XbelFileParser {
 		this.validationState = new XbelFileValidator(fn).getValidationState();
 		logger.info(this.validationState.getValidationMessage());
 		this.context = JAXBContext.newInstance("org.ndexbio.xbel.model");
-		this.nsSplitter = new NamespaceGroupSplitter(context);
-		this.sgSplitter = new StatementGroupSplitter(context);
-		this.headerSplitter = new HeaderSplitter(context);
+		this.nsSplitter = new NamespaceGroupSplitter(context, networkService);
+		this.sgSplitter = new StatementGroupSplitter(context, networkService);
+		this.headerSplitter = new HeaderSplitter(context, networkService);
 		this.initReader();
 	}
 

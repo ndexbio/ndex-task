@@ -2,7 +2,6 @@ package org.ndexbio.xbel.splitter;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import javax.xml.bind.JAXBContext;
@@ -16,12 +15,9 @@ import org.ndexbio.common.models.data.IFunctionTerm;
 import org.ndexbio.common.models.data.INode;
 import org.ndexbio.common.models.data.ISupport;
 import org.ndexbio.common.models.data.ITerm;
-import org.ndexbio.common.persistence.NDExPersistenceService;
-import org.ndexbio.common.persistence.NDExPersistenceServiceFactory;
 import org.ndexbio.task.service.network.XBelNetworkService;
 import org.ndexbio.xbel.model.AnnotationGroup;
 import org.ndexbio.xbel.model.Citation;
-import org.ndexbio.xbel.model.Function;
 import org.ndexbio.xbel.model.Parameter;
 import org.ndexbio.xbel.model.Statement;
 import org.ndexbio.xbel.model.StatementGroup;
@@ -33,22 +29,15 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 
 public class StatementGroupSplitter extends XBelSplitter {
 	private static final String xmlElement = "statementGroup";
 	private static Joiner idJoiner = Joiner.on(":").skipNulls();
 	
 	private static final Logger logger = LoggerFactory.getLogger(StatementGroupSplitter.class);
-	private XBelNetworkService networkService;
 
-	public StatementGroupSplitter(JAXBContext context) {
-		super(context, xmlElement);
-		/*
-		 * this class persists XBEL data into orientdb establish a reference to
-		 * the persistence service
-		 */
-		this.networkService = new XBelNetworkService();
+	public StatementGroupSplitter(JAXBContext context, XBelNetworkService networkService) {
+		super(context, networkService, xmlElement);
 		
 	}
 

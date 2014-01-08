@@ -8,11 +8,9 @@ import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
 
-import org.ndexbio.common.cache.NdexIdentifierCache;
 import org.ndexbio.common.models.data.INetwork;
 import org.ndexbio.task.parsingengines.XbelFileValidator.ValidationState;
 import org.ndexbio.task.service.network.XBelNetworkService;
-
 import org.ndexbio.xbel.splitter.HeaderSplitter;
 import org.ndexbio.xbel.splitter.NamespaceGroupSplitter;
 import org.ndexbio.xbel.splitter.StatementGroupSplitter;
@@ -60,15 +58,14 @@ public class XbelParser implements IParsingEngine
         this.validationState = new XbelFileValidator(fn).getValidationState();
         logger.info(this.validationState.getValidationMessage());
         this.context = JAXBContext.newInstance("org.ndexbio.xbel.model");
-        this.nsSplitter = new NamespaceGroupSplitter(context);
-        this.sgSplitter = new StatementGroupSplitter(context);
-        this.headerSplitter = new HeaderSplitter(context);
         this.networkService = new XBelNetworkService();
+        this.nsSplitter = new NamespaceGroupSplitter(context, this.networkService);
+        this.sgSplitter = new StatementGroupSplitter(context, this.networkService);
+        this.headerSplitter = new HeaderSplitter(context, this.networkService);
+        
         this.initReader();
     }
-
-    
-    
+  
     public void parseFile()
     {
         try
@@ -76,12 +73,16 @@ public class XbelParser implements IParsingEngine
             this.processHeaderAndCreateNetwork();
             this.processNamespaces();
             this.processStatementGroups();
+            
+            // Not relevant in NoTx mode
+            //
             // at this point we can clear the identifier cache to reduce memory
             // requirements
-            logger.info("Clearing identifier cache");
-            NdexIdentifierCache.INSTANCE.accessIdentifierCache().invalidateAll();
-            // persist the network domain model, commit the transaction, close
-            // database connection
+            //logger.info("Clearing identifier cache");
+            //NdexIdentifierCache.INSTANCE.accessIdentifierCache().invalidateAll();
+            
+            // set edge count and node count,
+            // then close database connection
             this.networkService.persistNewNetwork();
         }
         catch (Exception e)
@@ -107,6 +108,7 @@ public class XbelParser implements IParsingEngine
         }
         String networkTitle = this.headerSplitter.getHeader().getName();
         this.network = this.networkService.createNewNetwork(this.getOwnerName(), networkTitle);
+        this.networkService.setFormat("BEL_DOCUMENT");
        
 
         logger.info("New testnetwork created for XBEL: " + network.getName());
@@ -176,13 +178,9 @@ public class XbelParser implements IParsingEngine
         return xmlFile;
     }
 
-
-
 	public String getOwnerName() {
 		return ownerName;
 	}
-
-
 
 	private void setOwnerName(String ownerName) {
 		this.ownerName = ownerName;

@@ -20,13 +20,11 @@ public class NamespaceGroupSplitter extends XBelSplitter {
 	
 	private static final String xmlElement = "namespaceGroup";
 	private static final Logger logger = LoggerFactory.getLogger(NamespaceGroupSplitter.class);
-	private XBelNetworkService networkService;
  /*
   * Extension of XBelSplitter to parse NamespaceGroup data from an XBEL document
   */
-	public NamespaceGroupSplitter(JAXBContext context) {
-		super(context, xmlElement);
-		this.networkService = new XBelNetworkService();
+	public NamespaceGroupSplitter(JAXBContext context, XBelNetworkService networkService) {
+		super(context, networkService, xmlElement);
 	}
 	@Override
 	/*
