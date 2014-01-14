@@ -294,6 +294,10 @@ public class StatementGroupSplitter extends XBelSplitter {
 			logger.error(e.getMessage());
 			e.printStackTrace();
 			return null;
+		} catch (NdexException e) {
+			logger.error(e.getMessage());
+			e.printStackTrace();
+			return null;
 		}
 
 	}

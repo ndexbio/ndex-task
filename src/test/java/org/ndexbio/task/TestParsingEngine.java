@@ -103,7 +103,7 @@ public class TestParsingEngine
         xbelParser.parseFile();
     }
     
-    /*
+/*
     @Test
     public void parseExcelFile() throws Exception
     {
@@ -115,6 +115,8 @@ public class TestParsingEngine
        excelParser.parseFile();
     }
 
+*/
+    
     @Test
     public void parseLargeXbelFile() throws Exception
     {
@@ -128,5 +130,5 @@ public class TestParsingEngine
 
         xbelParser.parseFile();
     }
-    */
+    
 }

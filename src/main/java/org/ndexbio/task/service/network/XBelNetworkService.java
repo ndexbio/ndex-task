@@ -44,9 +44,9 @@ public class XBelNetworkService extends CommonNetworkService  {
 	}
 
 
-	public void commitCurrentNetwork() throws NdexException  {
+	public void networkProgressLogCheck() throws NdexException  {
 		try {
-			this.persistenceService.commitCurrentNetwork();
+			this.persistenceService.networkProgressLogCheck();
 		} catch (NdexException e) {
 			logger.error(e.getMessage());
 			e.printStackTrace();
@@ -73,7 +73,7 @@ public class XBelNetworkService extends CommonNetworkService  {
 		bt.setTermNamespace(persistenceService.findNamespaceByPrefix(p.getNs()));
 		bt.setJdexId(jdexId.toString());
 		this.getCurrentNetwork().addTerm(bt);
-		this.commitCurrentNetwork();
+		this.networkProgressLogCheck();
 		return bt;	
 	}
 
@@ -97,10 +97,18 @@ public class XBelNetworkService extends CommonNetworkService  {
 			newNamespace.setUri(ns.getResourceLocation());
 			// connect this namespace to the current network and commit
 			this.getCurrentNetwork().addNamespace(newNamespace);
-			this.commitCurrentNetwork();
+			this.networkProgressLogCheck();
 			return newNamespace;
 	
 	}
+	
+	public IFunctionTerm findOrCreateIFunctionTerm(Long jdexId) throws ExecutionException, NdexException{
+		IFunctionTerm functionTerm = this.getPersistenceService().findOrCreateIFunctionTerm(jdexId);
+		this.getCurrentNetwork().addTerm(functionTerm);
+		this.networkProgressLogCheck();
+		return functionTerm;
+	}
+	
 
 	/*
 	 * public method to map a XBEL model Citation object to a orientdb ICitation
@@ -133,7 +141,7 @@ public class XBelNetworkService extends CommonNetworkService  {
 			}
 			*/
 			this.getCurrentNetwork().addCitation(iCitation);
-			this.commitCurrentNetwork();
+			this.networkProgressLogCheck();
 			return iCitation;
 		
 	}
@@ -162,7 +170,7 @@ public class XBelNetworkService extends CommonNetworkService  {
 			iSupport.setSupportCitation(iCitation);
 		}
 		this.getCurrentNetwork().addSupport(iSupport);
-		this.commitCurrentNetwork();
+		this.networkProgressLogCheck();
 		return iSupport;
 	}
 
@@ -184,7 +192,7 @@ public class XBelNetworkService extends CommonNetworkService  {
 				edge.addCitation(citation);			
 			}
 			this.getCurrentNetwork().addNdexEdge(edge);
-			this.commitCurrentNetwork();
+			this.networkProgressLogCheck();
 		}
 	}
 
@@ -245,7 +253,7 @@ public class XBelNetworkService extends CommonNetworkService  {
 		iNode.setJdexId(jdexId.toString());
 		iNode.setRepresents(representedTerm);
 		this.getCurrentNetwork().addNdexNode(iNode);
-		this.commitCurrentNetwork();
+		this.networkProgressLogCheck();
 		return iNode;
 	}
 	
@@ -254,9 +262,6 @@ public class XBelNetworkService extends CommonNetworkService  {
 	}
 	
 	
-	public IFunctionTerm findOrCreateIFunctionTerm(Long jdexId) throws ExecutionException{
-		return this.getPersistenceService().findOrCreateIFunctionTerm(jdexId);
-	}
-	
+
 	
 }
