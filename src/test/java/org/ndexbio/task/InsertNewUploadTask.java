@@ -31,6 +31,7 @@ import com.orientechnologies.orient.core.id.ORID;
 public class InsertNewUploadTask {
 	private  final File sourceFile;
 	private LocalDataService ds;
+	private static final String NETWORK_UPLOAD_PATH = "/opt/ndex/uploaded-networks/";
 	
 	 private static final Logger logger = LoggerFactory.getLogger(InsertNewUploadTask.class);
 	
@@ -71,7 +72,7 @@ public class InsertNewUploadTask {
 		if(args.length >0 ){
 			testFile = args[0];
 		} else {
-			testFile = "/tmp/tiny_corpus.xbel";
+			testFile = "/tmp/small-corpus.xbel";
 		}
 		logger.info("Scheduling " +testFile +" for loading");
 		InsertNewUploadTask test = new InsertNewUploadTask(testFile);
@@ -86,14 +87,13 @@ public class InsertNewUploadTask {
 		logger.info("Copying " +inputFile +" to " +uploadFile);
 		
 		Files.copy(inputFile, uploadFile, StandardCopyOption.REPLACE_EXISTING);
-		return uploadFile.getFileName().toString();
+		return uploadFile.toString();
 		 
 	}
 	
 	private String resolveFilename() {
 		StringBuilder sb = new StringBuilder();
-		sb.append(Configuration.getInstance().getProperty(
-				Configuration.UPLOADED_NETWORKS_PATH_PROPERTY));
+		sb.append(NETWORK_UPLOAD_PATH);
 		sb.append(this.sourceFile.getName());
 		return sb.toString();
 	}
@@ -147,7 +147,7 @@ public class InsertNewUploadTask {
 		private User getLoggedInUser() {
 			User user = new User();
 			user.setId("C30R2");
-			user.setUsername("fcriscuo");
+			user.setUsername("fjcriscuolo");
 			return user;
 			
 		}

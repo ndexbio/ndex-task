@@ -10,10 +10,15 @@ import java.util.concurrent.Future;
 
 import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.exceptions.ObjectNotFoundException;
-import org.ndexbio.common.models.object.Task;
+import org.ndexbio.common.helpers.IdConverter;
+import org.ndexbio.common.models.data.ITask;
+
 import org.ndexbio.common.persistence.orientdb.NdexTaskService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.orientechnologies.orient.core.id.ORID;
+import com.tinkerpop.frames.VertexFrame;
 
 /*
  * represents a class that is invoked at a specified interval by a cron process. When invoked,
@@ -28,13 +33,13 @@ public class NdexTaskDispatcher  {
 	private static final Logger logger = LoggerFactory.getLogger(NdexTaskDispatcher.class);
 	private static final Integer MAX_THREADS = 1;
 	private final NdexTaskService taskService = new NdexTaskService();
-	private final  CompletionService<Task> taskCompletionService;
+	private final  CompletionService<ITask> taskCompletionService;
 	
 
 	public NdexTaskDispatcher(){
 		 ExecutorService taskExecutor = Executors.newFixedThreadPool(MAX_THREADS);
 	       this.taskCompletionService =
-	           new ExecutorCompletionService<Task>(taskExecutor);
+	           new ExecutorCompletionService<ITask>(taskExecutor);
 	}
 	
 	public static void main(String[] args) {
@@ -63,13 +68,13 @@ public class NdexTaskDispatcher  {
 	 * terminate in processing tasks which have exceeded the maximum time limit
 	 */
 	private  Integer determineInProgressTasks() throws NdexException {
-		List<Task> taskList = taskService.getInProgressTasks();
+		List<ITask> taskList = taskService.getInProgressITasks();
 		Integer activeTasks = taskList.size();
 		// for now just print out the in progress tasks
-		for ( Task task : taskList){
+		for ( ITask task : taskList){
 			//TODO check running time and terminate job if necessary
 			// decrement activeTasks 
-			logger.info("Task id " +task.getId() +" is in progress");
+			logger.info("Task id " +resolveVertexId(task) +" is in progress");
 		}
 		return activeTasks;
 	}
@@ -80,19 +85,19 @@ public class NdexTaskDispatcher  {
 	 */
 	private void dispatchTasks(Integer numTasks) throws NdexException {
 		
-		List<Task> taskList = taskService.getQueuedTasks();
+		List<ITask> taskList = taskService.getQueuedITasks();
 		logger.info(taskList.size() +" file upload tasks are pending");
 		int taskLimit = Math.min(taskList.size(), numTasks);
 		int submittedTasks = 0;
 		while (submittedTasks < taskLimit){
 			try {
-				String taskId = taskList.get(submittedTasks).getId();
+				String taskId = resolveVertexId(taskList.get(submittedTasks));
 				NdexTask newTask = NdexTaskFactory.INSTANCE.getNdexTaskByTaskType(taskId);
 				this.taskCompletionService.submit(newTask);
 				logger.info("Task id: " + taskId +" started");
 				
 			} catch (IllegalArgumentException | SecurityException e) {
-				// TODO Auto-generated catch block
+				logger.error(e.getMessage());
 				e.printStackTrace();
 			}
 			submittedTasks++;		
@@ -102,9 +107,9 @@ public class NdexTaskDispatcher  {
 		for(int tasksCompleted=0;tasksCompleted<submittedTasks;tasksCompleted++){
 	        try {
 	            logger.debug("trying to take from Completion service");
-	            Future<Task> result = taskCompletionService.take();
+	            Future<ITask> result = taskCompletionService.take();
 	            System.out.println("result for a task availble in queue.Trying to get()"  );
-	            // the result contains a Task with an updated status
+	            // the result contains a ITask with an updated status
 	            this.postTaskCompleteion(result.get());
 	        } catch (InterruptedException e) {
 	            
@@ -120,17 +125,23 @@ public class NdexTaskDispatcher  {
 		
 	}
 	
-	private void postTaskCompleteion(Task completedTask) throws 
+	
+	private void postTaskCompleteion(ITask completedTask) throws 
 		IllegalArgumentException, ObjectNotFoundException, SecurityException, NdexException {
 		
 			taskService.updateTask(completedTask);
-			logger.info("Completion status for task id: " +completedTask.getId() +
+			logger.info("Completion status for task id: " +resolveVertexId(completedTask) +
 					"is " +completedTask.getStatus().toString());
-		
 		
 	}
 
-	
+	protected String resolveVertexId(VertexFrame vf)
+    {
+        if (null == vf)
+            return null;
+
+        return IdConverter.toJid((ORID)vf.asVertex().getId());
+    }
 	
 
 }

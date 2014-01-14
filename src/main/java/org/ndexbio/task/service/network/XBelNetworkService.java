@@ -36,6 +36,7 @@ public class XBelNetworkService extends CommonNetworkService  {
 	private static final Logger logger = LoggerFactory
 			.getLogger(XBelNetworkService.class);
 
+	private static final String NETWORK_UPLOAD_PATH = "/opt/ndex/uploaded-networks/";
 	
 	private static Joiner idJoiner = Joiner.on(":").skipNulls();
 
@@ -45,15 +46,7 @@ public class XBelNetworkService extends CommonNetworkService  {
 
 
 	public void commitCurrentNetwork() throws NdexException  {
-		try {
-			this.persistenceService.commitCurrentNetwork();
-		} catch (NdexException e) {
-			logger.error(e.getMessage());
-			e.printStackTrace();
-			// roll back
-			this.rollbackCurrentTransaction();
-			throw new NdexException(e.getMessage());
-		}
+		
 		
 	}
 

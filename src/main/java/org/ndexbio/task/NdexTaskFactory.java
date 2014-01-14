@@ -1,8 +1,9 @@
 package org.ndexbio.task;
 
 import org.ndexbio.common.exceptions.NdexException;
+import org.ndexbio.common.models.data.ITask;
 import org.ndexbio.common.models.data.TaskType;
-import org.ndexbio.common.models.object.Task;
+
 import org.ndexbio.common.persistence.orientdb.NdexTaskService;
 
 /*
@@ -15,7 +16,7 @@ import org.ndexbio.common.persistence.orientdb.NdexTaskService;
 	NdexTask getNdexTaskByTaskType(String taskId){
 		NdexTaskService taskService = new NdexTaskService();
 		try {
-			Task task = taskService.getITask(taskId);
+			ITask task = taskService.getITask(taskId);
 			if( task.getType() == TaskType.PROCESS_UPLOADED_NETWORK) {
 				return new FileUploadTask(taskId);
 			}

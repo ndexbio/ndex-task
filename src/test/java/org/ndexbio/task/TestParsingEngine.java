@@ -5,10 +5,7 @@ import java.net.URL;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.ndexbio.common.models.data.INetwork;
-import org.ndexbio.common.models.data.INetworkMembership;
 import org.ndexbio.common.models.data.IUser;
-import org.ndexbio.common.models.data.Permissions;
 import org.ndexbio.common.models.object.SearchParameters;
 import org.ndexbio.common.models.object.SearchResult;
 import org.ndexbio.task.parsingengines.*;
@@ -18,6 +15,7 @@ public class TestParsingEngine
 {
     private static String _testUserName = "dexterpratt";
     private static IUser _testUser = null;
+    private static final String NETWORK_UPLOAD_PATH = "/opt/ndex/uploaded-networks/";
 
     @BeforeClass
     public static void setupUser() throws Exception
@@ -80,7 +78,7 @@ public class TestParsingEngine
     }
 
 */
-    
+    /**
     @Test
     public void parseLargeSifFile() throws Exception
     {
@@ -89,19 +87,21 @@ public class TestParsingEngine
         System.out.println("Parsing SIF : " + url.toURI().getPath());
         sifParser.parseFile();
     }
-
+*/
     @Test
     public void parseXbelFile() throws Exception
     {
-        final URL xbelNetworkURL = getClass().getResource("/resources/tiny-corpus.xbel");
-        final XbelParser xbelParser = new XbelParser(xbelNetworkURL.toURI().getPath(),
+        //final URL xbelNetworkURL = getClass().getResource("/resources/tiny-corpus.xbel");
+    	String fn = NETWORK_UPLOAD_PATH + "small-corpus.xbel";
+        final XbelParser xbelParser = new XbelParser(fn,
         		_testUserName);
 
         if (!xbelParser.getValidationState().isValid())
             Assert.fail("tiny-corpus.xbel is invalid.");
-        System.out.println("Parsing XBEL : " + xbelNetworkURL.toURI().getPath());
+        System.out.println("Parsing XBEL : " + fn);
         xbelParser.parseFile();
     }
+    
     
     /*
     @Test
