@@ -40,6 +40,7 @@
 	</encoder>
 	
 	<root level="debug">
+	  <appender-ref ref="STDOUT" />
 	  <appender-ref ref="ROLLING" />
 	</root>
 </configuration>

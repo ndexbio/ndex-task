@@ -7,7 +7,6 @@ import org.ndexbio.common.models.data.ITask;
 import org.ndexbio.common.models.data.Status;
 
 import org.ndexbio.task.parsingengines.*;
-import org.ndexbio.xbel.parser.XbelFileParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,7 +74,7 @@ public class FileUploadTask extends NdexTask {
 			try {
 				logger.info("Processing xbel file " + file.getAbsolutePath()
 						+ " for " + this.getTask().getOwner().getUsername());
-				final XbelFileParser xbelParser = new XbelFileParser(
+				final XbelParser xbelParser = new XbelParser(
 						file.getAbsolutePath(), this.getTask().getOwner()
 								.getUsername());
 
@@ -85,7 +84,7 @@ public class FileUploadTask extends NdexTask {
 					throw new NdexException(
 							"XBEL file fails XML schema validation - one or more elements do not meet XBEL specification.");
 				}
-				xbelParser.parseXbelFile();
+				xbelParser.parseFile();
 				this.taskStatus = Status.COMPLETED;
 			} catch (Exception e) {
 				this.taskStatus = Status.COMPLETED_WITH_ERRORS;
