@@ -129,7 +129,8 @@ public class NdexTaskDispatcher  {
 	private void postTaskCompleteion(ITask completedTask) throws 
 		IllegalArgumentException, ObjectNotFoundException, SecurityException, NdexException {
 		
-			taskService.updateTask(completedTask);
+			taskService.updateTaskStatus( completedTask.getStatus(), 
+					this.resolveVertexId(completedTask));
 			logger.info("Completion status for task id: " +resolveVertexId(completedTask) +
 					"is " +completedTask.getStatus().toString());
 		

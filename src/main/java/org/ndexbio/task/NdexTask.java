@@ -4,17 +4,19 @@ import java.util.concurrent.Callable;
 
 import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.exceptions.ObjectNotFoundException;
+import org.ndexbio.common.helpers.IdConverter;
 import org.ndexbio.common.models.data.ITask;
 import org.ndexbio.common.models.data.Status;
-
 import org.ndexbio.common.persistence.orientdb.NdexTaskService;
+
+import com.orientechnologies.orient.core.id.ORID;
+import com.tinkerpop.frames.VertexFrame;
 
 
 
 public abstract class NdexTask implements Callable<ITask> {
 	
 	private final String taskId;
-	
 	private final NdexTaskService taskService;
 	private  ITask task;
 	
@@ -25,12 +27,20 @@ public abstract class NdexTask implements Callable<ITask> {
 		this.task = taskService.getITask(taskId);
 	}
 	
+	public NdexTask(ITask itask) {
+		this.taskService = new NdexTaskService();
+		this.task = itask;
+		this.taskId = this.resolveVertexId(itask);
+	}
+	
 	protected String getTaskId() {return this.taskId; }
 	
 	protected ITask getTask() { return this.task;}
 	
-	protected final void startTask() throws IllegalArgumentException, ObjectNotFoundException, SecurityException, NdexException{
+	protected final void startTask() throws IllegalArgumentException, 
+		ObjectNotFoundException, SecurityException, NdexException{
 		this.updateTaskStatus(Status.PROCESSING);
+		
 	}
 	
 	/*
@@ -45,6 +55,15 @@ public abstract class NdexTask implements Callable<ITask> {
 	}
 
 	public abstract ITask call() throws Exception;
+	
+	protected String resolveVertexId(VertexFrame vf)
+    {
+        if (null == vf)
+            return null;
+
+        return IdConverter.toJid((ORID)vf.asVertex().getId());
+    }
+	
 	
 
 }

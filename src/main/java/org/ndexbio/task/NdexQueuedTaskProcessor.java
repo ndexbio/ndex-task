@@ -49,38 +49,16 @@ public class NdexQueuedTaskProcessor {
 	private static final Logger logger = LoggerFactory.getLogger(NdexQueuedTaskProcessor.class);
 	private static final Integer MAX_THREADS = 1;
 	private final NdexTaskService taskService = new NdexTaskService();
-	private final  CompletionService<ITask> taskCompletionService;
-	private final ConcurrentLinkedQueue<ITask> taskQueue;
+	private   final CompletionService<Integer> taskCompletionService;
+	private final ExecutorService taskExecutor;
 	
 	
 	public NdexQueuedTaskProcessor() {
-		ExecutorService taskExecutor = Executors.newFixedThreadPool(MAX_THREADS);
+		 taskExecutor = Executors.newFixedThreadPool(MAX_THREADS);
 	       this.taskCompletionService =
-	           new ExecutorCompletionService<ITask>(taskExecutor);
-	       this.taskQueue = Queues.newConcurrentLinkedQueue();
+	           new ExecutorCompletionService<Integer>(taskExecutor);       
 	}
 	
-	/*
-	 * provate method to initiate processing of tasks persisted
-	 * with a QUEUED status. Processing proceeds only if there are
-	 * no tasks with a status of STAGED or PROCESSING (i.e. active)
-	 */
-	private void processTasks() {
-		try {
-			Integer activeTaskCount = this.determineActiveTasks();
-			if (activeTaskCount > 0){
-				logger.info("There are currently " + activeTaskCount 
-						+" active tasks ");
-				logger.info("The check for newly queued tasks was skipped");
-			} else {
-				this.processQueuedITasks();
-			}
-		} catch (NdexException e) {
-			logger.error(e.getMessage());
-			e.printStackTrace();
-		}
-		
-	}
 	
 	/*
 	 * private method to process all the tasks current persisted with a 
@@ -88,33 +66,36 @@ public class NdexQueuedTaskProcessor {
 	 */
 	private void processQueuedITasks() {
 		try {
+			/*
+			 * obtain a List of queued tasks and update their status to staged
+			 */
 			List<ITask> stagedTasks = taskService.stageQueuedITasks();
-			this.taskQueue.addAll(stagedTasks);
-			logger.info("The task queue contains" +this.taskQueue.size() +" staged tasks");
-			while (this.taskQueue.size() >0){
-				int taskLimit = Math.min(this.taskQueue.size(), MAX_THREADS);
-				int submittedTasks = 0;
-				while( submittedTasks < taskLimit){
-					String taskId = resolveVertexId(this.taskQueue.poll());
-					NdexTask newTask = NdexTaskFactory.INSTANCE.getNdexTaskByTaskType(taskId);
-					this.taskCompletionService.submit(newTask);
-					logger.info("Task id: " + taskId +" started");
-					submittedTasks++;
+			if(!stagedTasks.isEmpty()){
+				NdexTaskQueueService.INSTANCE.addCollection(stagedTasks);		
+				logger.info("The task queue contains" +NdexTaskQueueService.INSTANCE.getTaskQueueSize()
+						+" staged tasks");
+			
+				int threadCount = Math.min(NdexTaskQueueService.INSTANCE.getTaskQueueSize(), 
+						MAX_THREADS);
+				int startedThreads = 0;
+				while( startedThreads < threadCount){
+					startedThreads++;
+					this.taskCompletionService.submit(new NdexTaskExecutor(startedThreads));
+					logger.info("A NdexTaskExecutor thread started");
+					
 				}
 				// monitor submitted jobs until completion
-				for(int tasksCompleted=0;tasksCompleted<submittedTasks;tasksCompleted++){
+				Integer totalCompletedTasks = 0;
+				for(int threadsCompletd=0;threadsCompletd<startedThreads;threadsCompletd++){
 			        try {
 			            logger.debug("trying to take from Completion service");
-			            Future<ITask> result = taskCompletionService.take();
-			            System.out.println("result for a task availble in queue.Trying to get()"  );
-			            // the result contains a ITask with an updated status
-			            try {
-							this.postTaskCompleteion(result.get());
-						} catch (IllegalArgumentException | SecurityException
-								| ObjectNotFoundException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
+			            Future<Integer> result = taskCompletionService.take();
+			            totalCompletedTasks += result.get();
+			            
+			            System.out.println("Thread completed " +result.get() +" tasks" 
+			            		+" Total tasks completed = " +totalCompletedTasks);
+			            result.cancel(true);
+			            
 			        } catch (InterruptedException e) {
 			            
 			            logger.error("Error Interrupted exception");
@@ -127,14 +108,19 @@ public class NdexQueuedTaskProcessor {
 			        
 			    }
 				
+				
+				
 			}
 			
 		} catch (NdexException e) {
-			// TODO Auto-generated catch block
+			logger.error(e.getMessage());
 			e.printStackTrace();
 		}
 	}
 	
+	private void shutdown() {
+		this.taskExecutor.shutdownNow();
+	}
 	
 	/*
 	 * method to determine the number of tasks that are currently marked
@@ -154,19 +140,22 @@ public class NdexQueuedTaskProcessor {
 		return activeTasks;
 	}
 	
-	private void postTaskCompleteion(ITask completedTask) throws 
-	IllegalArgumentException, ObjectNotFoundException, SecurityException, NdexException {
-	
-		taskService.updateTask(completedTask);
-		logger.info("Completion status for task id: " +resolveVertexId(completedTask) +
-				"is " +completedTask.getStatus().toString());
-	
-}
 
 	public static void main(String[] args) {
 		logger.info("invoked");
 		NdexQueuedTaskProcessor taskProcessor = new NdexQueuedTaskProcessor();
-
+		try {
+			if (taskProcessor.determineActiveTasks() < 1){
+				taskProcessor.processQueuedITasks();
+			}
+		} catch (NdexException e) {
+			logger.error(e.getMessage());
+			e.printStackTrace();
+		} finally {
+			taskProcessor.shutdown();
+		}
+		
+		logger.info("Completed.");
 	}
 	
 

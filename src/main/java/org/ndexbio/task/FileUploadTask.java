@@ -5,7 +5,6 @@ import java.io.File;
 import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.models.data.ITask;
 import org.ndexbio.common.models.data.Status;
-
 import org.ndexbio.task.parsingengines.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,10 +37,26 @@ public class FileUploadTask extends NdexTask {
 		}
 	}
 
+	public FileUploadTask(ITask itask) throws IllegalArgumentException,
+			SecurityException, NdexException {
+		super(itask);
+		this.filename = this.getTask().getResource();
+		// this.filename = this.getTask().getResource();
+		if (!(new File(this.filename).isFile())) {
+			throw new NdexException("File " + this.filename + " does not exist");
+		}
+	}
+
 	@Override
 	public ITask call() throws Exception {
-		this.processFile();
-		return this.getTask();
+		
+		try {
+			this.processFile();
+			return this.getTask();
+		} catch (InterruptedException e) {
+			logger.info("FileUploadTask interupted");
+			return null;
+		}
 	}
 
 	protected String getFilename() {
@@ -54,8 +69,8 @@ public class FileUploadTask extends NdexTask {
 		this.taskStatus = Status.PROCESSING;
 		this.startTask();
 		File file = new File(this.getFilename());
-		String fileExtension = com.google.common.io.Files.getFileExtension(
-				this.getFilename()).toUpperCase().trim();
+		String fileExtension = com.google.common.io.Files
+				.getFileExtension(this.getFilename()).toUpperCase().trim();
 		logger.info("File extension = " + fileExtension);
 		switch (fileExtension) {
 		case ("SIF"):
