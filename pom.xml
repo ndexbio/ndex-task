@@ -175,6 +175,16 @@
 			<artifactId>jackson-annotations</artifactId>
 			<version>2.3.0</version>
 		</dependency>
+		<dependency>
+			<groupId>org.ndexbio</groupId>
+			<artifactId>ndex-common</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>org.ndexbio</groupId>
+			<artifactId>ndex-common</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
 	</dependencies>
 
 

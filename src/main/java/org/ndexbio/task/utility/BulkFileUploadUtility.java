@@ -1,8 +1,8 @@
-package org.ndexbio.task;
+package org.ndexbio.task.utility;
 
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -10,7 +10,6 @@ import java.nio.file.StandardCopyOption;
 import java.util.Date;
 
 import org.ndexbio.common.exceptions.*;
-import org.ndexbio.common.helpers.Configuration;
 import org.ndexbio.common.helpers.IdConverter;
 import org.ndexbio.common.models.data.*;
 import org.ndexbio.common.models.object.*;
@@ -23,39 +22,51 @@ import com.orientechnologies.orient.core.id.ORID;
 
 
 /*
- * this class is responsible for inserting a new file upload task into the orientdb database
- * it can be invoked directly as an application to simply create the new task for a background
- * processor to deal with or it can be invoked as part of a more comprehensive test.
+ * Represents a utility application responsible for preparing a set of network files 
+ * for uploading into Ndex. The files must be an acceptable format (i.e. xbel, sif, xls, xlsx)
+ * The input parameter is a directory location. All regular files within the specified directory 
+ * are processed
  */
+public class BulkFileUploadUtility {
+	
+	private final Path uploadDir;
+	private final LocalDataService ds;
+	
+	public BulkFileUploadUtility(String dir){
+		this.uploadDir = Paths.get(dir);
+		this.ds = new LocalDataService();
+	}
 
-public class InsertNewUploadTask {
-	private  final File sourceFile;
-	private LocalDataService ds;
+	private static final String DEFAULT_DIRECTORY = "/tmp/ndex/bulk";
+	private static final Logger logger = LoggerFactory.getLogger(BulkFileUploadUtility.class);
 	private static final String NETWORK_UPLOAD_PATH = "/opt/ndex/uploaded-networks/";
 	
-	 private static final Logger logger = LoggerFactory.getLogger(InsertNewUploadTask.class);
-	
-	public InsertNewUploadTask (String fn){
-		this.sourceFile = new File(fn);
-		this.ds = new LocalDataService();		
+	public static void main(String[] args) {
+		String dir = DEFAULT_DIRECTORY;
+		if (args.length >0){
+			dir = args[0];
+		}
+		logger.info("Processing network files in  " +dir);
+		BulkFileUploadUtility util = new BulkFileUploadUtility(dir);
+		util.processFiles();
+
 	}
 	
-	private void persistFileUploadTask() {
-		try {
-			String newFile = this.copyFileToConfigArea();
-			Task task = this.generateTask(newFile);
-			this.ds.createTask(task);
-			
-		} catch (IOException e) {
-			logger.error(e.getMessage());
-			e.printStackTrace();
-		} catch (IllegalArgumentException e) {
-			logger.error(e.getMessage());
-			e.printStackTrace();
-		} catch (NdexException e) {
-			logger.error(e.getMessage());
-			e.printStackTrace();
-		}
+	private void processFiles() {
+		try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(this.uploadDir)) {
+            for (Path path : directoryStream) {
+              logger.info("Processing file " +path.toString());
+              String destFile = this.resolveFilename(path);
+              Path destPath = Paths.get(destFile);
+              Files.copy(path, destPath, StandardCopyOption.REPLACE_EXISTING);
+              logger.info("Copied " +path.toString() +" to " +destPath.toString() );
+              Task task = this.generateTask(destPath.toString());
+  			  this.ds.createTask(task);
+  			  logger.info("file upload task " +task.getId() +" queued in database");
+            }
+        } catch (IOException | IllegalArgumentException | NdexException e) {
+        	logger.error(e.getMessage());
+        }
 	}
 	
 	private Task generateTask(String newFile) {
@@ -66,39 +77,15 @@ public class InsertNewUploadTask {
 		
 		return task;
 	}
-
-	public static void main(String[] args) {
-		String testFile = null;
-		if(args.length >0 ){
-			testFile = args[0];
-		} else {
-			testFile = "/tmp/small-corpus.xbel";
-		}
-		logger.info("Scheduling " +testFile +" for loading");
-		InsertNewUploadTask test = new InsertNewUploadTask(testFile);
-		test.persistFileUploadTask();
-
-	}
 	
-	private String copyFileToConfigArea () throws IOException{
-		String newFile = this.resolveFilename();
-		Path uploadFile = Paths.get(new File(newFile).toURI());
-		Path inputFile = Paths.get(this.sourceFile.toURI());
-		logger.info("Copying " +inputFile +" to " +uploadFile);
-		
-		Files.copy(inputFile, uploadFile, StandardCopyOption.REPLACE_EXISTING);
-		return uploadFile.toString();
-		 
-	}
-	
-	private String resolveFilename() {
+	private String resolveFilename(Path sourcePath) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(NETWORK_UPLOAD_PATH);
-		sb.append(this.sourceFile.getName());
+		sb.append(sourcePath.getFileName());
 		return sb.toString();
 	}
 	
-	class LocalDataService extends OrientDBNoTxConnectionService {
+class LocalDataService extends OrientDBNoTxConnectionService {
 		
 		LocalDataService() {
 			super();
@@ -155,6 +142,5 @@ public class InsertNewUploadTask {
 		
 	}
 	
-
 
 }

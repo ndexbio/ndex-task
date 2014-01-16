@@ -3,11 +3,9 @@ package org.ndexbio.task;
 import java.io.File;
 
 import org.ndexbio.common.exceptions.NdexException;
-import org.ndexbio.common.helpers.Configuration;
+import org.ndexbio.common.models.data.ITask;
 import org.ndexbio.common.models.data.Status;
-import org.ndexbio.common.models.object.Task;
 import org.ndexbio.task.parsingengines.*;
-import org.ndexbio.xbel.parser.XbelFileParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,23 +25,38 @@ public class FileUploadTask extends NdexTask {
 			.getLogger(FileUploadTask.class);
 
 	private Status taskStatus;
+	private static final String NETWORK_UPLOAD_PATH = "/opt/ndex/uploaded-networks/";
 
 	public FileUploadTask(String taskId) throws IllegalArgumentException,
 			SecurityException, NdexException {
 		super(taskId);
-		 this.filename = Configuration.getInstance().getProperty(
-		Configuration.UPLOADED_NETWORKS_PATH_PROPERTY)
-		 + this.getTask().getResource();
-		//this.filename = this.getTask().getResource();
+		this.filename = this.getTask().getResource();
+		// this.filename = this.getTask().getResource();
+		if (!(new File(this.filename).isFile())) {
+			throw new NdexException("File " + this.filename + " does not exist");
+		}
+	}
+
+	public FileUploadTask(ITask itask) throws IllegalArgumentException,
+			SecurityException, NdexException {
+		super(itask);
+		this.filename = this.getTask().getResource();
+		// this.filename = this.getTask().getResource();
 		if (!(new File(this.filename).isFile())) {
 			throw new NdexException("File " + this.filename + " does not exist");
 		}
 	}
 
 	@Override
-	public Task call() throws Exception {
-		this.processFile();
-		return this.getTask();
+	public ITask call() throws Exception {
+		
+		try {
+			this.processFile();
+			return this.getTask();
+		} catch (InterruptedException e) {
+			logger.info("FileUploadTask interupted");
+			return null;
+		}
 	}
 
 	protected String getFilename() {
@@ -56,11 +69,15 @@ public class FileUploadTask extends NdexTask {
 		this.taskStatus = Status.PROCESSING;
 		this.startTask();
 		File file = new File(this.getFilename());
-		switch (com.google.common.io.Files.getFileExtension(this.getFilename())) {
-		case ("sif"):
+		String fileExtension = com.google.common.io.Files
+				.getFileExtension(this.getFilename()).toUpperCase().trim();
+		logger.info("File extension = " + fileExtension);
+		switch (fileExtension) {
+		case ("SIF"):
 			try {
 				final SifParser sifParser = new SifParser(
-						file.getAbsolutePath(),this.getTask().getOwner().getUsername());
+						file.getAbsolutePath(), this.getTask().getOwner()
+								.getUsername());
 				sifParser.parseFile();
 				this.taskStatus = Status.COMPLETED;
 			} catch (Exception e) {
@@ -68,34 +85,40 @@ public class FileUploadTask extends NdexTask {
 				logger.error(e.getMessage());
 			}
 			break;
-		case ("xbel"):
+		case ("XBEL"):
 			try {
-				final XbelFileParser xbelParser = new XbelFileParser(
-						file.getAbsolutePath(),this.getTask().getOwner().getUsername());
+				logger.info("Processing xbel file " + file.getAbsolutePath()
+						+ " for " + this.getTask().getOwner().getUsername());
+				final XbelParser xbelParser = new XbelParser(
+						file.getAbsolutePath(), this.getTask().getOwner()
+								.getUsername());
 
 				if (!xbelParser.getValidationState().isValid()) {
+					logger.info("XBel validation failed");
 					this.taskStatus = Status.COMPLETED_WITH_ERRORS;
 					throw new NdexException(
 							"XBEL file fails XML schema validation - one or more elements do not meet XBEL specification.");
 				}
-				xbelParser.parseXbelFile();
+				xbelParser.parseFile();
 				this.taskStatus = Status.COMPLETED;
 			} catch (Exception e) {
 				this.taskStatus = Status.COMPLETED_WITH_ERRORS;
 				logger.error(e.getMessage());
 			}
 			break;
-		case ("xlsx"):
-		case ("xls"):
+		case ("XLSX"):
+		case ("XLS"):
 			try {
 				final ExcelParser excelParser = new ExcelParser(
-						file.getAbsolutePath(),this.getTask().getOwner().getUsername());
+						file.getAbsolutePath(), this.getTask().getOwner()
+								.getUsername());
 				excelParser.parseFile();
 				this.taskStatus = Status.COMPLETED;
 			} catch (Exception e) {
 				this.taskStatus = Status.COMPLETED_WITH_ERRORS;
 				logger.error(e.getMessage());
 			}
+			break;
 		default:
 			file.delete();
 			logger.error("The uploaded file type is not supported; must be SIF, XBEL, XLS or XLSX.");
