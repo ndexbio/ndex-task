@@ -1,5 +1,5 @@
 /target
 /checkLog.log
 /log4j.properties
-/.classpath
-/.project
+.classpath
+.project
