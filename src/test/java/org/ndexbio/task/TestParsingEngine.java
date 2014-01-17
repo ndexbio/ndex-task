@@ -37,6 +37,18 @@ public class TestParsingEngine
         }
     }
 
+    /*
+    @Test
+    public void parseExcelFile() throws Exception
+    {
+        final URL smallExcelNetworkUrl = getClass().getResource("/resources/small-excel-network.xls");
+        final ExcelParser excelParser = new ExcelParser(smallExcelNetworkUrl.toURI().getPath(),
+        		_testUserName);
+
+        System.out.println("Parsing Excel file : " + smallExcelNetworkUrl.toURI().getPath());
+       excelParser.parseFile();
+    }
+    */
     
 /*
     @Test
@@ -76,9 +88,8 @@ public class TestParsingEngine
 
         sifParser.parseFile();
     }
-
 */
-    /**
+
     @Test
     public void parseLargeSifFile() throws Exception
     {
@@ -87,12 +98,13 @@ public class TestParsingEngine
         System.out.println("Parsing SIF : " + url.toURI().getPath());
         sifParser.parseFile();
     }
-*/
+
     @Test
     public void parseXbelFile() throws Exception
     {
-        //final URL xbelNetworkURL = getClass().getResource("/resources/tiny-corpus.xbel");
-    	String fn = NETWORK_UPLOAD_PATH + "small-corpus.xbel";
+        final URL xbelNetworkURL = getClass().getResource("/resources/tiny-corpus.xbel");
+        String fn = xbelNetworkURL.getPath();
+    	//String fn = NETWORK_UPLOAD_PATH + "small-corpus.xbel";
         final XbelParser xbelParser = new XbelParser(fn,
         		_testUserName);
 
@@ -103,30 +115,18 @@ public class TestParsingEngine
     }
     
     
-    /*
-    @Test
-    public void parseExcelFile() throws Exception
-    {
-        final URL smallExcelNetworkUrl = getClass().getResource("/resources/small-excel-network.xls");
-        final ExcelParser excelParser = new ExcelParser(smallExcelNetworkUrl.toURI().getPath(),
-        		_testUserName);
 
-        System.out.println("Parsing Excel file : " + smallExcelNetworkUrl.toURI().getPath());
-       excelParser.parseFile();
-    }
 
     @Test
     public void parseLargeXbelFile() throws Exception
     {
-        final URL galNetworkUrl = getClass().getResource("/resources/small-corpus.xbel");
-        final XbelParser xbelParser = new XbelParser(galNetworkUrl.toURI().getPath(),	_testUserName);
+        final URL url = getClass().getResource("/resources/small-corpus.xbel");
+        final XbelParser xbelParser = new XbelParser(url.toURI().getPath(),	_testUserName);
 
         if (!xbelParser.getValidationState().isValid())
             Assert.fail("small-corpus.xbel is invalid.");
         
-
-
         xbelParser.parseFile();
     }
-    */
+   
 }
