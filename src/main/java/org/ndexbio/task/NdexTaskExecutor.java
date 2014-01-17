@@ -60,7 +60,7 @@ public class NdexTaskExecutor implements Callable<Integer> {
 			try {
 				ITask itask = NdexTaskQueueService.INSTANCE.getNextITask();
 				NdexTask ndexTask = NdexTaskFactory.INSTANCE
-						.getNdexTaskByTaskType(itask);
+						.getNdexTaskByTaskType(this.resolveVertexId(itask));
 				this.taskCompletionService.submit(ndexTask);
 				// now wait for completion of child task
 				logger.info("Invoking Ndextask type: " + ndexTask.getClass().getName()

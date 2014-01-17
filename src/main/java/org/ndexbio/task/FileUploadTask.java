@@ -119,12 +119,13 @@ public class FileUploadTask extends NdexTask {
 				logger.error(e.getMessage());
 			}
 			break;
-		default:
-			file.delete();
+		default:		
 			logger.error("The uploaded file type is not supported; must be SIF, XBEL, XLS or XLSX.");
 			this.taskStatus = Status.COMPLETED_WITH_ERRORS;
 
 		}
+		logger.info("Network upload file: " + file.getName() +" deleted from staging area");			
+		file.delete(); // delete the file from the staging area
 		this.updateTaskStatus(this.taskStatus);
 	}
 

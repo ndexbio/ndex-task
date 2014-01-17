@@ -117,14 +117,15 @@ public class XBelNetworkService extends CommonNetworkService  {
 			iCitation.setJdexId(jdexId.toString());
 			iCitation.setTitle(citation.getName());
 			iCitation.setType(citation.getType().value());
-			iCitation.setContributors(citation.getAuthorGroup().getAuthor());
-			/*
+			iCitation.setIdentifier(citation.getReference());
+			//iCitation.setContributors(citation.getAuthorGroup().getAuthor());
+			
 			if (null != citation.getAuthorGroup()
 					&& null != citation.getAuthorGroup().getAuthor()) {
 				iCitation
 						.setContributors(citation.getAuthorGroup().getAuthor());
 			}
-			*/
+			
 			this.getCurrentNetwork().addCitation(iCitation);
 			this.commitCurrentNetwork();
 			return iCitation;
