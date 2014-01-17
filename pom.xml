@@ -215,7 +215,7 @@
 					</descriptorRefs>
 					<archive>
 						<manifest>
-							<mainClass>org.ndexbio.task.NdexTaskDispatcher</mainClass>
+							<mainClass>org.ndexbio.task.NdexQueuedTaskProcessor</mainClass>
 						</manifest>
 					</archive>
 				</configuration>

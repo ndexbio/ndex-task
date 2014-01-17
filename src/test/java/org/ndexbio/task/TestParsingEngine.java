@@ -92,7 +92,7 @@ public class TestParsingEngine
     public void parseXbelFile() throws Exception
     {
         //final URL xbelNetworkURL = getClass().getResource("/resources/tiny-corpus.xbel");
-    	String fn = NETWORK_UPLOAD_PATH + "small-corpus.xbel";
+    	String fn = NETWORK_UPLOAD_PATH + "tiny_corpus.xbel";
         final XbelParser xbelParser = new XbelParser(fn,
         		_testUserName);
 
