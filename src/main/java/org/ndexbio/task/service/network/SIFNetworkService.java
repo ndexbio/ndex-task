@@ -41,10 +41,12 @@ public class SIFNetworkService extends CommonNetworkService {
 		bt.setTermNamespace(namespace);
 		bt.setJdexId(jdexId.toString());
 		this.persistenceService.getCurrentNetwork().addTerm(bt);
-		System.out.println("Created baseTerm " 
+		
+		logger.info("Created baseTerm " 
 				+ bt.getTermNamespace().getPrefix() + " " 
 				+ bt.getTermNamespace().getUri() + " "
 				+ bt.getName());
+		
 		return bt;
 	}
 	
@@ -82,7 +84,7 @@ public class SIFNetworkService extends CommonNetworkService {
 		if (prefix != null) iNamespace.setPrefix(prefix);
 		if (uri != null) iNamespace.setUri(uri);
 		this.persistenceService.getCurrentNetwork().addNamespace(iNamespace);
-		System.out.println("Created namespace " + iNamespace.getPrefix() + " " + iNamespace.getUri());
+		logger.info("Created namespace " + iNamespace.getPrefix() + " " + iNamespace.getUri());
 		return iNamespace;
 	}
 
@@ -118,7 +120,7 @@ public class SIFNetworkService extends CommonNetworkService {
 			iCitation.setJdexId(jdexId.toString());
 			iCitation.setType(type);
 			iCitation.setIdentifier(identifier);
-			System.out.println("Created citation " + iCitation.getType() + ":" + iCitation.getIdentifier());
+			//logger.info("Created citation " + iCitation.getType() + ":" + iCitation.getIdentifier());
 			this.persistenceService.getCurrentNetwork().addCitation(iCitation);
 			return iCitation;
 	}
@@ -167,7 +169,7 @@ public class SIFNetworkService extends CommonNetworkService {
 		if (uri.equals("http://biopax.org/generated/group/")) return "GROUP";
 		if (uri.equals("http://identifiers.org/uniprot/")) return "UniProt";
 		if (uri.equals("http://purl.org/pc2/4/")) return "PathwayCommons2";
-		System.out.println("No Prefix for " + uri);
+		//System.out.println("No Prefix for " + uri);
 		
 		return null;
 	}
@@ -202,6 +204,5 @@ public class SIFNetworkService extends CommonNetworkService {
 				jdexCacheId);
 		return this.findOrCreateIBaseTerm(identifier, namespace, jdexId);
 	}
-
 
 }
