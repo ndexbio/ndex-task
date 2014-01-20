@@ -30,24 +30,21 @@ import com.google.common.base.Preconditions;
  * The primary justification for this class is to separate the use of XBel
  * model objects from identically named NDEx model objects
  */
-public class XBelNetworkService extends CommonNetworkService  {
+public class XBelNetworkService extends CommonNetworkService {
 
-	
 	private static final Logger logger = LoggerFactory
 			.getLogger(XBelNetworkService.class);
 
 	private static final String NETWORK_UPLOAD_PATH = "/opt/ndex/uploaded-networks/";
-	
+
 	private static Joiner idJoiner = Joiner.on(":").skipNulls();
 
 	public XBelNetworkService() {
-		super();	
+		super();
 	}
 
+	public void commitCurrentNetwork() throws NdexException {
 
-	public void commitCurrentNetwork() throws NdexException  {
-		
-		
 	}
 
 	public IBaseTerm createIBaseTerm(Parameter p, Long jdexId)
@@ -67,7 +64,7 @@ public class XBelNetworkService extends CommonNetworkService  {
 		bt.setJdexId(jdexId.toString());
 		this.getCurrentNetwork().addTerm(bt);
 		this.commitCurrentNetwork();
-		return bt;	
+		return bt;
 	}
 
 	/*
@@ -75,7 +72,7 @@ public class XBelNetworkService extends CommonNetworkService  {
 	 * INamespace object n.b. this method may result in a new vertex in the
 	 * orientdb database being created
 	 */
-	
+
 	public INamespace createINamespace(Namespace ns, Long jdexId)
 			throws NdexException, ExecutionException {
 		Preconditions.checkArgument(null != ns,
@@ -83,16 +80,16 @@ public class XBelNetworkService extends CommonNetworkService  {
 		Preconditions.checkArgument(null != jdexId && jdexId.longValue() > 0,
 				"A valid jdex id is required");
 		INamespace newNamespace;
-		
-			newNamespace = persistenceService.findOrCreateINamespace(jdexId);
-			newNamespace.setJdexId(jdexId.toString());
-			newNamespace.setPrefix(ns.getPrefix());
-			newNamespace.setUri(ns.getResourceLocation());
-			// connect this namespace to the current network and commit
-			this.getCurrentNetwork().addNamespace(newNamespace);
-			this.commitCurrentNetwork();
-			return newNamespace;
-	
+
+		newNamespace = persistenceService.findOrCreateINamespace(jdexId);
+		newNamespace.setJdexId(jdexId.toString());
+		newNamespace.setPrefix(ns.getPrefix());
+		newNamespace.setUri(ns.getResourceLocation());
+		// connect this namespace to the current network and commit
+		this.getCurrentNetwork().addNamespace(newNamespace);
+		this.commitCurrentNetwork();
+		return newNamespace;
+
 	}
 
 	/*
@@ -100,35 +97,37 @@ public class XBelNetworkService extends CommonNetworkService  {
 	 * object n.b. this method may result in a new vertex in the orientdb
 	 * database being created
 	 */
-	
-	public ICitation findOrCreateICitation(Citation citation) throws NdexException, ExecutionException {
+
+	public ICitation findOrCreateICitation(Citation citation)
+			throws NdexException, ExecutionException {
 		Preconditions.checkArgument(null != citation,
 				"A Citation object is required");
 		String citationIdentifier = idJoiner.join("CITATION",
 				citation.getName(), citation.getReference());
-		
-			Long jdexId = NdexIdentifierCache.INSTANCE.accessIdentifierCache()
-					.get(citationIdentifier);
-			boolean persisted = persistenceService.isEntityPersisted(jdexId);
-			ICitation iCitation = persistenceService
-					.findOrCreateICitation(jdexId);
-			if (persisted)
-				return iCitation;
-			iCitation.setJdexId(jdexId.toString());
-			iCitation.setTitle(citation.getName());
-			iCitation.setType(citation.getType().value());
-			iCitation.setContributors(citation.getAuthorGroup().getAuthor());
-			/*
-			if (null != citation.getAuthorGroup()
-					&& null != citation.getAuthorGroup().getAuthor()) {
-				iCitation
-						.setContributors(citation.getAuthorGroup().getAuthor());
-			}
-			*/
-			this.getCurrentNetwork().addCitation(iCitation);
-			this.commitCurrentNetwork();
+
+		Long jdexId = NdexIdentifierCache.INSTANCE.accessIdentifierCache().get(
+				citationIdentifier);
+		boolean persisted = persistenceService.isEntityPersisted(jdexId);
+		ICitation iCitation = persistenceService.findOrCreateICitation(jdexId);
+		if (persisted)
 			return iCitation;
-		
+		iCitation.setJdexId(jdexId.toString());
+		iCitation.setTitle(citation.getName());
+		if (null != citation.getReference()) {
+			iCitation.setIdentifier(citation.getReference());
+		}
+		iCitation.setType(citation.getType().value());
+		// iCitation.setContributors(citation.getAuthorGroup().getAuthor());
+
+		if (null != citation.getAuthorGroup()
+				&& null != citation.getAuthorGroup().getAuthor()) {
+			iCitation.setContributors(citation.getAuthorGroup().getAuthor());
+		}
+
+		this.getCurrentNetwork().addCitation(iCitation);
+		this.commitCurrentNetwork();
+		return iCitation;
+
 	}
 
 	/*
@@ -136,7 +135,7 @@ public class XBelNetworkService extends CommonNetworkService  {
 	 * Citation to a orientdb ISupport object n.b. this method may result in a
 	 * new vertex in the orientdb database being created
 	 */
-	
+
 	public ISupport findOrCreateISupport(String evidenceString,
 			ICitation iCitation) throws ExecutionException, NdexException {
 		Preconditions.checkArgument(null != evidenceString,
@@ -159,7 +158,6 @@ public class XBelNetworkService extends CommonNetworkService  {
 		return iSupport;
 	}
 
-	
 	public void createIEdge(INode subjectNode, INode objectNode,
 			IBaseTerm predicate, ISupport support, ICitation citation)
 			throws ExecutionException, NdexException {
@@ -174,7 +172,7 @@ public class XBelNetworkService extends CommonNetworkService  {
 				edge.addSupport(support);
 			}
 			if (null != citation) {
-				edge.addCitation(citation);			
+				edge.addCitation(citation);
 			}
 			this.getCurrentNetwork().addNdexEdge(edge);
 			this.commitCurrentNetwork();
@@ -186,7 +184,7 @@ public class XBelNetworkService extends CommonNetworkService  {
 	 * IBaseTerm object n.b. this method creates a vertex in the orientdb
 	 * database
 	 */
-	
+
 	public IBaseTerm findOrCreateParameter(Parameter parameter)
 			throws ExecutionException, NdexException {
 		if (null == parameter.getNs())
@@ -198,7 +196,6 @@ public class XBelNetworkService extends CommonNetworkService  {
 		return this.createIBaseTerm(parameter, jdexId);
 	}
 
-	
 	public IBaseTerm findOrCreatePredicate(Relationship relationship)
 			throws ExecutionException, NdexException {
 		Parameter parameter = new Parameter();
@@ -211,7 +208,6 @@ public class XBelNetworkService extends CommonNetworkService  {
 		return this.createIBaseTerm(parameter, jdexId);
 	}
 
-	
 	public IBaseTerm findOrCreateFunction(Function function)
 			throws ExecutionException, NdexException {
 		Parameter parameter = new Parameter();
@@ -224,7 +220,6 @@ public class XBelNetworkService extends CommonNetworkService  {
 		return this.createIBaseTerm(parameter, jdexId);
 	}
 
-	
 	public INode findOrCreateINodeForIFunctionTerm(IFunctionTerm representedTerm)
 			throws ExecutionException, NdexException {
 		String nodeIdentifier = idJoiner.join("NODE",
@@ -241,15 +236,14 @@ public class XBelNetworkService extends CommonNetworkService  {
 		this.commitCurrentNetwork();
 		return iNode;
 	}
-	
-	public boolean isEntityPersisted(Long jdexId){
+
+	public boolean isEntityPersisted(Long jdexId) {
 		return this.getPersistenceService().isEntityPersisted(jdexId);
 	}
-	
-	
-	public IFunctionTerm findOrCreateIFunctionTerm(Long jdexId) throws ExecutionException{
+
+	public IFunctionTerm findOrCreateIFunctionTerm(Long jdexId)
+			throws ExecutionException {
 		return this.getPersistenceService().findOrCreateIFunctionTerm(jdexId);
 	}
-	
-	
+
 }
