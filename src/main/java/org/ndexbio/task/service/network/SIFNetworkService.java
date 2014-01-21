@@ -41,12 +41,12 @@ public class SIFNetworkService extends CommonNetworkService {
 		bt.setTermNamespace(namespace);
 		bt.setJdexId(jdexId.toString());
 		this.persistenceService.getCurrentNetwork().addTerm(bt);
-		
+		/*
 		logger.info("Created baseTerm " 
 				+ bt.getTermNamespace().getPrefix() + " " 
 				+ bt.getTermNamespace().getUri() + " "
 				+ bt.getName());
-		
+		*/
 		return bt;
 	}
 	
