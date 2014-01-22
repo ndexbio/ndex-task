@@ -13,8 +13,10 @@ import org.ndexbio.common.persistence.orientdb.NdexTaskService;
  enum NdexTaskFactory {
 	INSTANCE;
 	
+	private NdexTaskService taskService = new NdexTaskService();
+	
 	NdexTask getNdexTaskByTaskType(String taskId){
-		NdexTaskService taskService = new NdexTaskService();
+		
 		try {
 			ITask task = taskService.getITask(taskId);
 			if( task.getType() == TaskType.PROCESS_UPLOADED_NETWORK) {
@@ -24,13 +26,15 @@ import org.ndexbio.common.persistence.orientdb.NdexTaskService;
 		} catch (IllegalArgumentException | SecurityException | NdexException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} finally {
+			
 		}
 		return null;
 		
 	}
 	
 	NdexTask getNdexTaskByTaskType(ITask itask){
-		NdexTaskService taskService = new NdexTaskService();
+		
 		try {
 			
 			if( itask.getType() == TaskType.PROCESS_UPLOADED_NETWORK) {
