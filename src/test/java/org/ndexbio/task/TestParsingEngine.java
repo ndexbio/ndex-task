@@ -13,9 +13,13 @@ import org.ndexbio.task.service.network.SIFNetworkService;
 
 public class TestParsingEngine
 {
-    private static String _testUserName = "dexterpratt";
+    private static String _testUserName = "biologist1";
     private static IUser _testUser = null;
-    private static final String NETWORK_UPLOAD_PATH = "/opt/ndex/uploaded-networks/";
+    //private static final String NETWORK_UPLOAD_PATH = "/opt/ndex/uploaded-networks/";
+    
+    private static final String NETWORK_UPLOAD_PATH = "/tmp/ndex/small/";
+    
+    
 
     @BeforeClass
     public static void setupUser() throws Exception
