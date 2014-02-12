@@ -338,7 +338,7 @@ public class SifParser implements IParsingEngine {
 				System.out.println("Source: " + values[3]);
 				String source = values[3];
 				if (source.equals("http://purl.org/pc2/4/pid")){
-					source = "Protein Interaction Database";
+					source = "PID";
 				}
 				this.networkService.setSource(source);
 			}
