@@ -106,6 +106,33 @@ public class SIFNetworkService extends CommonNetworkService {
 
 	}
 	
+	public INode findOrCreateINode(String id, IBaseTerm baseTerm)
+			throws ExecutionException {
+		Preconditions.checkArgument(null != baseTerm,
+				"A IBaseTerm object is required");
+		String nodeIdentifier = idJoiner.join("NODE", id);
+		Long jdexId = NdexIdentifierCache.INSTANCE.accessIdentifierCache().get(
+				nodeIdentifier);
+		boolean persisted = persistenceService.isEntityPersisted(jdexId);
+		INode iNode = persistenceService.findOrCreateINode(jdexId);
+		if (persisted) return iNode;
+		iNode.setJdexId(jdexId.toString());
+		iNode.setRepresents(baseTerm);
+		this.persistenceService.getCurrentNetwork().addNdexNode(iNode);
+		return iNode;
+
+	}
+	
+	public INode findINode(String id) throws NdexException, ExecutionException {
+		String nodeIdentifier = idJoiner.join("NODE", id);
+		Long jdexId = NdexIdentifierCache.INSTANCE.accessIdentifierCache().get(
+				nodeIdentifier);
+		boolean persisted = persistenceService.isEntityPersisted(jdexId);
+		INode iNode = persistenceService.findOrCreateINode(jdexId);
+		if (persisted) return iNode;
+		throw new NdexException("no INode found for id = " + id);
+	}
+	
 	public ICitation findOrCreateICitation(String type, String identifier) throws NdexException, ExecutionException {
 		String citationIdentifier = idJoiner.join("CITATION",
 				type, identifier);
@@ -179,6 +206,16 @@ public class SIFNetworkService extends CommonNetworkService {
 		return null;
 	}
 	
+	// This is called to create terms used in metadata annotations
+	public IBaseTerm findOrCreateBaseTerm(String identifier, INamespace namespace)
+			throws ExecutionException {
+		String jdexCacheId = idJoiner.join("BASE", identifier, getNamespaceIdentifier(namespace));
+		Long jdexId = NdexIdentifierCache.INSTANCE.accessTermCache().get(
+				jdexCacheId);
+		return this.findOrCreateIBaseTerm(identifier, namespace, jdexId);
+	}
+	
+	// This is called to create terms referenced by nodes
 	public IBaseTerm findOrCreateNodeBaseTerm(String identifier, INamespace namespace)
 			throws ExecutionException {
 		String jdexCacheId = idJoiner.join("BASE", identifier, getNamespaceIdentifier(namespace));
@@ -197,6 +234,7 @@ public class SIFNetworkService extends CommonNetworkService {
 		return null;
 	}
 
+	// This is called to create terms that are referenced by edges as predicates
 	public IBaseTerm findOrCreatePredicate(String identifier, INamespace namespace)
 			throws ExecutionException {
 		String jdexCacheId = idJoiner.join("PREDICATE", identifier, getNamespaceIdentifier(namespace));
@@ -204,5 +242,9 @@ public class SIFNetworkService extends CommonNetworkService {
 				jdexCacheId);
 		return this.findOrCreateIBaseTerm(identifier, namespace, jdexId);
 	}
+
+
+
+
 
 }

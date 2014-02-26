@@ -32,7 +32,7 @@ import org.xml.sax.SAXException;
 public class HandleViewEdgeGraphics extends AbstractHandler {
 
 	@Override
-    public ParseState handle(String tag, Attributes atts, ParseState current) throws SAXException, NdexException {
+    public ParseState handle(final String namespace, final String tag, final String qName,  Attributes atts, ParseState current) throws SAXException, NdexException {
         final Object edgeId = manager.getCurrentElementId();
 		
         if (edgeId == null) {

@@ -30,8 +30,10 @@ import org.xml.sax.SAXException;
 
 public class HandleViewEdge extends AbstractHandler {
 
+	// This handler is not currently used - no special handling for this RDF property
+	// Also not clear if NDEx will handle viewEdge case
 	@Override
-	public ParseState handle(String tag, Attributes atts, ParseState current) throws SAXException {
+	public ParseState handle(final String namespace, final String tag, final String qName,  Attributes atts, ParseState current) throws SAXException {
 		String sId = atts.getValue("cy:edgeId");
 		
 		try {

@@ -34,7 +34,7 @@ public class HandleEdgeGraphics extends AbstractHandler {
 	private static final String EDGE_BEND = "edgeBend";
 
 	@Override
-	public ParseState handle(String tag, Attributes atts, ParseState current) throws SAXException {
+	public ParseState handle(String namespace, String tag, String qName,  Attributes atts, ParseState current) throws SAXException {
 		if (tag.equals("graphics")) {
 			manager.addGraphicsAttributes(manager.getCurrentEdge(), atts);
 		} else if (tag.equals("att")) {

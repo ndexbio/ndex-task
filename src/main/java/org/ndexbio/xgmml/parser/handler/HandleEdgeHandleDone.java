@@ -31,7 +31,7 @@ import org.xml.sax.SAXException;
 public class HandleEdgeHandleDone extends AbstractHandler {
 
 	@Override
-	public ParseState handle(String tag, Attributes atts, ParseState current) throws SAXException {		
+	public ParseState handle(String namespace, String tag, String qName, Attributes atts, ParseState current) throws SAXException {		
 		if (manager.edgeBendX != null && manager.edgeBendY != null && manager.handleList != null) {
 			manager.handleList.add(manager.edgeBendX + "," + manager.edgeBendY);
 			

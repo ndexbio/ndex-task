@@ -32,7 +32,7 @@ import org.xml.sax.SAXException;
 
 public interface Handler {
 	
-	public ParseState handle(String tag, Attributes atts, ParseState current)
+	public ParseState handle(String namespace, String tag, String qName, Attributes atts, ParseState current)
 			throws SAXException, NdexException, Exception;
 	
 	public void setManager(ReadDataManager manager);

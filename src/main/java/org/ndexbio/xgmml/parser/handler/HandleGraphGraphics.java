@@ -31,7 +31,7 @@ import org.xml.sax.SAXException;
 public class HandleGraphGraphics extends AbstractHandler {
 
 	@Override
-	public ParseState handle(String tag, Attributes atts, ParseState current) throws SAXException {
+	public ParseState handle(String namespace, String tag, String qName,  Attributes atts, ParseState current) throws SAXException {
 		if (atts == null)
 			return current;
 		

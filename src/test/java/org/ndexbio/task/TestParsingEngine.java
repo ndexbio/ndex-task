@@ -111,28 +111,5 @@ public class TestParsingEngine {
 
 	}
 
-	/*
-	 * @Test public void parseXbelFile() throws Exception { final URL
-	 * xbelNetworkURL = getClass().getResource("/resources/tiny-corpus.xbel");
-	 * String fn = xbelNetworkURL.getPath(); //String fn = NETWORK_UPLOAD_PATH +
-	 * "small-corpus.xbel"; final XbelParser xbelParser = new XbelParser(fn,
-	 * _testUserName);
-	 * 
-	 * if (!xbelParser.getValidationState().isValid())
-	 * Assert.fail("tiny-corpus.xbel is invalid.");
-	 * System.out.println("Parsing XBEL : " + fn); xbelParser.parseFile(); }
-	 */
-
-	@Test
-	public void parseLargeXbelFile() throws Exception {
-		final URL url = getClass().getResource("/resources/small-corpus.xbel");
-		final XbelParser xbelParser = new XbelParser(url.toURI().getPath(),
-				_testUserName);
-
-		if (!xbelParser.getValidationState().isValid())
-			Assert.fail("small-corpus.xbel is invalid.");
-
-		xbelParser.parseFile();
-	}
 
 }

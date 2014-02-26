@@ -11,6 +11,7 @@ import javax.xml.parsers.SAXParserFactory;
 import org.ndexbio.common.models.data.INetwork;
 import org.ndexbio.task.parsingengines.XbelFileValidator.ValidationState;
 import org.ndexbio.task.service.network.XBelNetworkService;
+import org.ndexbio.xbel.splitter.AnnotationDefinitionGroupSplitter;
 import org.ndexbio.xbel.splitter.HeaderSplitter;
 import org.ndexbio.xbel.splitter.NamespaceGroupSplitter;
 import org.ndexbio.xbel.splitter.StatementGroupSplitter;
@@ -38,6 +39,7 @@ public class XbelParser implements IParsingEngine
     private JAXBContext context;
     private XMLReader reader;
     private NamespaceGroupSplitter nsSplitter;
+    private AnnotationDefinitionGroupSplitter adSplitter;
     private StatementGroupSplitter sgSplitter;
     private HeaderSplitter headerSplitter;
     private INetwork network;
@@ -60,6 +62,7 @@ public class XbelParser implements IParsingEngine
         this.context = JAXBContext.newInstance("org.ndexbio.xbel.model");
         this.networkService = new XBelNetworkService();
         this.nsSplitter = new NamespaceGroupSplitter(context, this.networkService);
+        this.adSplitter = new AnnotationDefinitionGroupSplitter(context, networkService);
         this.sgSplitter = new StatementGroupSplitter(context, this.networkService);
         this.headerSplitter = new HeaderSplitter(context, this.networkService);
         
@@ -72,6 +75,7 @@ public class XbelParser implements IParsingEngine
         {
             this.processHeaderAndCreateNetwork();
             this.processNamespaces();
+            this.processAnnotationDefinitions();
             this.processStatementGroups();
             
             // Not relevant in NoTx mode
@@ -109,9 +113,7 @@ public class XbelParser implements IParsingEngine
         String networkTitle = this.headerSplitter.getHeader().getName();
         this.network = this.networkService.createNewNetwork(this.getOwnerName(), networkTitle);
         this.networkService.setFormat("BEL_DOCUMENT");
-       
 
-        logger.info("New testnetwork created for XBEL: " + network.getName());
     }
 
     private void processNamespaces() throws Exception
@@ -128,6 +130,17 @@ public class XbelParser implements IParsingEngine
             throw new Exception(e);
         }
     }
+    
+	private void processAnnotationDefinitions() throws Exception {
+		logger.info("Parsing annotation definitions from " + this.getXmlFile());
+		reader.setContentHandler(adSplitter);
+		try {
+			reader.parse(this.getXmlFile());
+		} catch (IOException | SAXException e) {
+			logger.error(e.getMessage());
+			throw new Exception(e);
+		}
+	}
 
     private void processStatementGroups() throws Exception
     {

@@ -29,9 +29,10 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
 public class HandleRDF extends AbstractHandler {
-	
+	// This handler is used - but currently this is just a no-op placeholder, 
+	// all the logic is in handling of the specific network attributes encoded in RDF
 	@Override
-	public ParseState handle(String tag, Attributes atts, ParseState current)
+	public ParseState handle(final String namespace, final String tag, final String qName,  Attributes atts, ParseState current)
 			throws SAXException {
 		return current;
 	}

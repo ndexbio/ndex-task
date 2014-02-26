@@ -11,11 +11,11 @@ import org.xml.sax.SAXException;
 public class HandleListAttributeDone extends AbstractHandler {
 
     @Override
-    public ParseState handle(String tag, Attributes atts, ParseState current) throws SAXException {
+    public ParseState handle(String namespace, String tag, String qName,  Attributes atts, ParseState current) throws SAXException {
         try {
-            if (manager.getCurrentList() != null) {
+            if (manager.getCurrentList() != null && manager.getCurrentList().size() > 0) {
             	String stringList = joinStringsToCsv(manager.getCurrentList());
-            	System.out.println("Setting " + manager.currentAttributeID + " = " + stringList + " for current element");
+            	//System.out.println("Setting " + manager.currentAttributeID + " = " + stringList + " for current element");
             	AttributeValueUtil.setAttribute(manager.getCurrentElement(), manager.currentAttributeID, stringList);
                 manager.listAttrHolder = null;
             }
@@ -29,7 +29,9 @@ public class HandleListAttributeDone extends AbstractHandler {
     }
     
 	private String joinStringsToCsv(Collection<String> strings) {
+		
 		String resultString = "";
+		if (strings == null || strings.size() == 0) return resultString;
 		for (final String string : strings) {
 			resultString += "'" + string + "',";
 		}

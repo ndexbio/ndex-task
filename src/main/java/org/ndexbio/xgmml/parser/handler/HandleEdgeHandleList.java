@@ -34,7 +34,7 @@ public class HandleEdgeHandleList extends AbstractHandler {
 	private static final String DELIMITER = "|";
 
 	@Override
-	public ParseState handle(String tag, Attributes atts, ParseState current) throws SAXException {
+	public ParseState handle(String namespace, String tag, String qName, Attributes atts, ParseState current) throws SAXException {
 		if (manager.handleList != null) {
 			String list = "";
 

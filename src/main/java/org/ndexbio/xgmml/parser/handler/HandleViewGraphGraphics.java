@@ -32,7 +32,7 @@ import org.xml.sax.SAXException;
 public class HandleViewGraphGraphics extends AbstractHandler {
 
 	@Override
-	public ParseState handle(String tag, Attributes atts, ParseState current) throws SAXException, NdexException {
+	public ParseState handle(final String namespace, final String tag, final String qName,  Attributes atts, ParseState current) throws SAXException, NdexException {
 		if (atts == null)
 			return current;
 		

@@ -31,7 +31,7 @@ import org.xml.sax.SAXException;
 public class HandleNodeGraphDone extends HandleGraphDone {
 	
 	@Override
-	public ParseState handle(String tag, Attributes atts, ParseState current) throws SAXException {
+	public ParseState handle(final String namespace, final String tag, final String qName,  Attributes atts, ParseState current) throws SAXException {
 		graphDone();
 		/*
 		if (!manager.getCompoundNodeStack().empty()) {

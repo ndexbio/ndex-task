@@ -24,46 +24,40 @@ package org.ndexbio.xgmml.parser.handler;
  * #L%
  */
 
+
+import org.ndexbio.common.models.data.INamespace;
 import org.ndexbio.xgmml.parser.ParseState;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
-public class HandleEdgeAttribute extends AbstractHandler {
-
-	private static final String NAME = "name";
-	private static final String VALUE = "value";
-
+public class HandleRDFNetworkAttribute extends AbstractHandler {
+	
 	@Override
 	public ParseState handle(String namespace, String tag, String qName,  Attributes atts, ParseState current)
-			throws SAXException {
-		if (atts == null)
-			return current;
-
-		manager.attState = current;
-
-		// Is this a graphics override?
-		String name = atts.getValue(NAME);
-
-		// Check for blank attribute
-		final String value = atts.getValue(VALUE);
-		if (name == null && value == null)
-			return current;
-
-		if (manager.getDocumentVersion() < 3.0) {
-			// Writing locked visual properties as regular <att> tags is
-			// deprecated!
-			if (name.startsWith("edge.")) {
-				// It is a bypass attribute...
-				name = name.replace(".", "").toLowerCase();
-				manager.addGraphicsAttribute(manager.getCurrentEdge(), name,
-						value);
-			}
-		}
-
-		ParseState nextState = attributeValueUtil.handleAttribute(atts);
-
-		if (nextState != ParseState.NONE)
-			return nextState;
+			throws Exception {
+		
+		// check that the currentCData is not null and not empty.
+		if (null == manager.getCurrentCData()) return current;
+		if ("" == manager.getCurrentCData()) return current;
+		
+		// check that the qName has a prefix, otherwise error
+		int colonIndex = qName.indexOf(':');
+		if (colonIndex < 1) throw new Exception("no namespace prefix in network attribute qName");
+		String prefix = qName.substring(0, colonIndex);
+		// Find or create the namespace
+		
+		INamespace ns = manager.findOrCreateNamespace(namespace, prefix);
+		
+		// Find or create the term for the attribute
+		// In the case of a typical XGMML network, this will result in a dublin core namespace
+		// with terms for the typical metadata employed by XGMML
+				
+		manager.findOrCreateBaseTerm(tag, ns);
+		
+		// set the network metadata with the qName as the property and the currentCData as the value
+		
+		AttributeValueUtil.setAttribute(manager.getCurrentNetwork(), qName, manager.getCurrentCData());
+		
 
 		return current;
 	}

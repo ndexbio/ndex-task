@@ -54,7 +54,7 @@ public class HandleEdgeHandle extends AbstractHandler {
 
 	
 	@Override
-	public ParseState handle(String tag, Attributes atts, ParseState current) throws SAXException {
+	public ParseState handle(String namespace, String tag, String qName,  Attributes atts, ParseState current) throws SAXException {
 
 		final String name = attributeValueUtil.getAttribute(atts, "name");
 		

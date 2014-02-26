@@ -2,6 +2,7 @@ package org.ndexbio.xbel.parser;
 
 import java.io.File;
 import java.io.IOException;
+
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
@@ -12,6 +13,7 @@ import org.ndexbio.common.models.data.INetwork;
 import org.ndexbio.task.parsingengines.XbelFileValidator;
 import org.ndexbio.task.parsingengines.XbelFileValidator.ValidationState;
 import org.ndexbio.task.service.network.XBelNetworkService;
+import org.ndexbio.xbel.splitter.AnnotationDefinitionGroupSplitter;
 import org.ndexbio.xbel.splitter.HeaderSplitter;
 import org.ndexbio.xbel.splitter.NamespaceGroupSplitter;
 import org.ndexbio.xbel.splitter.StatementGroupSplitter;
@@ -41,6 +43,7 @@ public class XbelFileParser {
 	
 	private XMLReader reader;
 	private NamespaceGroupSplitter nsSplitter;
+	private AnnotationDefinitionGroupSplitter adSplitter;
 	private StatementGroupSplitter sgSplitter;
 	private HeaderSplitter headerSplitter;
 	private String ownerName;
@@ -62,6 +65,7 @@ public class XbelFileParser {
 		logger.info(this.validationState.getValidationMessage());
 		this.context = JAXBContext.newInstance("org.ndexbio.xbel.model");
 		this.nsSplitter = new NamespaceGroupSplitter(context, networkService);
+		this.adSplitter = new AnnotationDefinitionGroupSplitter(context, networkService);
 		this.sgSplitter = new StatementGroupSplitter(context, networkService);
 		this.headerSplitter = new HeaderSplitter(context, networkService);
 		this.initReader();
@@ -71,6 +75,7 @@ public class XbelFileParser {
 		try {
 			this.processHeaderAndCreateNetwork();
 			this.processNamespaces();
+			this.processAnnotationDefinitions();
 			this.processStatementGroups();
 			// at this point we can clear the identifier cache to reduce memory requirements
 			logger.info("Clearing identifier cache");
@@ -81,8 +86,7 @@ public class XbelFileParser {
 			// rollback current transaction and close the database connection
 			this.networkService.rollbackCurrentTransaction();
 			e.printStackTrace();
-		} 
-		
+		} 	
 	}
 	
 	private void processHeaderAndCreateNetwork() throws Exception {
@@ -96,12 +100,23 @@ public class XbelFileParser {
 		String networkTitle = this.headerSplitter.getHeader().getName();
 		this.network = this.networkService.createNewNetwork(this.getOwnerName(), networkTitle);
 		
-		logger.info("New test network created for XBEL: " +network.getName());
+		logger.info("New network created in XBEL Format: " + network.getName());
 	}
 
 	private void processNamespaces() throws Exception {
 		logger.info("Parsing namespaces from " + this.getXmlFile());
 		reader.setContentHandler(nsSplitter);
+		try {
+			reader.parse(this.getXmlFile());
+		} catch (IOException | SAXException e) {
+			logger.error(e.getMessage());
+			throw new Exception(e);
+		}
+	}
+	
+	private void processAnnotationDefinitions() throws Exception {
+		logger.info("Parsing annotation definitions from " + this.getXmlFile());
+		reader.setContentHandler(adSplitter);
 		try {
 			reader.parse(this.getXmlFile());
 		} catch (IOException | SAXException e) {

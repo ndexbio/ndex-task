@@ -37,10 +37,11 @@ import org.xml.sax.SAXException;
 public class HandleNode extends AbstractHandler {
 
 	@Override
-	public ParseState handle(final String tag, final Attributes atts, final ParseState current) throws SAXException, NdexException, ExecutionException {
+	public ParseState handle(final String namespace, final String tag, final String qName,  final Attributes atts, final ParseState current) throws SAXException, NdexException, ExecutionException {
 		final String href = atts.getValue(ReadDataManager.XLINK, "href");
 		Object id = null;
 		String label = null;
+		String nodeName = null;
 		INode node = null;
 		final INetwork curNet = manager.getCurrentNetwork();
 		//final CyNetwork rootNet = manager.getRootNetwork();
@@ -49,13 +50,15 @@ public class HandleNode extends AbstractHandler {
 			
 			id = getId(atts);
 			// Create the node
-			node = manager.findOrCreateNode(id.toString());
-			label = atts.getValue("label");
 			
-			if (label == null)
-				label = atts.getValue("name"); // For backwards compatibility
+			nodeName = atts.getValue("label");
+			if (nodeName == null){
+				nodeName = atts.getValue("name");
+			}
 			
-			node.setName(label);
+			node = manager.findOrCreateNode(id.toString(), nodeName);
+			
+			node.setName(nodeName);
 
 			
 		} else {

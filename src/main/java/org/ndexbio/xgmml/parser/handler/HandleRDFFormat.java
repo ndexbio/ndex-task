@@ -29,11 +29,10 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
 public class HandleRDFFormat extends AbstractHandler {
-	
+	// This handler is not currently used - no special handling for this RDF property
 	@Override
-	public ParseState handle(String tag, Attributes atts, ParseState current)
+	public ParseState handle(final String namespace, final String tag, final String qName,  Attributes atts, ParseState current)
 			throws SAXException {
-		manager.RDFFormat = null;
 		return current;
 	}
 }

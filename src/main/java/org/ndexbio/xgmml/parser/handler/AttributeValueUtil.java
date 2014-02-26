@@ -68,18 +68,7 @@ public class AttributeValueUtil {
     public void setLocator(Locator locator) {
         this.locator = locator;
     }
-    
-    public void setMetaData(INetwork network) {
-        MetadataParser mdp = new MetadataParser(network);
-        if (manager.RDFType != null) mdp.setMetadata(MetadataEntries.TYPE, manager.RDFType);
-        if (manager.RDFDate != null) mdp.setMetadata(MetadataEntries.DATE, manager.RDFDate);
-        if (manager.RDFTitle != null) mdp.setMetadata(MetadataEntries.TITLE, manager.RDFTitle);
-        if (manager.RDFDescription != null) mdp.setMetadata(MetadataEntries.DESCRIPTION, manager.RDFDescription);
-        if (manager.RDFSource != null) mdp.setMetadata(MetadataEntries.SOURCE, manager.RDFSource);
-        if (manager.RDFFormat != null) mdp.setMetadata(MetadataEntries.FORMAT, manager.RDFFormat);
-        if (manager.RDFIdentifier != null) mdp.setMetadata(MetadataEntries.IDENTIFIER, manager.RDFIdentifier);
-    }
-
+ 
     /********************************************************************
      * Routines to handle attributes
      *******************************************************************/
@@ -170,6 +159,8 @@ public class AttributeValueUtil {
     	if ("has_nested_network".equals(name))
         	type = ObjectType.BOOLEAN.getName();
     	
+    	// Not handling equations or hidden attributes in NDEx at this time
+    	
     	//final boolean isEquation = ObjectTypeMap.fromXGMMLBoolean(atts.getValue("cy:equation"));
     	//final boolean isHidden = ObjectTypeMap.fromXGMMLBoolean(atts.getValue("cy:hidden"));
         
@@ -183,14 +174,19 @@ public class AttributeValueUtil {
 			return ParseState.LIST_ATT;
 		}
 		
-		System.out.println("setting attribute name = " + name + " value = " + value );
+		//System.out.println("setting attribute name = " + name + " value = " + value );
 		
-		setAttribute(curElement, name, value);
-		
-		//curElement.getMetadata().put(name, value);
+		if (null != type){
+			setAttribute(curElement, name, value);
+		}
 		
 		
 		return parseState;
+		
+		//
+		// TODO: review to see if this is relevant for datatype preservation
+		// This section deals with datatyping, among other features.
+		// 
 		
         /*
 		// This is necessary, because external edges of 2.x Groups may be written
@@ -317,25 +313,7 @@ public class AttributeValueUtil {
     	element.getMetadata().put(key, value);
     }
     
-   /*
-    private <T> void setAttribute(final CyRow row, final String name, final Class<T> type, final T value) {
-        if (name != null) {
-            final CyTable table = row.getTable();
-            final CyColumn column = table.getColumn(name);
-            
-            if (column == null) {
-            	table.createColumn(name, type, false);
-            } else if (column.getVirtualColumnInfo().isVirtual()) {
-            	logger.warn("Cannot set value to virtual column \"" + name + "\".");
-            	return;
-            }
-            
-            if (value != null) {
-            	row.set(name, value);
-            }
-        }
-    }
-    */
+    // TODO - not used at the moment, determine role - are we going to support XLINKs?
     public static Long getIdFromXLink(String href) {
 		Matcher matcher = XLINK_PATTERN.matcher(href);
 		return matcher.matches() ? Long.valueOf(matcher.group(1)) : null;

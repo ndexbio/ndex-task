@@ -33,7 +33,7 @@ import org.xml.sax.SAXException;
 public class HandleViewNode extends AbstractHandler {
 
 	@Override
-	public ParseState handle(String tag, Attributes atts, ParseState current) throws SAXException {
+	public ParseState handle(final String namespace, final String tag, final String qName,  Attributes atts, ParseState current) throws SAXException {
 		String sId = atts.getValue("cy:nodeId");
 		
 		try {

@@ -48,7 +48,7 @@ public abstract class AbstractHandler implements Handler {
 	}
 
 	@Override
-	abstract public ParseState handle(String tag, Attributes atts, ParseState current) throws SAXException, NdexException, Exception;
+	abstract public ParseState handle(String namespace, String tag, String qName, Attributes atts, ParseState current) throws SAXException, NdexException, Exception;
 
 	@Override
 	public void setManager(ReadDataManager manager) {

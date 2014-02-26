@@ -86,9 +86,9 @@ public class HandlerFactory {
 					{ NET_GRAPHICS, "att", NET_GRAPHICS, new HandleGraphGraphics() },
 					{ GRAPH, "att", NET_ATT, new HandleGraphAttribute() },
 					// RDF
-					{ NET_ATT, "rdf", RDF, null },
+					{ NET_ATT, "RDF", RDF, null },
 					// RDF tags -- most of the data for the RDF tags comes from the CData
-					{ RDF, "description", RDF_DESC, new HandleRDF() },
+					{ RDF, "Description", RDF_DESC, new HandleRDF() },
 					{ RDF_DESC, "type", RDF_DESC, null },
 					{ RDF_DESC, "description", RDF_DESC, null },
 					{ RDF_DESC, "identifier", RDF_DESC, null },
@@ -136,12 +136,12 @@ public class HandlerFactory {
 			// Cy3 network, Cy2 network+view or regular XGMML formats
 			final Object[][] tbl = {
 					{ RDF_DESC, "type", RDF_DESC, new HandleRDFType() },
-					{ RDF_DESC, "description", RDF_DESC, new HandleRDFDescription() },
-					{ RDF_DESC, "identifier", RDF_DESC, new HandleRDFIdentifier() },
-					{ RDF_DESC, "date", RDF_DESC, new HandleRDFDate() },
-					{ RDF_DESC, "title", RDF_DESC, new HandleRDFTitle() },
-					{ RDF_DESC, "source", RDF_DESC, new HandleRDFSource() },
-					{ RDF_DESC, "format", RDF_DESC, new HandleRDFFormat() },
+					{ RDF_DESC, "description", RDF_DESC, new HandleRDFNetworkAttribute()},
+					{ RDF_DESC, "identifier", RDF_DESC, new HandleRDFNetworkAttribute() },
+					{ RDF_DESC, "date", RDF_DESC, new HandleRDFNetworkAttribute() },
+					{ RDF_DESC, "title", RDF_DESC, new HandleRDFNetworkAttribute() },
+					{ RDF_DESC, "source", RDF_DESC, new HandleRDFNetworkAttribute()},
+					{ RDF_DESC, "format", RDF_DESC, new HandleRDFNetworkAttribute() },
 					{ EDGE_HANDLE, "att", EDGE_BEND, new HandleEdgeHandleDone() },
 					{ EDGE_BEND, "att", EDGE_BEND, new HandleEdgeHandleList() },
 					{ NODE_GRAPH, "graph", NODE, new HandleNodeGraphDone() },

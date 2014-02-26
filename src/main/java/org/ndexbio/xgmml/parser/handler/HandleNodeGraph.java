@@ -37,7 +37,7 @@ import org.xml.sax.SAXException;
 public class HandleNodeGraph extends HandleGraph {
 
 	@Override
-    public ParseState handle(String tag, Attributes atts, ParseState current) throws SAXException, NdexException {
+    public ParseState handle(final String namespace, final String tag, final String qName,  Attributes atts, ParseState current) throws SAXException, NdexException {
 		manager.graphCount++;
 		
 		final INode node = manager.getCurrentNode();

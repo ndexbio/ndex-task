@@ -85,6 +85,18 @@ public class FileUploadTask extends NdexTask {
 				logger.error(e.getMessage());
 			}
 			break;
+		case ("XGMML"):
+			try {
+				final XgmmlParser xgmmlParser = new XgmmlParser(
+						file.getAbsolutePath(), this.getTask().getOwner()
+								.getUsername());
+				xgmmlParser.parseFile();
+				this.taskStatus = Status.COMPLETED;
+			} catch (Exception e) {
+				this.taskStatus = Status.COMPLETED_WITH_ERRORS;
+				logger.error(e.getMessage());
+			}
+			break;
 		case ("XBEL"):
 			try {
 				logger.info("Processing xbel file " + file.getAbsolutePath()
@@ -120,7 +132,7 @@ public class FileUploadTask extends NdexTask {
 			}
 			break;
 		default:		
-			logger.error("The uploaded file type is not supported; must be SIF, XBEL, XLS or XLSX.");
+			logger.error("The uploaded file type is not supported; must be SIF, XGMML, XBEL, XLS or XLSX.");
 			this.taskStatus = Status.COMPLETED_WITH_ERRORS;
 
 		}

@@ -37,7 +37,7 @@ import org.xml.sax.SAXException;
 public class HandleNodeGraphics extends AbstractHandler {
 
 	@Override
-    public ParseState handle(String tag, Attributes atts, ParseState current) throws SAXException {
+    public ParseState handle(final String namespace, final String tag, final String qName,  Attributes atts, ParseState current) throws SAXException {
         if (tag.equals("graphics")) {
         	manager.addGraphicsAttributes(manager.getCurrentNode(), atts);
         } else if (tag.equals("att")) {

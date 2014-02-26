@@ -24,9 +24,6 @@ package org.ndexbio.xgmml.parser.handler;
  * #L%
  */
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.xgmml.parser.ObjectType;
 import org.ndexbio.xgmml.parser.ParseState;
@@ -36,18 +33,21 @@ import org.xml.sax.SAXException;
 public class HandleListAttribute extends AbstractHandler {
 
     @Override
-    public ParseState handle(String tag, Attributes atts, ParseState currentParseState) throws SAXException, NdexException {
+    public ParseState handle(String namespace, String tag, String qName,  Attributes atts, ParseState currentParseState) throws SAXException, NdexException {
         final String type = atts.getValue("type");
         final String name = manager.currentAttributeID;
         final ObjectType objType = typeMap.getType(type);
         final Object value = attributeValueUtil.getTypedAttributeValue(objType, atts, name);
-        Class<?> clazz = null;
+        //Class<?> clazz = null;
         
         //throw new NdexException("list attributes not yet handled");
 
-        System.out.println("Adding '" + value.toString() + "' to current list");
-        manager.getCurrentList().add(value.toString());
-        
+        //System.out.println("Adding '" + value.toString() + "' to current list");
+        manager.getCurrentList().add(value.toString());/*
+        for (String item : manager.getCurrentList()){
+        	System.out.println("Current List has: " + item);
+        }
+        */
         return currentParseState;
         
         /*

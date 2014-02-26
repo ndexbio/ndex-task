@@ -41,6 +41,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.models.data.IBaseTerm;
 import org.ndexbio.common.models.data.IEdge;
 import org.ndexbio.common.models.data.IMetadataObject;
@@ -69,26 +70,11 @@ public class ReadDataManager {
 	private static final Pattern P2X = Pattern.compile(PATTERN2X);
 	private static final Pattern PBG_COLOR = Pattern.compile(BG_COLOR_PATTERN);
 
-	
-	/* RDF Data */
-	protected String RDFDate;
-	protected String RDFTitle;
-	protected String RDFIdentifier;
-	protected String RDFDescription;
-	protected String RDFSource;
-	protected String RDFType;
-	protected String RDFFormat;
-
-	
-	/* Set of created networks */
-	//private Set<CyNetwork> publicNetworks;
+	private String currentCData; 
 	
 	/* Stack of original network IDs */
 	private Stack<Object> networkStack;
-	
-	/* Stack of nodes that have a nested graph*/
-	//private Stack<CyNode> compoundNodeStack;
-	
+
 	/* Attribute values */
 	protected ParseState attState = ParseState.NONE;
 	protected String currentAttributeID;
@@ -119,14 +105,6 @@ public class ReadDataManager {
 	private boolean viewFormat;
 	private double documentVersion;
 	
-	/*
-	private CyRootNetwork parentNetwork;
-	private CyNetwork currentNetwork;
-	private CyNode currentNode;
-	private CyEdge currentEdge;
-	private CyIdentifiable currentElement;
-	private CyRow currentRow;
-	*/
 	
 	private List<String> currentList;
 	
@@ -144,53 +122,23 @@ public class ReadDataManager {
 	private String visualStyleName;
 	private String rendererName;
 	private Object currentElementId; // node/edge/network old id
-	//private Map<Object/*old model id*/, Map<String/*att name*/, String/*att value*/>> viewGraphics;
-	//private Map<Object/*old model id*/, Map<String/*att name*/, String/*att value*/>> viewLockedGraphics;
-	
-	/*
-	private final ReadCache cache;
-	private final SUIDUpdater suidUpdater;
-	private final EquationCompiler equationCompiler;
-	private final CyNetworkFactory networkFactory;
-	private final CyRootNetworkManager rootNetworkManager;
-	private final GroupUtil groupUtil;
-	*/
+
 	
 	private static final Logger logger = LoggerFactory.getLogger(ReadDataManager.class);
 
 	public ReadDataManager(SIFNetworkService networkService) {
-		//this.cache = cache;
-		//this.suidUpdater = suidUpdater;
-		//this.equationCompiler = equationCompiler;
-		//this.networkFactory = networkFactory;
-		//this.rootNetworkManager = rootNetworkManager;
-		//this.groupUtil = groupUtil;
+
 		this.networkService = networkService;
 		
 		init();
 	}
 
 	public void init() {
-		/*
-		if (!SessionUtil.isReadingSessionFile()) {
-			cache.init();
-			suidUpdater.init();
-		}
-		*/
 		
 		viewFormat = false;
 		graphCount = 0;
 		graphDoneCount = 0;
 		documentVersion = 0;
-		
-		/* RDF Data */
-		RDFDate = null;
-		RDFTitle = null;
-		RDFIdentifier = null;
-		RDFDescription = null;
-		RDFSource = null;
-		RDFType = null;
-		RDFFormat = null;
 
 		currentElement = null;
 		currentNode = null;
@@ -209,11 +157,8 @@ public class ReadDataManager {
 		edgeBendY = null;
 		
 		networkStack = new Stack<Object>();
-		//compoundNodeStack = new Stack<CyNode>();
 		
-		//publicNetworks = new LinkedHashSet<CyNetwork>();
-		//equations = new Hashtable<CyRow, Map<String, String>>();
-		
+		// TODO: determine how these are used 
 		networkGraphics = new LinkedHashMap<Long, Map<String, String>>();
 		nodeGraphics = new LinkedHashMap<Long, Map<String, String>>();
 		edgeGraphics = new LinkedHashMap<Long, Map<String, String>>();
@@ -222,30 +167,16 @@ public class ReadDataManager {
 		networkId = null;
 		visualStyleName = null;
 		rendererName = null;
-		//viewGraphics = new LinkedHashMap<Object, Map<String,String>>();
-		//viewLockedGraphics = new LinkedHashMap<Object, Map<String,String>>();
+
 	}
 	
 	public void dispose() {
-		// At least it should get rid of references to CyNodes, CyNodes and CyEdges!
-		//publicNetworks = null;
-		 
-		//equations = null;
-		//compoundNodeStack = null;
-		//currentElement = null;
+
 		currentNetwork = null;
 		currentNode = null;
 		currentEdge = null;
-		//currentRow = null;
-		
-		// Important: graphics related maps and lists cannot be disposed here,
-		// because they may be necessary when creating the network views.
-		/*
-		if (!SessionUtil.isReadingSessionFile()) {
-			cache.dispose();
-			suidUpdater.dispose();
-		}
-		*/
+		currentElement = null;
+
 	}
 	
 	public double getDocumentVersion() {
@@ -271,6 +202,8 @@ public class ReadDataManager {
 		this.viewFormat = viewFormat;
 	}
 
+	// This is code from the original Cytoscape XGMML parser 
+	// Not clear which feature this is related to.
 	/*
 	public Set<CyNetwork> getPublicNetworks() {
 		return publicNetworks;
@@ -314,7 +247,9 @@ public class ReadDataManager {
 		}
 	}
 	
-	
+	// This is code from the original Cytoscape XGMML parser 
+	// It handles the case of Cy3 view formats
+	// Not supported at this time for NDEx parsing of XGMML
 	 	/**
 	 * Used only when reading Cy3 view format XGMML. Because there is no network yet, we use the old model Id as
 	 * mapping key.
@@ -361,6 +296,9 @@ public class ReadDataManager {
 	}
 	*/
 
+	// This is code from the original Cytoscape XGMML parser 
+	// It handles the case of equations as element properties
+	// Not supported at this time for NDEx parsing of XGMML
 	/**
 	 * Just stores all the equation strings per CyIdentifiable and column name.
 	 * It does not create the real Equation objects yet.
@@ -379,6 +317,8 @@ public class ReadDataManager {
 		
 		colEquationMap.put(columnName, formula);
 	}
+	
+	
 	*/
 	/**
 	 * Should be called only after all XGMML attributes have been read.
@@ -410,11 +350,7 @@ public class ReadDataManager {
 		}
 	}
 	*/
-	/*
-	protected void setCurrentNetwork(INetwork network) {
-		this.currentNetwork = network;
-	}
-*/
+
 	protected INetwork getCurrentNetwork() {
 		return this.networkService.getCurrentNetwork();
 	}
@@ -425,6 +361,10 @@ public class ReadDataManager {
 	protected Stack<Object> getNetworkIDStack() {
 		return networkStack;
 	}
+	
+	// This is code from the original Cytoscape XGMML parser 
+	// It handles the case of subnetworks expressed as compound nodes 
+	// Not supported at this time for NDEx parsing of XGMML
 
 	/*
 	public Stack<CyNode> getCompoundNodeStack() {
@@ -446,34 +386,38 @@ public class ReadDataManager {
 	}
 	*/
 	
-	public INode findOrCreateNode(String name) throws ExecutionException {
-		IBaseTerm term = findOrCreateBaseTerm(name);
-		if (null != term) {
-			INode node = this.networkService.findOrCreateINode(term);
-			return node;
+	public INode findOrCreateNode(String id, String name) throws ExecutionException {
+		IBaseTerm term = null;
+		if (name != null){
+			term = findOrCreateBaseTerm(name);
+		} else {
+			term = findOrCreateBaseTerm(id);
 		}
-		return null;
-	}
-
-	public INode findNode(String identifier) throws ExecutionException {
-		IBaseTerm term = findBaseTerm(identifier);
 		if (null != term) {
-			INode node = term.getRepresentedNode();
+			INode node = this.networkService.findOrCreateINode(id, term);
 			return node;
 		}
 		return null;
 	}
 
 	public IEdge addEdge(String subject, String predicate, String object)
-			throws ExecutionException {
-		INode subjectNode = findOrCreateNode(subject);
-		INode objectNode = findOrCreateNode(object);
+			throws ExecutionException, NdexException {
+		INode subjectNode = this.networkService.findINode(subject);
+		INode objectNode = this.networkService.findINode(object);
 		IBaseTerm predicateTerm = findOrCreateBaseTerm(predicate);
 		IEdge edge = this.networkService.createIEdge(subjectNode, objectNode,
 				predicateTerm);
 		this.setCurrentEdge(edge);
 		return edge;
 
+	}
+	
+	public IBaseTerm findOrCreateBaseTerm(String name, INamespace namespace) throws ExecutionException{
+		return this.networkService.findOrCreateBaseTerm(name, namespace);
+	}
+	
+	public INamespace findOrCreateNamespace(String uri, String prefix) throws ExecutionException{
+		return this.networkService.findOrCreateINamespace(uri, prefix);
 	}
 
 	private IBaseTerm findBaseTerm(String termString) throws ExecutionException {
@@ -597,193 +541,7 @@ public class ReadDataManager {
 		return iBaseTerm;
 	}
 
-	
-	
-	/*	
-    protected INode createNode(final Object oldId, final String label, final INetwork net) {
-        if (oldId == null)
-        	throw new NullPointerException("'oldId' is null.");
-        
-        INode node = null;
-        
-        
-        if (net instanceof CySubNetwork && getParentNetwork() != null) {
-        	// Do not create the element again if the network is a sub-network!
-	        node = cache.getNode(oldId);
-	        
-	        if (node != null)
-	        	((CySubNetwork) net).addNode(node);
-        }
-        
-        
-        if (node == null) 
-        {    
-        	node = this.nMap.get(label);
-        	if ( node == null){
-        		// OK, create it
-            	node = net.addNode();        		
-        	}
-        }
-        
-        if (net instanceof CySubNetwork && getParentNetwork() != null) {
-        	// cache the parent node, not the node from subnetwork
-        	CySubNetwork subnet = (CySubNetwork) net;
-        	node = subnet.getRootNetwork().getNode(node.getSUID());
-        }
-        
-        // Add to internal cache:
-        cache.cache(oldId, node);
-        cache.cacheNodeByName(label, node);
-        
-        mapSUIDs(oldId, node.getSUID());
-        
-        return node;
-    }
 
-	protected void addNode(final CyNode node, final String label, final CySubNetwork net) {
-		net.addNode(node);
-		cache.cacheNodeByName(label, node);
-		cache.removeUnresolvedNode(node, net);
-	}
-    
-	protected CyEdge createEdge(final CyNode source, final CyNode target, Object id, final String label,
-			final boolean directed, CyNetwork net) {
-		CyEdge edge = null;
-		
-		if (id == null) id = label;
-        
-        if (net instanceof CySubNetwork && this.getParentNetwork() != null) {
-        	// Do not create the element again if the network is a sub-network and the edge already exists!
-	        edge = cache.getEdge(id);
-	        
-	        if (edge != null)
-	        	((CySubNetwork) net).addEdge(edge);
-        }
-        
-        if (edge == null) {
-	        // OK, create it
-        	// But first get the actual source/target instances from the current network,
-        	// because both node instances have to belong to the same root or sub-network.
-        	CyNode actualSrc = net.getNode(source.getSUID());
-        	CyNode actualTgt = net.getNode(target.getSUID());
-        	
-        	List<Long> extEdgeIds = null; // For 2.x groups
-        	
-        	if ( (getDocumentVersion() < 3.0 || !isSessionFormat()) && (actualSrc == null || actualTgt == null) ) {
-        		// The nodes might have been added to other sub-networks, but not to the current one.
-        		// If that is the case, the root network should have both nodes,
-        		// so let's just add the edge to the root.
-        		final CyRootNetwork rootNet = getRootNetwork();
-				
-        		if (actualSrc == null)
-        			actualSrc = rootNet.getNode(source.getSUID());
-        		if (actualTgt == null)
-        			actualTgt = rootNet.getNode(target.getSUID());
-        		
-        		// Does the current subnetwork belong to a 2.x group?
-        		if (getDocumentVersion() < 3.0 && !compoundNodeStack.isEmpty() && networkStack.size() > 1) {
-        			// Get the current compound node
-        			final CyNode grNode = compoundNodeStack.peek();
-        			// Get the network of that node (the current one is its network pointer)
-        			final CyNetwork parentNet = cache.getNetwork(networkStack.elementAt(networkStack.size() - 2));
-        			
-        			// Check for the group's metadata attribute
-        			final CyRow gnhRow = parentNet.getRow(grNode, CyNetwork.HIDDEN_ATTRS);
-        			
-        			if (gnhRow.isSet(GROUP_STATE_ATTRIBUTE)) { // It's a group!
-        				// Get the network pointer's hidden row
-        				final CyRow nphRow = net.getRow(net, CyNetwork.HIDDEN_ATTRS);
-        				
-        				// Add extra metadata for external edges, so that the information is not lost
-        				if (nphRow.getTable().getColumn(EXTERNAL_EDGE_ATTRIBUTE) == null) {
-        					nphRow.getTable().createListColumn(EXTERNAL_EDGE_ATTRIBUTE, Long.class, false);
-        					// These are already the new SUIDs. Let's tell the SUIDUpdater to ignore this column,
-        					// in order to prevent it from replacing the correct list by an empty one.
-        					suidUpdater.ignoreColumn(nphRow.getTable(), EXTERNAL_EDGE_ATTRIBUTE);
-        				}
-        				
-        				extEdgeIds = nphRow.getList(EXTERNAL_EDGE_ATTRIBUTE, Long.class);
-        						
-        				if (extEdgeIds == null) {
-        					nphRow.set(EXTERNAL_EDGE_ATTRIBUTE, new ArrayList<Long>());
-        					extEdgeIds = nphRow.getList(EXTERNAL_EDGE_ATTRIBUTE, Long.class);
-        				}
-        			}
-        		}
-        		
-        		net = rootNet;
-        	}
-        	
-        	edge = net.addEdge(actualSrc, actualTgt, directed);
-        	
-        	if (extEdgeIds != null)
-        		extEdgeIds.add(edge.getSUID());
-        	
-        	mapSUIDs(id, edge.getSUID());
-        }
-        
-        // Add to internal cache:
-        cache.cache(id, edge);
-
-		return edge;
-	}
-
-	protected CyEdge createEdge (final Object sourceId, final Object targetId, Object id, final String label,
-			final boolean directed, final CyNetwork net) {
-		if (id == null) id = label;
-		
-		CyNode source = cache.getNode(sourceId);
-		CyNode target = cache.getNode(targetId);
-		final boolean haveTarget = target != null;
-		final boolean haveSource = source != null;
-	
-		// Create the required nodes, even if they haven't been parsed yet; they will probably be parsed later
-		// (it can happen if the edge is written before its nodes in the XGMML document)
-		if (!haveSource)
-			source = createNode(sourceId, null, net);
-		if (!haveTarget)
-			target = createNode(targetId, null, net);
-
-		// Create the edge
-		final CyNetwork curNet = getCurrentNetwork();
-		final CyEdge edge = createEdge(source, target, id, label, directed, net);
-		
-		if (curNet instanceof CySubNetwork) {
-			// Tag the node that were created in advance nodes for deletion (from this subnetwork):
-			// If the actual node elements are not parsed later, they should be deleted from this subnetwork.
-			if (!haveSource)
-				cache.addUnresolvedNode(source, (CySubNetwork) curNet);
-			if (!haveTarget)
-				cache.addUnresolvedNode(target, (CySubNetwork) curNet);
-		}
-		
-		return edge;
-	}
-
-	
-	protected void createGroups() {
-		groupUtil.createGroups(publicNetworks, null);
-	}
-	
-	public void updateGroupNodes(final CyNetworkView view) {
-		groupUtil.updateGroupNodes(view);
-	}
-	
-	protected void addNetwork(Object oldId, CyNetwork net, boolean isRegistered) {
-		if (net != null) {
-			if (isRegistered && !(net instanceof CyRootNetwork))
-				publicNetworks.add(net);
-			
-			cache.cache(oldId, net);
-			mapSUIDs(oldId, net.getSUID());
-		}
-	}
-	
-	protected void addElementLink(final String href, final Class<? extends CyIdentifiable> clazz) {
-		cache.addElementLink(href, clazz, getCurrentNetwork());
-	}
-	
-	*/
 	
 	public Object getNetworkViewId() {
 		return networkViewId;
@@ -865,7 +623,13 @@ public class ReadDataManager {
 		this.currentList = currentList;
 	}
 	
-	
+	public String getCurrentCData() {
+		return currentCData;
+	}
+
+	public void setCurrentCData(String currentCData) {
+		this.currentCData = currentCData;
+	}	
 
  	/**
  	 * Adds old->new SUID references to the SUID Updater 

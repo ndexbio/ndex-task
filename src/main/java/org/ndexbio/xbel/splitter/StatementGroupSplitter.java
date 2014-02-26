@@ -1,7 +1,9 @@
 package org.ndexbio.xbel.splitter;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import javax.xml.bind.JAXBContext;
@@ -16,6 +18,7 @@ import org.ndexbio.common.models.data.INode;
 import org.ndexbio.common.models.data.ISupport;
 import org.ndexbio.common.models.data.ITerm;
 import org.ndexbio.task.service.network.XBelNetworkService;
+import org.ndexbio.xbel.model.Annotation;
 import org.ndexbio.xbel.model.AnnotationGroup;
 import org.ndexbio.xbel.model.Citation;
 import org.ndexbio.xbel.model.Parameter;
@@ -33,16 +36,19 @@ import com.google.common.collect.Lists;
 public class StatementGroupSplitter extends XBelSplitter {
 	private static final String xmlElement = "statementGroup";
 	private static Joiner idJoiner = Joiner.on(":").skipNulls();
-	
-	private static final Logger logger = LoggerFactory.getLogger(StatementGroupSplitter.class);
 
-	public StatementGroupSplitter(JAXBContext context, XBelNetworkService networkService) {
+	private static final Logger logger = LoggerFactory
+			.getLogger(StatementGroupSplitter.class);
+
+	public StatementGroupSplitter(JAXBContext context,
+			XBelNetworkService networkService) {
 		super(context, networkService, xmlElement);
-		
+
 	}
 
 	@Override
-	protected void process() throws JAXBException, ExecutionException, NdexException {
+	protected void process() throws JAXBException, ExecutionException,
+			NdexException {
 		// instantiate outer level StatementGroup
 		StatementGroup sg = (StatementGroup) unmarshallerHandler.getResult();
 		this.processStatementGroup(sg);
@@ -51,7 +57,7 @@ public class StatementGroupSplitter extends XBelSplitter {
 
 	private void processStatementGroup(StatementGroup sg)
 			throws ExecutionException, NdexException {
-		processStatementGroup(sg, null, null);
+		processStatementGroup(sg, null, null, null);
 	}
 
 	// In an XBEL document, only one Citation and one Support are in scope for
@@ -62,11 +68,29 @@ public class StatementGroupSplitter extends XBelSplitter {
 	// StatementGroup. And the same
 	// is true for Supports.
 	private void processStatementGroup(StatementGroup sg,
-			ISupport outerSupport, ICitation outerCitation)
-			throws ExecutionException, NdexException {
-		
+			ISupport outerSupport, ICitation outerCitation,
+			Map<String, String> outerAnnotations) throws ExecutionException,
+			NdexException {
+
 		// process the Annotation group for this Statement Group
 		AnnotationGroup annotationGroup = sg.getAnnotationGroup();
+
+		Map<String, String> annotations = annotationsFromAnnotationGroup(annotationGroup);
+		if (null != outerAnnotations){
+			// if outerAnnotations is not null, then need to deal with them
+			if (null != annotations) {
+				for (String key : outerAnnotations.keySet()) {
+					if (!annotations.containsKey(key)) {
+						// The annotations from the outer group are carried forward
+						// unless the inner group overrides them.
+						annotations.put(key, outerAnnotations.get(key));
+					}
+				}
+			} else {
+				// since annotations was null, just use the outer annotations 
+				annotations = outerAnnotations;
+			}
+		}
 
 		ICitation citation = citationFromAnnotationGroup(annotationGroup);
 		if (citation != null) {
@@ -95,11 +119,27 @@ public class StatementGroupSplitter extends XBelSplitter {
 		}
 
 		// process the Statements belonging to this Statement Group
-		this.processStatements(sg, support, citation);
+		this.processStatements(sg, support, citation, annotations);
 		// process any embedded StatementGroup(s)
 		for (StatementGroup isg : sg.getStatementGroup()) {
-			this.processStatementGroup(isg, support, citation);
+			this.processStatementGroup(isg, support, citation, annotations);
 		}
+	}
+
+	private Map<String, String> annotationsFromAnnotationGroup(
+			AnnotationGroup annotationGroup) throws ExecutionException,
+			NdexException {
+		if (null == annotationGroup)
+			return null;
+		Map<String,String> annotationMap = new HashMap<String, String>();
+		for (Object object : annotationGroup
+				.getAnnotationOrEvidenceOrCitation()) {
+			if (object instanceof Annotation) {
+				Annotation annotation = (Annotation)object;
+				annotationMap.put(annotation.getRefID(), annotation.getValue());
+			}
+		}
+		return annotationMap;
 	}
 
 	private ISupport supportFromAnnotationGroup(
@@ -120,14 +160,15 @@ public class StatementGroupSplitter extends XBelSplitter {
 	}
 
 	private ICitation citationFromAnnotationGroup(
-			AnnotationGroup annotationGroup) throws ExecutionException, NdexException {
+			AnnotationGroup annotationGroup) throws ExecutionException,
+			NdexException {
 		if (null == annotationGroup)
 			return null;
 		for (Object object : annotationGroup
 				.getAnnotationOrEvidenceOrCitation()) {
 			if (object instanceof Citation) {
-				return this.networkService.findOrCreateICitation(
-						(Citation) object);
+				return this.networkService
+						.findOrCreateICitation((Citation) object);
 			}
 		}
 		return null;
@@ -137,10 +178,9 @@ public class StatementGroupSplitter extends XBelSplitter {
 	 * process statement group
 	 */
 	private void processStatements(StatementGroup sg, ISupport support,
-			ICitation citation) throws ExecutionException, NdexException {
+			ICitation citation, Map<String,String> annotations) throws ExecutionException, NdexException {
 		List<Statement> statementList = sg.getStatement();
 		for (Statement statement : statementList) {
-			 
 
 			// if (false){
 			if (null != statement.getSubject()) {
@@ -161,8 +201,8 @@ public class StatementGroupSplitter extends XBelSplitter {
 					INode objectNode = this.processStatementObject(statement
 							.getObject());
 
-					this.networkService.createIEdge(subjectNode,
-							objectNode, predicate, support, citation);
+					this.networkService.createIEdge(subjectNode, objectNode,
+							predicate, support, citation, annotations);
 				}
 			}
 		}
@@ -194,8 +234,8 @@ public class StatementGroupSplitter extends XBelSplitter {
 		}
 		try {
 			if (null != obj.getStatement()) {
-				//System.out.println("Object has internal statement "
-				//		+ obj.getStatement().getRelationship().toString());
+				// System.out.println("Object has internal statement "
+				// + obj.getStatement().getRelationship().toString());
 			} else {
 				IFunctionTerm representedTerm = this.processFunctionTerm(obj
 						.getTerm());
@@ -214,8 +254,8 @@ public class StatementGroupSplitter extends XBelSplitter {
 	private IFunctionTerm processFunctionTerm(Term term)
 			throws ExecutionException, NdexException {
 		// XBEL "Term" corresponds to NDEx FunctionTerm
-		IBaseTerm function = this.networkService
-				.findOrCreateFunction(term.getFunction());
+		IBaseTerm function = this.networkService.findOrCreateFunction(term
+				.getFunction());
 
 		List<ITerm> childITermList = this.processInnerTerms(term);
 
@@ -236,9 +276,9 @@ public class StatementGroupSplitter extends XBelSplitter {
 	 * String of the JDex IDs of its children. For BaseTerms, it is a String
 	 * containing the namespace and term value.
 	 */
-	private List<ITerm>  processInnerTerms(Term term)
-			throws ExecutionException, NdexException {
-		
+	private List<ITerm> processInnerTerms(Term term) throws ExecutionException,
+			NdexException {
+
 		List<ITerm> childList = Lists.newArrayList();
 
 		for (Object item : term.getParameterOrTerm()) {
@@ -273,7 +313,7 @@ public class StatementGroupSplitter extends XBelSplitter {
 			List<ITerm> childList) {
 		try {
 			Long jdexId = generateFunctionTermJdexId(function, childList);
-			
+
 			boolean persisted = this.networkService.isEntityPersisted(jdexId);
 			IFunctionTerm ft = this.networkService
 					.findOrCreateIFunctionTerm(jdexId);
@@ -282,7 +322,7 @@ public class StatementGroupSplitter extends XBelSplitter {
 			ft.setJdexId(jdexId.toString());
 			ft.setTermFunc(function);
 			List<ITerm> ftParameters = new ArrayList<ITerm>();
-			
+
 			int ftCount = 0;
 			for (ITerm childITerm : childList) {
 				ftParameters.add(childITerm);
@@ -294,7 +334,7 @@ public class StatementGroupSplitter extends XBelSplitter {
 			logger.error(e.getMessage());
 			e.printStackTrace();
 			return null;
-		} 
+		}
 
 	}
 

@@ -37,7 +37,7 @@ import org.xml.sax.helpers.DefaultHandler;
 public class XGMMLParser extends DefaultHandler {
 
 	private Locator locator;
-	private String currentCData;
+	//private String currentCData;
 
 	private ParseState parseState;
 	private Stack<ParseState> stateStack;
@@ -89,8 +89,8 @@ public class XGMMLParser extends DefaultHandler {
 	public void startElement(String namespace, String localName, String qName, Attributes atts) throws SAXException {
 		ParseState nextState;
 		try {
-			//System.out.println("starting state = [" + parseState.toString() + "] tag = " + localName + " ");
-			nextState = handleStartState(parseState, localName, atts);
+			//System.out.println("starting state = [" + parseState.toString() + "] tag = " + localName );
+			nextState = handleStartState(parseState, namespace, localName, qName, atts);
 			stateStack.push(parseState);
 			parseState = nextState;
 		} catch (NdexException e) {
@@ -117,8 +117,8 @@ public class XGMMLParser extends DefaultHandler {
 	@Override
 	public void endElement(String uri, String localName, String qName) throws SAXException {
 		try {
-			//System.out.println("ending state = [" + parseState.toString() + "] tag = " + localName + " ");
-			handleEndState(parseState, localName, null);
+			//System.out.println("ending " + localName + " uri = [" + uri + "] qname = " + qName + " ");
+			handleEndState(parseState, uri, localName, qName, null);
 		} catch (NdexException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -141,7 +141,8 @@ public class XGMMLParser extends DefaultHandler {
 	 */
 	@Override
 	public void characters(char[] ch, int start, int length) {
-		currentCData = new String(ch, start, length);
+		readDataManager.setCurrentCData(new String(ch, start, length));
+		// set a var in readDataManager so this can be found by handlers...
 	}
 
 	/**
@@ -194,6 +195,8 @@ public class XGMMLParser extends DefaultHandler {
 	 *            the current state
 	 * @param tag
 	 *            the element tag
+	 * @param qName 
+	 * @param tag 
 	 * @param atts
 	 *            the Attributes associated with this tag. These will be passed
 	 *            to the handler
@@ -201,21 +204,23 @@ public class XGMMLParser extends DefaultHandler {
 	 * @throws Exception 
 	 * @throws NdexException 
 	 */
-	private ParseState handleStartState(ParseState currentState, String tag, Attributes atts) throws NdexException, Exception {
-		return handleState(currentState, tag, atts, handlerFactory.getStartHandler(currentState, tag));
+	private ParseState handleStartState(ParseState currentState, String namespace, String tag, String qName, Attributes atts) throws NdexException, Exception {
+		return handleState(currentState, namespace, tag, qName, atts, handlerFactory.getStartHandler(currentState, tag));
 	}
 
-	private ParseState handleEndState(ParseState currentState, String tag, Attributes atts) throws NdexException, Exception {
-		return handleState(currentState, tag, atts, handlerFactory.getEndHandler(currentState, tag));
+	private ParseState handleEndState(ParseState currentState, String namespace, String tag, String qName, Attributes atts) throws NdexException, Exception {
+		return handleState(currentState, namespace, tag, qName, atts, handlerFactory.getEndHandler(currentState, tag));
 	}
 
-	private ParseState handleState(ParseState currentState, String tag, Attributes atts, SAXState state)
+	private ParseState handleState(ParseState currentState, String namespace, String tag, String qName, Attributes atts, SAXState state)
 			throws NdexException, Exception {
 		if (state != null) {
 			final Handler handler = state.getHandler();
 
-			if (handler != null)
-				return handler.handle(tag, atts, state.getEndState());
+			if (handler != null){
+				//System.out.println("sax state = " + state.getTag() + "  handler = " + handler.toString());
+				return handler.handle(namespace, tag, qName, atts, state.getEndState());
+			}
 			else
 				return state.getEndState();
 		} else {

@@ -18,7 +18,7 @@ public class HandleEdge extends AbstractHandler {
 	private static final Pattern SPLIT = Pattern.compile(SPLIT_PATTERN);
 
 	@Override
-	public ParseState handle(final String tag, final Attributes atts, final ParseState current) throws SAXException, NdexException {
+	public ParseState handle(final String namespace, final String tag, final String qName, final Attributes atts, final ParseState current) throws SAXException, NdexException {
 		// Get the label, id, source and target
 		Object id = null;
 		String href = atts.getValue(ReadDataManager.XLINK, "href");

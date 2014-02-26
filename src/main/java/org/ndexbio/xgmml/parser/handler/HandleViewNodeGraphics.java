@@ -37,7 +37,7 @@ import org.xml.sax.SAXException;
 public class HandleViewNodeGraphics extends AbstractHandler {
 
 	@Override
-    public ParseState handle(String tag, Attributes atts, ParseState current) throws SAXException, NdexException {
+    public ParseState handle(final String namespace, final String tag, final String qName,  Attributes atts, ParseState current) throws SAXException, NdexException {
 		throw new NdexException("view node graphics not yet handled");
 		/*
         final Object nodeId = manager.getCurrentElementId();
