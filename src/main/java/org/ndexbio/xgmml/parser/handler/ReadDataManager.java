@@ -172,12 +172,39 @@ public class ReadDataManager {
 	
 	public void dispose() {
 
-		currentNetwork = null;
 		currentNode = null;
 		currentEdge = null;
 		currentElement = null;
 
 	}
+	
+	public void handleSpecialNetworkAttributes() {
+		Map<String, String> metadata = getCurrentNetwork().getMetadata();
+		// dc:description
+		if (null != metadata.get("dc:description")){
+			
+			getCurrentNetwork().setDescription(metadata.get("dc:description"));
+		}
+		
+		// dc:format
+		if (null != metadata.get("dc:format")){
+			AttributeValueUtil.setAttribute(getCurrentNetwork(), "Format", metadata.get("dc:format"));
+		}
+		
+		// network name from dc:title or name or dc:identifier
+		if (null != metadata.get("dc:title")){
+			getCurrentNetwork().setName(metadata.get("dc:title"));
+		} else if (null != metadata.get("name")){
+			getCurrentNetwork().setName(metadata.get("name"));
+		} else if (null != metadata.get("dc:identifier")){
+			getCurrentNetwork().setName(metadata.get("dc:identifier"));
+		} else {
+			getCurrentNetwork().setName("unknown");
+		}
+		
+		
+		
+	}	
 	
 	public double getDocumentVersion() {
 		return documentVersion;
@@ -629,7 +656,9 @@ public class ReadDataManager {
 
 	public void setCurrentCData(String currentCData) {
 		this.currentCData = currentCData;
-	}	
+	}
+
+
 
  	/**
  	 * Adds old->new SUID references to the SUID Updater 

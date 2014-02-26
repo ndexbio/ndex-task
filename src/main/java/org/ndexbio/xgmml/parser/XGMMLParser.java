@@ -73,6 +73,19 @@ public class XGMMLParser extends DefaultHandler {
 	}
 
 	/**
+	 * @see org.xml.sax.helpers.DefaultHandler#endDocument()
+	 */
+	@Override
+	public void endDocument() throws SAXException {
+		// The current NDEx data model includes fields for 
+		// name and description and also expects a "Format" metadata attribute
+		// rather than dc:format
+		// This replicates attribute values as necessary.
+		readDataManager.handleSpecialNetworkAttributes();
+		super.endDocument();
+	}
+	
+	/**
 	 * startElement is called whenever the SAX parser sees a start tag. We use
 	 * this as the way to fire our state table.
 	 * 
