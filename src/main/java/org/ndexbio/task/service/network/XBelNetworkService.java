@@ -176,6 +176,10 @@ public class XBelNetworkService extends CommonNetworkService {
 		iSupport.setText(evidenceString);
 		if (null != iCitation) {
 			iSupport.setSupportCitation(iCitation);
+		} else {
+			System.out.println("No Citation for Support " 
+					+ jdexId + " ["
+					+ evidenceString + "]");
 		}
 		this.getCurrentNetwork().addSupport(iSupport);
 		this.commitCurrentNetwork();
@@ -195,9 +199,20 @@ public class XBelNetworkService extends CommonNetworkService {
 			edge.setObject(objectNode);
 			if (null != support) {
 				edge.addSupport(support);
+			} else {
+				System.out.println("No support for edge " 
+						+ jdexId + " ["
+						+ subjectNode.getJdexId() 
+						+ " " + predicate.getName()
+						+ " " + objectNode.getJdexId() + "]");
 			}
 			if (null != citation) {
 				edge.addCitation(citation);
+			} else {
+				System.out.println("No citation for edge " 
+						+ subjectNode.getJdexId() 
+						+ " " + predicate.getName()
+						+ " " + objectNode.getJdexId());
 			}
 			if (null != annotations) {
 				edge.setMetadata(annotations);
@@ -205,6 +220,29 @@ public class XBelNetworkService extends CommonNetworkService {
 			this.getCurrentNetwork().addNdexEdge(edge);
 			this.commitCurrentNetwork();
 		}
+	}
+	
+	// populateINodeFromSubjectOnlyStatement(subjectNode, support, citation, annotations);
+	
+	public void populateINodeFromSubjectOnlyStatement(INode subjectNode,
+			ISupport support, ICitation citation,
+			Map<String, String> annotations) {
+		if (null != support) {
+			subjectNode.addSupport(support);
+		} else {
+			System.out.println("No support for subjectNode " 
+					+ subjectNode.getJdexId());
+		}
+		if (null != citation) {
+			subjectNode.addCitation(citation);
+		} else {
+			System.out.println("No citation for subjectNode " 
+					+ subjectNode.getJdexId());
+		}
+		if (null != annotations) {
+			subjectNode.setMetadata(annotations);
+		}
+		
 	}
 
 	/*
@@ -285,5 +323,7 @@ public class XBelNetworkService extends CommonNetworkService {
 			throws ExecutionException {
 		return this.getPersistenceService().findOrCreateIFunctionTerm(jdexId);
 	}
+
+
 
 }

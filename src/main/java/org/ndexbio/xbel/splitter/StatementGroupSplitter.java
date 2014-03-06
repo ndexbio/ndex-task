@@ -203,7 +203,14 @@ public class StatementGroupSplitter extends XBelSplitter {
 
 					this.networkService.createIEdge(subjectNode, objectNode,
 							predicate, support, citation, annotations);
+				} else {
+					System.out.println("Handling subject-only statement for node: " + subjectNode.getJdexId() );
+					this.networkService.populateINodeFromSubjectOnlyStatement(subjectNode, support, citation, annotations);
+					
 				}
+				
+			} else {
+				throw new NdexException("No subject for XBEL statement in " + sg.toString());
 			}
 		}
 	}
@@ -254,12 +261,11 @@ public class StatementGroupSplitter extends XBelSplitter {
 	private IFunctionTerm processFunctionTerm(Term term)
 			throws ExecutionException, NdexException {
 		// XBEL "Term" corresponds to NDEx FunctionTerm
-		IBaseTerm function = this.networkService.findOrCreateFunction(term
-				.getFunction());
+		IBaseTerm function = this.networkService.findOrCreateFunction(term.getFunction());
 
-		List<ITerm> childITermList = this.processInnerTerms(term);
+		List<ITerm> argumentList = this.processInnerTerms(term);
 
-		return persistFunctionTerm(term, function, childITermList);
+		return persistFunctionTerm(term, function, argumentList);
 	}
 
 	/*
@@ -279,40 +285,41 @@ public class StatementGroupSplitter extends XBelSplitter {
 	private List<ITerm> processInnerTerms(Term term) throws ExecutionException,
 			NdexException {
 
-		List<ITerm> childList = Lists.newArrayList();
+		List<ITerm> argumentList = new ArrayList<ITerm>();
 
 		for (Object item : term.getParameterOrTerm()) {
 			if (item instanceof Term) {
 
 				IFunctionTerm functionTerm = processFunctionTerm((Term) item);
-				childList.add(functionTerm);
+				argumentList.add(functionTerm);
 
 			} else if (item instanceof Parameter) {
 				IBaseTerm baseTerm = this.networkService
 						.findOrCreateParameter((Parameter) item);
-				childList.add(baseTerm);
+				argumentList.add(baseTerm);
 			} else {
 				Preconditions.checkArgument(true,
 						"unknown argument to function term " + item);
 			}
 		}
-		return childList;
+		return argumentList;
 	}
 
 	private Long generateFunctionTermJdexId(IBaseTerm function,
-			List<ITerm> itermList) throws ExecutionException {
-		List<String> childJdexList = Lists.newArrayList();
-		for (ITerm it : itermList) {
-			childJdexList.add(it.getJdexId());
-		}
+			List<String> argumentJdexList) throws ExecutionException {
+
 		return NdexIdentifierCache.INSTANCE.accessTermCache().get(
-				idJoiner.join("TERM", function.getJdexId(), childJdexList));
+				idJoiner.join("TERM", function.getJdexId(), argumentJdexList));
 	}
 
 	private IFunctionTerm persistFunctionTerm(Term term, IBaseTerm function,
-			List<ITerm> childList) {
+			List<ITerm> argumentList) {
 		try {
-			Long jdexId = generateFunctionTermJdexId(function, childList);
+			List<String> argumentJdexList = Lists.newArrayList();
+			for (ITerm it : argumentList){
+				argumentJdexList.add(it.getJdexId());
+			}
+			Long jdexId = generateFunctionTermJdexId(function, argumentJdexList);
 
 			boolean persisted = this.networkService.isEntityPersisted(jdexId);
 			IFunctionTerm ft = this.networkService
@@ -321,13 +328,8 @@ public class StatementGroupSplitter extends XBelSplitter {
 				return ft;
 			ft.setJdexId(jdexId.toString());
 			ft.setTermFunc(function);
-			List<ITerm> ftParameters = new ArrayList<ITerm>();
-
-			int ftCount = 0;
-			for (ITerm childITerm : childList) {
-				ftParameters.add(childITerm);
-			}
-			ft.setTermParameters(ftParameters);
+			ft.setTermParameters(argumentList);
+			ft.setTermOrderedParameterIds(argumentJdexList);
 			return ft;
 
 		} catch (ExecutionException e) {
