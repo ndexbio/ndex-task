@@ -13,7 +13,9 @@ import org.ndexbio.common.models.data.IEdge;
 import org.ndexbio.common.models.data.IFunctionTerm;
 import org.ndexbio.common.models.data.INamespace;
 import org.ndexbio.common.models.data.INode;
+import org.ndexbio.common.models.data.IReifiedEdgeTerm;
 import org.ndexbio.common.models.data.ISupport;
+import org.ndexbio.common.models.data.ITerm;
 import org.ndexbio.xbel.model.Citation;
 import org.ndexbio.xbel.model.Function;
 import org.ndexbio.xbel.model.Namespace;
@@ -186,7 +188,7 @@ public class XBelNetworkService extends CommonNetworkService {
 		return iSupport;
 	}
 
-	public void createIEdge(INode subjectNode, INode objectNode,
+	public IEdge createIEdge(INode subjectNode, INode objectNode,
 			IBaseTerm predicate, ISupport support, ICitation citation,
 			Map<String, String> annotations) throws ExecutionException,
 			NdexException {
@@ -219,7 +221,9 @@ public class XBelNetworkService extends CommonNetworkService {
 			}
 			this.getCurrentNetwork().addNdexEdge(edge);
 			this.commitCurrentNetwork();
+			return edge;
 		}
+		return null;
 	}
 	
 	// populateINodeFromSubjectOnlyStatement(subjectNode, support, citation, annotations);
@@ -297,6 +301,33 @@ public class XBelNetworkService extends CommonNetworkService {
 				identifier);
 		return this.createIBaseTerm(parameter, jdexId);
 	}
+	
+	public ITerm createReifiedEdgeTerm(IEdge reifiedEdge) throws ExecutionException, NdexException {
+		String identifier = idJoiner.join("REIFICATION", reifiedEdge.getJdexId());
+		Long jdexId = NdexIdentifierCache.INSTANCE.accessTermCache().get(
+				identifier);
+		return this.createIReifiedEdgeTerm(reifiedEdge, jdexId);
+	}
+
+
+	private ITerm createIReifiedEdgeTerm(IEdge reifiedEdge, Long jdexId) throws ExecutionException, NdexException {
+		Preconditions
+		.checkArgument(null != reifiedEdge, "An IEdge object is required");
+		Preconditions.checkArgument(null != jdexId && jdexId.longValue() > 0,
+				"A valid jdex id is required");
+		
+		boolean persisted = persistenceService.isEntityPersisted(jdexId);
+		final IReifiedEdgeTerm ret = persistenceService.findOrCreateReifiedEdgeTerm(jdexId);
+		if (persisted)
+			return ret;
+
+		ret.setEdge(reifiedEdge);
+
+		ret.setJdexId(jdexId.toString());
+		this.getCurrentNetwork().addTerm(ret);
+		this.commitCurrentNetwork();
+		return ret;
+	}
 
 	public INode findOrCreateINodeForIFunctionTerm(IFunctionTerm representedTerm)
 			throws ExecutionException, NdexException {
@@ -315,6 +346,22 @@ public class XBelNetworkService extends CommonNetworkService {
 		return iNode;
 	}
 
+	public INode findOrCreateINodeForIReifiedEdgeTerm(ITerm representedTerm) throws ExecutionException, NdexException {
+		String nodeIdentifier = idJoiner.join("NODE",
+				representedTerm.getJdexId());
+		Long jdexId = NdexIdentifierCache.INSTANCE.accessIdentifierCache().get(
+				nodeIdentifier);
+		boolean persisted = persistenceService.isEntityPersisted(jdexId);
+		INode iNode = persistenceService.findOrCreateINode(jdexId);
+		if (persisted)
+			return iNode;
+		iNode.setJdexId(jdexId.toString());
+		iNode.setRepresents(representedTerm);
+		this.getCurrentNetwork().addNdexNode(iNode);
+		this.commitCurrentNetwork();
+		return iNode;
+	}
+	
 	public boolean isEntityPersisted(Long jdexId) {
 		return this.getPersistenceService().isEntityPersisted(jdexId);
 	}
@@ -323,6 +370,10 @@ public class XBelNetworkService extends CommonNetworkService {
 			throws ExecutionException {
 		return this.getPersistenceService().findOrCreateIFunctionTerm(jdexId);
 	}
+
+
+
+
 
 
 
