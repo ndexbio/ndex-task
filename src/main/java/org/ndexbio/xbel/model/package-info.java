@@ -5,5 +5,9 @@
 // Generated on: 2013.12.03 at 11:33:45 AM PST 
 //
 
-@javax.xml.bind.annotation.XmlSchema(namespace = "http://belframework.org/schema/1.0/xbel", elementFormDefault = javax.xml.bind.annotation.XmlNsForm.QUALIFIED)
+@javax.xml.bind.annotation.XmlSchema(namespace = "http://belframework.org/schema/1.0/xbel",
+	xmlns = {
+		@javax.xml.bind.annotation.XmlNs(namespaceURI = "http://belframework.org/schema/1.0/xbel", prefix="bel")
+},
+	elementFormDefault = javax.xml.bind.annotation.XmlNsForm.QUALIFIED)
 package org.ndexbio.xbel.model;
