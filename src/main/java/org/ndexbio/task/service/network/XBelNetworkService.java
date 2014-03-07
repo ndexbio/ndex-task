@@ -317,7 +317,7 @@ public class XBelNetworkService extends CommonNetworkService {
 				"A valid jdex id is required");
 		
 		boolean persisted = persistenceService.isEntityPersisted(jdexId);
-		final IReifiedEdgeTerm ret = persistenceService.findOrCreateReifiedEdgeTerm(jdexId);
+		final IReifiedEdgeTerm ret = persistenceService.findOrCreateIReifiedEdgeTerm(jdexId);
 		if (persisted)
 			return ret;
 
