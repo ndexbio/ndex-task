@@ -13,6 +13,7 @@ import org.ndexbio.common.cache.NdexIdentifierCache;
 import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.models.data.IBaseTerm;
 import org.ndexbio.common.models.data.ICitation;
+import org.ndexbio.common.models.data.IEdge;
 import org.ndexbio.common.models.data.IFunctionTerm;
 import org.ndexbio.common.models.data.INode;
 import org.ndexbio.common.models.data.ISupport;
@@ -181,39 +182,44 @@ public class StatementGroupSplitter extends XBelSplitter {
 			ICitation citation, Map<String,String> annotations) throws ExecutionException, NdexException {
 		List<Statement> statementList = sg.getStatement();
 		for (Statement statement : statementList) {
-
-			// if (false){
-			if (null != statement.getSubject()) {
-
-				// All statements are expected to have a subject.
-				// It is valid to have a statement with just a subject
-				// It creates a node - the biological meaning is "this exists"
-				INode subjectNode = this.processStatementSubject(statement
-						.getSubject());
-				// A typical statement, however, has a relationship, and object
-				// as well as a subject
-				// In that case, we can create an edge
-
-				if (null != statement.getRelationship()) {
-					IBaseTerm predicate = this.networkService
-							.findOrCreatePredicate(statement.getRelationship());
-
-					INode objectNode = this.processStatementObject(statement
-							.getObject());
-
-					this.networkService.createIEdge(subjectNode, objectNode,
-							predicate, support, citation, annotations);
-				} else {
-					System.out.println("Handling subject-only statement for node: " + subjectNode.getJdexId() );
-					this.networkService.populateINodeFromSubjectOnlyStatement(subjectNode, support, citation, annotations);
-					
-				}
-				
-			} else {
-				throw new NdexException("No subject for XBEL statement in " + sg.toString());
-			}
+			processStatement(statement, support, citation, annotations, 0);
 		}
 	}
+
+	private IEdge processStatement(Statement statement, ISupport support,
+	ICitation citation, Map<String,String> annotations, int level) throws ExecutionException, NdexException {
+		if (level > 1) throw new NdexException("Attempt to process XBEL nested statement at level greater than 1");
+		if (null != statement.getSubject()) {
+
+			// All statements are expected to have a subject.
+			// It is valid to have a statement with just a subject
+			// It creates a node - the biological meaning is "this exists"
+			INode subjectNode = this.processStatementSubject(statement
+					.getSubject());
+			// A typical statement, however, has a relationship, and object
+			// as well as a subject
+			// In that case, we can create an edge
+
+			if (null != statement.getRelationship()) {
+				IBaseTerm predicate = this.networkService
+						.findOrCreatePredicate(statement.getRelationship());
+
+				INode objectNode = this.processStatementObject(statement
+						.getObject(), support, citation, annotations, level);
+
+				return this.networkService.createIEdge(subjectNode, objectNode,
+						predicate, support, citation, annotations);
+			} else {
+				System.out.println("Handling subject-only statement for node: " + subjectNode.getJdexId() );
+				this.networkService.populateINodeFromSubjectOnlyStatement(subjectNode, support, citation, annotations);
+				return null;
+			}
+
+		} else {
+			throw new NdexException("No subject for XBEL statement in " + statement.toString());
+		}
+	}
+	
 
 	private INode processStatementSubject(Subject sub)
 			throws ExecutionException, NdexException {
@@ -234,15 +240,27 @@ public class StatementGroupSplitter extends XBelSplitter {
 
 	}
 
-	private INode processStatementObject(org.ndexbio.xbel.model.Object obj)
+	private INode processStatementObject(org.ndexbio.xbel.model.Object obj, ISupport support,
+			ICitation citation, Map<String,String> annotations, int level)
 			throws ExecutionException, NdexException {
 		if (null == obj) {
 			return null;
 		}
 		try {
 			if (null != obj.getStatement()) {
-				// System.out.println("Object has internal statement "
-				// + obj.getStatement().getRelationship().toString());
+				// Case: object is another statement.
+				// 
+				// handled by processing the statement in the same context.
+				// creates:
+				//  1. the edge corresponding to the statement
+				//  2. a term of type "reifiedEdgeTerm" which references the edge
+				//  3. a object node which the term represents
+				//
+				IEdge reifiedEdge = this.processStatement(obj.getStatement(), support, citation, annotations, level + 1);
+				ITerm representedTerm = this.networkService.createReifiedEdgeTerm(reifiedEdge);
+				INode objectNode = this.networkService
+						.findOrCreateINodeForIReifiedEdgeTerm(representedTerm);
+				return objectNode;
 			} else {
 				IFunctionTerm representedTerm = this.processFunctionTerm(obj
 						.getTerm());
@@ -255,7 +273,6 @@ public class StatementGroupSplitter extends XBelSplitter {
 			e.printStackTrace();
 			throw (e);
 		}
-		return null;
 	}
 
 	private IFunctionTerm processFunctionTerm(Term term)
