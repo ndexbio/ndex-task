@@ -77,9 +77,7 @@ public class XbelFileParser {
 			this.processNamespaces();
 			this.processAnnotationDefinitions();
 			this.processStatementGroups();
-			// at this point we can clear the identifier cache to reduce memory requirements
-			logger.info("Clearing identifier cache");
-			NdexIdentifierCache.INSTANCE.accessIdentifierCache().invalidateAll();
+
 			// persist the network domain model, commit the transaction, close database connection
 			this.networkService.persistNewNetwork();
 		} catch (Exception e) {

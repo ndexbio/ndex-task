@@ -347,6 +347,7 @@ public class StatementGroupSplitter extends XBelSplitter {
 			ft.setTermFunc(function);
 			ft.setTermParameters(argumentList);
 			ft.setTermOrderedParameterIds(argumentJdexList);
+			networkService.getCurrentNetwork().addTerm(ft);
 			return ft;
 
 		} catch (ExecutionException e) {

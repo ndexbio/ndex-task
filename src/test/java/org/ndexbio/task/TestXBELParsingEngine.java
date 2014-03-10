@@ -61,4 +61,15 @@ public class TestXBELParsingEngine {
 		xbelParser.parseFile();
 	}
 
+	@Test
+	public void parseThreeCitationXbelFile() throws Exception {
+		final URL url = getClass().getResource("/resources/three_citation_corpus.xbel");
+		final XbelParser xbelParser = new XbelParser(url.toURI().getPath(),
+				_testUserName);
+
+		if (!xbelParser.getValidationState().isValid())
+			Assert.fail("three_citation_corpus.xbel is invalid.");
+
+		xbelParser.parseFile();
+	}
 }

@@ -8,6 +8,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
 
+import org.ndexbio.common.cache.NdexIdentifierCache;
 import org.ndexbio.common.models.data.INetwork;
 import org.ndexbio.task.parsingengines.XbelFileValidator.ValidationState;
 import org.ndexbio.task.service.network.XBelNetworkService;
@@ -78,12 +79,9 @@ public class XbelParser implements IParsingEngine
             this.processAnnotationDefinitions();
             this.processStatementGroups();
             
-            // Not relevant in NoTx mode
-            //
-            // at this point we can clear the identifier cache to reduce memory
-            // requirements
+            // Clear the identifier and the term cache
             //logger.info("Clearing identifier cache");
-            //NdexIdentifierCache.INSTANCE.accessIdentifierCache().invalidateAll();
+            NdexIdentifierCache.INSTANCE.accessIdentifierCache().invalidateAll();
             
             // set edge count and node count,
             // then close database connection

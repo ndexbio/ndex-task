@@ -75,23 +75,6 @@ public class XBelNetworkService extends CommonNetworkService {
 	 * INamespace object n.b. this method may result in a new vertex in the
 	 * orientdb database being created
 	 */
-	/*
-	 * public INamespace createINamespace(Namespace ns, Long jdexId) throws
-	 * NdexException, ExecutionException { Preconditions.checkArgument(null !=
-	 * ns, "A Namespace object is required"); Preconditions.checkArgument(null
-	 * != jdexId && jdexId.longValue() > 0, "A valid jdex id is required");
-	 * INamespace newNamespace;
-	 * 
-	 * newNamespace = persistenceService.findOrCreateINamespace(jdexId);
-	 * newNamespace.setJdexId(jdexId.toString());
-	 * newNamespace.setPrefix(ns.getPrefix());
-	 * newNamespace.setUri(ns.getResourceLocation()); // connect this namespace
-	 * to the current network and commit
-	 * this.getCurrentNetwork().addNamespace(newNamespace);
-	 * this.commitCurrentNetwork(); return newNamespace;
-	 * 
-	 * }
-	 */
 	public INamespace findOrCreateINamespace(Namespace namespace)
 			throws NdexException, ExecutionException {
 		Preconditions.checkArgument(null != namespace,
