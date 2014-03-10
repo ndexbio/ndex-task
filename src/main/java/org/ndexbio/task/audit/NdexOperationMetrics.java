@@ -10,8 +10,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /*
  * Represents the statistics associated with a major NDEx  operation.
@@ -20,19 +20,18 @@ import org.apache.commons.logging.LogFactory;
 
 public class NdexOperationMetrics {
 	
-	private static final Log logger = LogFactory
-			.getLog(NdexOperationMetrics.class);
+	private static final Logger logger = LoggerFactory
+			.getLogger(NdexOperationMetrics.class);
 
-	private final NdexAuditUtils.NetworkOperation operation;
+	private final NdexAuditUtils.AuditOperation operation;
 	private Map<String, Long> observedDataMap;
-	private Map<String,Long> expectedDataMap;
-	
+	private Map<String,Long> expectedDataMap;	
 	private Date operationDate;
 	private StringBuffer comments; // use StringBuffer for concurrency support
 	
 
 	public NdexOperationMetrics( 
-			NdexAuditUtils.NetworkOperation oper) {
+			NdexAuditUtils.AuditOperation oper) {
 		
 		this.operation = oper;
 		this.operationDate = new Date();
@@ -43,30 +42,48 @@ public class NdexOperationMetrics {
 	}
 
 	public NdexOperationMetrics(
-			NdexAuditUtils.NetworkOperation oper,
+			NdexAuditUtils.AuditOperation oper,
 			Date aDate) {
 		this( oper);
 		this.operationDate = Objects.firstNonNull(aDate, new Date());
 	}
 
-	public void incrementMeasurement(String measurement) {
+	public void incrementObservedMetric(String measurement) {
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(measurement),
 				"A measurement name is required");
 		if (!this.observedDataMap.containsKey(measurement)) {
 			this.observedDataMap.put(measurement, 0L);
-			logger.info("A new metric " + measurement +" was added");
+			logger.info("A new observed metric " + measurement +" was added");
 		}
 		Long value = this.observedDataMap.get(measurement) + 1L;
 		this.observedDataMap.put(measurement, value);
 	}
+	
 
 	public Long getObservedValue(String measurement) {
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(measurement),
-				"A measurement name is required");
+				"A metric name is required");
 		Preconditions.checkArgument(this.observedDataMap.containsKey(measurement),
 				measurement + " is not a current observed metric");
 		return this.observedDataMap.get(measurement);
 	}
+	
+	public void incrementExpectedMetric(String measurement) {
+		this.incrementExpectedMetricByAmount(measurement, 1L);
+	}
+	
+	public void incrementExpectedMetricByAmount(String measurement, long amount ) {
+		Preconditions.checkArgument(!Strings.isNullOrEmpty(measurement),
+				"A metric name is required");
+		Preconditions.checkArgument(amount >0,"the amount must be > 0");
+		if (!this.expectedDataMap.containsKey(measurement)) {
+			this.expectedDataMap.put(measurement, 0L);
+			logger.info("A new expected metric " + measurement +" was added");
+		}
+		Long value = this.expectedDataMap.get(measurement) + amount;
+		this.expectedDataMap.put(measurement, value);
+	}
+
 	
 	public Long getExpectedValue(String measurement) {
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(measurement),
@@ -85,7 +102,7 @@ public class NdexOperationMetrics {
 		logger.info("Observed metric " +metric +" set to " +value);
 	}
 
-	// provide support for displaying all current measurement data
+	// provide support for displaying all observed measurement data
 
 	public Set<Entry<String, Long> >getObservedDataMap() {
 		final Set<Entry<String, Long> > data = this.observedDataMap
@@ -93,12 +110,18 @@ public class NdexOperationMetrics {
 		return data;
 	}
 	
+	// all expected measurement data
 	public Set<Entry<String, Long> >getExpectedDataMap() {
 		final Set<Entry<String, Long> > data = this.expectedDataMap
 				.entrySet();
 		return data;
 	}
 	
+	
+	/*
+	 * Public method to provide a map containing the difference between observed and
+	 * expected values for each metric in common
+	 */
 	public synchronized Map<String, Long> generateDifferenceMap() {
 		final Map<String,Long> deltaMap = Maps.newHashMap();
 		for( Map.Entry<String, Long> entry: this.observedDataMap.entrySet()){
@@ -109,11 +132,9 @@ public class NdexOperationMetrics {
 				logger.info("Expected data map does not have an entry for  " +entry.getKey());
 			}
 			
-		}
+		}	
 		
-		
-		return deltaMap;
-		
+		return deltaMap;	
 	}
 
 	public Date getOperationDate() {
@@ -141,7 +162,7 @@ public class NdexOperationMetrics {
 	}
 
 	
-	public NdexAuditUtils.NetworkOperation getOperation() {
+	public NdexAuditUtils.AuditOperation getOperation() {
 		return operation;
 	}
 

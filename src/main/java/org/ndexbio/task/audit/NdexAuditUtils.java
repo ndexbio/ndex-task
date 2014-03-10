@@ -8,6 +8,10 @@ import java.util.UUID;
 
 import com.google.common.base.Optional;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.ndexbio.task.audit.network.NetworkIdentifier;
+
 
 /*
  * Represents a collection of static utility methods 
@@ -15,22 +19,25 @@ import com.google.common.base.Optional;
  */
 public class NdexAuditUtils {
 	
+	private static final Log logger = LogFactory
+			.getLog(NdexAuditUtils.class);
 
-	public static enum NetworkOperation {
-		IMPORT, EXPORT, COPY, SUBSET
+	public static enum AuditOperation {
+		NETWORK_IMPORT, NETWORK_EXPORT, NETWORK_COPY, NETWORK_SUBSET
 	};
 	
 	private static final String[] networkMetrics = {"edge count", "function term count",
-		"base term count", "citation count"
+		"base term count", "citation count", "reifiied edge terms", "node count", "support count"
 	};
 	
 	public static List<String> getNetworkMetricsList = Arrays.asList(networkMetrics);
 	
 	public static UUID generateNetworkUUID(String networkName, URI networkURI) {
-		return UUID.fromString(networkName +networkURI);
+		//return UUID.fromString(networkName +networkURI);
+		return UUID.randomUUID();
 	}
 	
-	public static NetworkIdentifier generateNetworkIdentifier( String networkName,
+	public static NetworkIdentifier generateNetworkIdentifier( String networkName,  
 			URI networkURI){
 		UUID uuid = generateNetworkUUID(networkName, networkURI);
 		return new NetworkIdentifier(uuid, networkName, networkURI);
@@ -44,7 +51,7 @@ public class NdexAuditUtils {
 			UUID uuid = generateNetworkUUID(networkName, networkURI);
 			networkId=  new NetworkIdentifier(uuid, networkName, networkURI);
 		} catch (URISyntaxException e) {
-			// TODO Auto-generated catch block
+			logger.error(e.getMessage());
 			e.printStackTrace();
 		}
 		return Optional.of(networkId);

@@ -24,9 +24,13 @@ import org.ndexbio.common.models.object.FunctionTerm;
 import org.ndexbio.common.models.object.NdexDataModelService;
 import org.ndexbio.common.models.object.Network;
 import org.ndexbio.common.models.object.Namespace;
+import org.ndexbio.common.models.object.ReifiedEdgeTerm;
 import org.ndexbio.common.models.object.Support;
 import org.ndexbio.common.models.object.Term;
 import org.ndexbio.common.models.object.Node;
+import org.ndexbio.task.audit.NdexAuditService;
+import org.ndexbio.task.audit.NdexAuditServiceFactory;
+import org.ndexbio.task.audit.NdexAuditUtils;
 import org.ndexbio.xbel.model.AnnotationGroup;
 import org.ndexbio.xbel.model.Annotation;
 import org.ndexbio.xbel.model.AuthorGroup;
@@ -45,6 +49,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -64,6 +69,9 @@ public class XbelNetworkExporter {
 	private final String author = "Selventa";
 	private final String license = "Creative Commons Attribution-Non-Commercial-ShareAlike 3.0 Unported License";
 	private XbelMarshaller xm;
+	// incorporate operation auditing
+	private NdexAuditService auditService;
+	private final NdexAuditUtils.AuditOperation operation = NdexAuditUtils.AuditOperation.NETWORK_EXPORT;
 	
 	private static final Logger logger = LoggerFactory
 			.getLogger(XbelNetworkExporter.class);
@@ -81,9 +89,47 @@ public class XbelNetworkExporter {
 		this.xbelTermStack = new XbelStack<org.ndexbio.xbel.model.Term>("XBEL Term",Boolean.FALSE);
 		this.xbelParameterStack = 
 				new XbelStack<org.ndexbio.xbel.model.Parameter>("XBEL Parameter",Boolean.FALSE);
-				
+		this.initiateAuditService(network.getName());
+		
+		
 
 	}
+	
+	private void initiateAuditService(String networkName){
+		Optional<NdexAuditService> optService =  NdexAuditServiceFactory.INSTANCE.
+				getAuditServiceByOperation(networkName, this.operation);
+		if(optService.isPresent()){
+			this.auditService = optService.get();
+			logger.info("NdexAuditServiceFactory returned an instance of " + this.auditService.getClass().getName());
+		} else {
+			logger.error("NdexAuditServiceFactory failed to return a NdexAuditService subclass");
+		}
+	}
+	
+	private void setAuditExpectedMetrics(Network subNetwork) {
+		// edge count
+		
+		this.auditService.increaseExpectedMetricValue("edge count", (long) subNetwork.getEdgeCount());
+		
+		for (Map.Entry<String, Term> entry : subNetwork.getTerms().entrySet()){
+			if(entry.getValue() instanceof FunctionTerm){
+				this.auditService.incrementExpectedMetricValue("function term count");
+			} else  if ( entry.getValue() instanceof BaseTerm){
+				this.auditService.incrementExpectedMetricValue("base term count");
+			} else if ( entry.getValue() instanceof ReifiedEdgeTerm){
+				this.auditService.incrementExpectedMetricValue("reified edge count");
+			} else {
+				logger.error("Unknown term class " +entry.getValue().getClass().getName());
+			}
+		}
+		this.auditService.increaseExpectedMetricValue("citation count", (long) subNetwork.getCitations().size()); 
+		this.auditService.increaseExpectedMetricValue("node count",(long) subNetwork.getNodeCount());
+		this.auditService.increaseExpectedMetricValue("support count", (long) subNetwork.getSupports().size());
+		logger.info("Expected values set in Audit Service");
+				
+		
+	}
+	
 
 	/*
 	 * public method to initiate export of the specified network uses an
@@ -107,6 +153,10 @@ public class XbelNetworkExporter {
 		 * an outer level statement group
 		 */
 		this.processCitationSubnetworks();
+		// output the observed metrics
+		System.out.println(this.auditService.displayObservedValues());
+		System.out.println(this.auditService.displayExpectedValues());
+		System.out.println(this.auditService.displayDeltaValues());
 		// close the XML document
 		xm.close();
 	}
@@ -114,7 +164,7 @@ public class XbelNetworkExporter {
 	/*
 	 * Each citation within the network is used as a marker for a new
 	 * outer-level statement group. A subnetwork is obtained from the database
-	 * for the NDEx objects thatbelong to that Citation
+	 * for the NDEx objects that belong to that Citation
 	 */
 	private void processCitationSubnetworks() {
 		List<org.ndexbio.common.models.object.Citation> modelCitations = this
@@ -129,6 +179,8 @@ public class XbelNetworkExporter {
 					+ " has a subnetwork with  " + subNetwork.getEdgeCount()
 					+ " edges and " + subNetwork.getCitations().size()
 					+ " citations");
+			// register expected values in audit service
+			this.setAuditExpectedMetrics(subNetwork);
 			this.processCitationStatementGroup();
 			this.processCitationSupports(citation);
 			try {
@@ -155,6 +207,8 @@ public class XbelNetworkExporter {
 		sg.setName(this.createXbelCitation(ag));
 		sg.setAnnotationGroup(ag);
 		sgStack.push(sg);
+		// increment the audit citation count 
+		this.auditService.incrementObservedMetricValue("citation count");
 
 	}
 
@@ -172,10 +226,14 @@ public class XbelNetworkExporter {
 				AnnotationGroup ag = new AnnotationGroup();
 				String evidence = Objects.firstNonNull(support.getText(), " ");
 				ag.getAnnotationOrEvidenceOrCitation().add(evidence);
+				// increment audit support count 
+				this.auditService.incrementObservedMetricValue("support count");
 				// add support annotations
 				this.processSupportAnnotations(ag, support);
 				supportStatementGroup.setAnnotationGroup(ag);
 				sgStack.peek().getStatementGroup().add(supportStatementGroup);
+				// increment audit support count 
+				this.auditService.incrementObservedMetricValue("support count");
 				this.processSupportStatementGroup(supportId);
 			} else {
 				System.out.println("Support id " + supportId
@@ -229,6 +287,8 @@ public class XbelNetworkExporter {
 		Statement stmt = new Statement();
 		// register this new Statement with the current top level Statement Group
 		this.sgStack.peek().getStatement().add(stmt);
+		// increment the audit edge count
+		this.auditService.incrementObservedMetricValue("edge count");
 		// put this new Statement into the Statement stack
 		this.stmtStack.push(stmt);
 		// process statement annotations 
@@ -283,7 +343,9 @@ public class XbelNetworkExporter {
 		org.ndexbio.xbel.model.Term xbelTerm = 
 				new org.ndexbio.xbel.model.Term();
 		if( null != node  && !Strings.isNullOrEmpty(node.getRepresents())){
-			// get initial function term
+			// increment audit node count
+			this.auditService.incrementObservedMetricValue("node count");
+			// get initial function term		
 			Term term = this.subNetwork.getTerms().get(node.getRepresents());
 			if ( null != term && term instanceof FunctionTerm) {
 				// clear the term statck
@@ -319,7 +381,7 @@ public class XbelNetworkExporter {
 	}
 	
 	/*
-	 * private method to map a hierarchy of NDEx function term model ojects
+	 * private method to map a hierarchy of NDEx function term model objects
 	 * to an equivalent hierarchy of XBEL term objects
 	 * this method can be invoked recursively
 	 */
@@ -332,6 +394,8 @@ public class XbelNetworkExporter {
 		// set the function attribute for the current term
 		BaseTerm bt = (BaseTerm) this.subNetwork.getTerms().get(ft.getTermFunction());
 		this.xbelTermStack.peek().setFunction(Function.valueOf(bt.getName()));
+		// increment audit base term count
+		this.auditService.incrementObservedMetricValue("base term count");
 		// now process any parameters (either base terms or inner function terms)
 		// the function terms parameters map to XBEL parameter elements
 		//
@@ -343,9 +407,11 @@ public class XbelNetworkExporter {
 			Term parameter =  this.subNetwork.getTerms()
 					.get(entry.getValue());
 			if( parameter instanceof FunctionTerm){
-				// register the generated XBEL term in the hierarch
+				// register the generated XBEL term in the hierarchy
 				this.xbelTermStack.peek().getParameterOrTerm().add(
 						this.processFunctionTerm((FunctionTerm) parameter));
+				// increment audit function term count
+				this.auditService.incrementObservedMetricValue("function term count");
 			} else if (parameter instanceof BaseTerm){
 				BaseTerm parameterBt = (BaseTerm) parameter;
 				Namespace ns = this.subNetwork.getNamespaces().get(parameterBt.getNamespace());
@@ -360,6 +426,8 @@ public class XbelNetworkExporter {
 		// add the parameters to the current Term in reverse order
 		while(!this.xbelParameterStack.empty()) {
 			this.xbelTermStack.peek().getParameterOrTerm().add(this.xbelParameterStack.pop());
+			// increment audit base term count
+			this.auditService.incrementObservedMetricValue("base term count");
 		}
 		return this.xbelTermStack.pop();
 	}
@@ -373,6 +441,8 @@ public class XbelNetworkExporter {
 			BaseTerm bt = (BaseTerm) term;
 			// add the base term to the current Statement as a relationship attribute		
 			this.stmtStack.peek().setRelationship(Relationship.valueOf(bt.getName()));
+			// increment the audit base term count
+			this.auditService.incrementObservedMetricValue("base term count");
 		}
 		
 	}
