@@ -210,7 +210,7 @@ public class StatementGroupSplitter extends XBelSplitter {
 				return this.networkService.createIEdge(subjectNode, objectNode,
 						predicate, support, citation, annotations);
 			} else {
-				System.out.println("Handling subject-only statement for node: " + subjectNode.getJdexId() );
+				//System.out.println("Handling subject-only statement for node: " + subjectNode.getJdexId() );
 				this.networkService.populateINodeFromSubjectOnlyStatement(subjectNode, support, citation, annotations);
 				return null;
 			}

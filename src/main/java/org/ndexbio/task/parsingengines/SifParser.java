@@ -332,6 +332,12 @@ public class SifParser implements IParsingEngine {
 			if (values.length > 0 && values[0] != null) {
 				System.out.println("Description: " + values[0]);
 				this.networkService.setDescription(values[0]);
+				this.networkService.getCurrentNetwork().setName(values[0]);
+			}
+
+			if (values.length > 0 && values[0] != null) {
+				System.out.println("Description: " + values[0]);
+				this.networkService.setDescription(values[0]);
 			}
 			
 			if (values.length > 3 && values[3] != null) {
