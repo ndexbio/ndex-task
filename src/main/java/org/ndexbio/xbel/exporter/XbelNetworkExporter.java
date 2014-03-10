@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Stack;
 
 import javax.xml.bind.JAXBContext;
@@ -31,6 +32,7 @@ import org.ndexbio.common.models.object.Node;
 import org.ndexbio.task.audit.NdexAuditService;
 import org.ndexbio.task.audit.NdexAuditServiceFactory;
 import org.ndexbio.task.audit.NdexAuditUtils;
+import org.ndexbio.task.audit.network.NetworkOperationAuditService;
 import org.ndexbio.xbel.model.AnnotationGroup;
 import org.ndexbio.xbel.model.Annotation;
 import org.ndexbio.xbel.model.AuthorGroup;
@@ -53,6 +55,7 @@ import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 public class XbelNetworkExporter {
 	private final NdexDataModelService modelService;
@@ -72,6 +75,8 @@ public class XbelNetworkExporter {
 	// incorporate operation auditing
 	private NdexAuditService auditService;
 	private final NdexAuditUtils.AuditOperation operation = NdexAuditUtils.AuditOperation.NETWORK_EXPORT;
+	private final EdgeAuditor edgeAuditor = new EdgeAuditor();
+	
 	
 	private static final Logger logger = LoggerFactory
 			.getLogger(XbelNetworkExporter.class);
@@ -90,7 +95,6 @@ public class XbelNetworkExporter {
 		this.xbelParameterStack = 
 				new XbelStack<org.ndexbio.xbel.model.Parameter>("XBEL Parameter",Boolean.FALSE);
 		this.initiateAuditService(network.getName());
-		
 		
 
 	}
@@ -154,6 +158,7 @@ public class XbelNetworkExporter {
 		 */
 		this.processCitationSubnetworks();
 		// output the observed metrics
+		this.auditService.registerComment(this.edgeAuditor.displayUnprocessedEdges());
 		System.out.println(this.auditService.displayObservedValues());
 		System.out.println(this.auditService.displayExpectedValues());
 		System.out.println(this.auditService.displayDeltaValues());
@@ -181,6 +186,8 @@ public class XbelNetworkExporter {
 					+ " citations");
 			// register expected values in audit service
 			this.setAuditExpectedMetrics(subNetwork);
+			// add the edges to an audited Set
+			this.edgeAuditor.registerSubNetworkEdges(subNetwork);
 			this.processCitationStatementGroup();
 			this.processCitationSupports(citation);
 			try {
@@ -193,6 +200,8 @@ public class XbelNetworkExporter {
 
 		}
 	}
+	
+	
 
 	/*
 	 * Initiate a new outer level statement group and create the outer-level
@@ -270,6 +279,7 @@ public class XbelNetworkExporter {
 			if (edge.getSupports().contains(supportId)) {
 				// we've identified an Edge that belongs to this support
 				this.processSupportEdge(entry.getKey(), edge);
+				this.edgeAuditor.removeProcessedEdge(edge);
 			}
 		}
 
@@ -531,6 +541,47 @@ public class XbelNetworkExporter {
 				+ modelCitations.size() + " citations");
 		return modelCitations;
 
+	}
+	/*
+	 * An inner class to keep track of processed edges
+	 */
+	
+	
+	public class EdgeAuditor{
+		
+		private Set<String> edgeIdSet;
+		
+		public EdgeAuditor() {
+			this.edgeIdSet = Sets.newConcurrentHashSet();
+		}
+		
+		public void registerSubNetworkEdges(Network subNetwork){
+			
+				for (Map.Entry<String, Edge> entry : subNetwork.getEdges().entrySet()){
+					Edge e = entry.getValue();
+					this.edgeIdSet.add(e.getId());
+				}
+				
+			
+		}
+		
+		public void removeProcessedEdge(Edge edge){
+			Preconditions.checkArgument(null != edge, "An edge  is required");
+			Preconditions.checkArgument(this.edgeIdSet.contains(edge.getId()), "Edge id: " +edge.getId() 
+					+" was not registered");
+			this.edgeIdSet.remove(edge.getId());
+		}
+
+		public String displayUnprocessedEdges() {
+			if (this.edgeIdSet.isEmpty()){
+				return "\nAll network edges were processed";
+			}
+			StringBuffer sb = new StringBuffer("\nUnprocessed edges\n");
+			for (String id : Lists.newArrayList(this.edgeIdSet)) {
+				sb.append(id +" ");
+			}
+			return sb.toString();
+		}
 	}
 
 	/*

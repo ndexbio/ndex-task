@@ -50,6 +50,7 @@ public class TestNetworkOperationAudit {
 		
 	}
 	
+	
 	private void displayObservedMetrics() {
 		System.out.println(this.service.displayObservedValues());
 	}

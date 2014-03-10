@@ -47,6 +47,10 @@ public abstract class NdexAuditService {
 		this.metrics.setExpectedValue(metric, value);
 	}
 	
+	public void registerComment(String comment){
+		this.metrics.appendComment(comment);
+	}
+	
 	public abstract String displayObservedValues();
 	public abstract String displayExpectedValues();
 	public abstract String displayDeltaValues();
