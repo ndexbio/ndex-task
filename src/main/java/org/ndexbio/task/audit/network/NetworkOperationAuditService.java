@@ -2,6 +2,8 @@ package org.ndexbio.task.audit.network;
 
 
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
@@ -16,6 +18,8 @@ import org.ndexbio.task.audit.NdexAuditUtils.AuditOperation;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /*
  * Represents an NDEx service that an application performing a major operation on
@@ -33,6 +37,8 @@ public class NetworkOperationAuditService extends NdexAuditService{
 	private String networkFileName; // import or export file name
 	protected final NetworkIdentifier networkId;
 	
+	private Set<String> edgeIdSet = Sets.newConcurrentHashSet();
+	
 	public NetworkOperationAuditService(String  networkName, NdexAuditUtils.AuditOperation oper){		
 		super( oper);	
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(networkName),
@@ -49,6 +55,7 @@ public class NetworkOperationAuditService extends NdexAuditService{
 			   logger.fatal("Unable to create NetworkIdentifier for " +networkName);
 		   }   
 	}
+	
 	
 	public NetworkIdentifier getNetworkId() {
 		return networkId;
@@ -96,6 +103,10 @@ public class NetworkOperationAuditService extends NdexAuditService{
 		for (Map.Entry<String ,Long> entry : observedSet) {
 			sb.append("\n" +entry.getKey() +" = " +entry.getValue());
 		}
+		// display comments
+		sb.append("\nComments:");
+		sb.append(metrics.getComments());
+		
 		return sb.toString();
 	}
 
