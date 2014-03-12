@@ -6,7 +6,7 @@ import org.ndexbio.xbel.exporter.XbelNetworkExporter;
 public class TestXbelExporter {
 
 	public static void main(String[] args) {
-		String networkId = "C24R9"; // is for small corpus
+		String networkId = "C25R14"; // is for small corpus
 		//add shutdown hook
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			public void run() {
