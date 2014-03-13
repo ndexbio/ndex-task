@@ -1,6 +1,7 @@
 package org.ndexbio.task.service;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -17,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 
 
 
@@ -66,12 +68,24 @@ public class NdexJVMDataModelService implements NdexDataModelService {
 	}
 
 
+	/*
+	 * public method to get Namespaces for a network.
+	 * Since both XBEL annotation definitions and namespaces are mapped to the
+	 * NDEx Namespace vertex, this method filters out annotation definitions
+	 * 
+	 */
 	@Override
 	public Iterable<Namespace> getNamespacesByNetworkId(String networkId) {
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(networkId),
 				"A network id is required");
+		List<Namespace> namespaceList = Lists.newArrayList();
 		try {
-			return networkService.getNamespaces(networkId, 0, 1000);
+			for (Namespace ns : networkService.getNamespaces(networkId, 0, 1000)) {
+				if(!Strings.isNullOrEmpty(ns.getUri()) && ns.getUri().contains("namespace")){
+					namespaceList.add(ns);
+				}
+			}
+			return namespaceList;
 		} catch (IllegalArgumentException | NdexException e) {
 			logger.error(e.getMessage());
 			e.printStackTrace();

@@ -7,7 +7,8 @@
 
 @javax.xml.bind.annotation.XmlSchema(namespace = "http://belframework.org/schema/1.0/xbel",
 	xmlns = {
-		@javax.xml.bind.annotation.XmlNs(namespaceURI = "http://belframework.org/schema/1.0/xbel", prefix="bel")
+		@javax.xml.bind.annotation.XmlNs(namespaceURI = "http://belframework.org/schema/1.0/xbel", prefix="bel"),
+		@javax.xml.bind.annotation.XmlNs(namespaceURI = "http://www.w3.org/2001/XMLSchema-instance",prefix="xsi")
 },
 	elementFormDefault = javax.xml.bind.annotation.XmlNsForm.QUALIFIED)
 package org.ndexbio.xbel.model;

@@ -41,10 +41,9 @@ public class NdexObjectAuditor<T> {
 			T obj = entry.getValue();
 			if ( null!= ((NdexObject) obj).getId()){
 				this.jdexIdSet.add(((NdexObject) obj).getId());
-				System.out.println(this.ndexClass.getSimpleName() + " id "
-					+ ((NdexObject) obj).getId() + " was added");
+				
 			} else {
-				System.out.println("Attempt to register " +this.ndexClass.getSimpleName() +" with null id");
+				//System.out.println("Attempt to register " +this.ndexClass.getSimpleName() +" with null id");
 			}
 
 		}
@@ -55,8 +54,7 @@ public class NdexObjectAuditor<T> {
 
 		if ( null!= ((NdexObject) obj).getId() && this.jdexIdSet.contains(((NdexObject) obj).getId())) {
 			this.jdexIdSet.remove(((NdexObject) obj).getId());
-			System.out.println(this.ndexClass.getSimpleName() + " id "
-					+ ((NdexObject) obj).getId() + " was removed");
+			
 		}
 	}
 

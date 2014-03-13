@@ -74,7 +74,7 @@ public class NdexOperationMetrics {
 	public void incrementExpectedMetricByAmount(String measurement, long amount ) {
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(measurement),
 				"A metric name is required");
-		Preconditions.checkArgument(amount >0,"the amount must be > 0");
+		Preconditions.checkArgument(amount >=0,"the amount must be >= 0");
 		if (!this.expectedDataMap.containsKey(measurement)) {
 			this.expectedDataMap.put(measurement, 0L);
 			logger.info("A new expected metric " + measurement +" was added");

@@ -44,7 +44,7 @@ public class SifParser implements IParsingEngine {
 	public SifParser(String fn, String ownerName) throws Exception {
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(fn),
 				"A filename is required");
-		Preconditions.checkArgument(!Strings.isNullOrEmpty(fn),
+		Preconditions.checkArgument(!Strings.isNullOrEmpty(ownerName),
 				"A network owner name is required");
 		this.setOwnerName(ownerName);
 		this.msgBuffer = Lists.newArrayList();

@@ -49,6 +49,7 @@ import org.ndexbio.xbel.model.StatementGroup;
 import org.ndexbio.xbel.model.Subject;
 import org.ndexbio.xbel.model.Function;
 import org.ndexbio.xbel.model.Parameter;
+import org.ndexbio.xbel.model.CitationType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,6 +58,7 @@ import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
 
 public class XbelNetworkExporter {
 	private final NdexDataModelService modelService;
@@ -149,6 +151,7 @@ public class XbelNetworkExporter {
 
 		xm = new XbelMarshaller(this.network.getName());
 		xm.open();
+		
 		// export the header
 		this.createHeader();
 		// export the namespaces
@@ -332,6 +335,9 @@ public class XbelNetworkExporter {
 		}
 		
 	}
+	
+	  
+	
 	/*
 	 * private method to map NDEx Edge metadata to an XBEL AnnotationGroup
 	 */
@@ -380,8 +386,8 @@ public class XbelNetworkExporter {
 	}
 	
 	/*
-	 * An NDEx Edge maps to an XBLE object element with 1 or
-	 * more terms. These terms may have nested termsas well as
+	 * An NDEx Edge maps to an XBEL object element with 1 or
+	 * more terms. These terms may have nested terms as well as
 	 * parameters  The input parameter is the JdexId for the top level
 	 * object for an edge
 	 */
@@ -488,11 +494,15 @@ public class XbelNetworkExporter {
 				xbelCitation.setName(modelCitation.getType());
 				xbelCitation.setReference(modelCitation.getIdentifier());
 				xbelCitation.setName(modelCitation.getTitle());
-				org.ndexbio.xbel.model.Citation.AuthorGroup authors = new org.ndexbio.xbel.model.Citation.AuthorGroup();
-				for (String contributor : modelCitation.getContributors()) {
-					authors.getAuthor().add(contributor);
+				
+				xbelCitation.setType(CitationType.fromValue(modelCitation.getType()));
+				if (null != modelCitation.getContributors()) {
+					org.ndexbio.xbel.model.Citation.AuthorGroup authors = new org.ndexbio.xbel.model.Citation.AuthorGroup();
+					for (String contributor : modelCitation.getContributors()) {
+						authors.getAuthor().add(contributor);
+					}
+					xbelCitation.setAuthorGroup(authors);
 				}
-				xbelCitation.setAuthorGroup(authors);
 
 			}
 			annotGroup.getAnnotationOrEvidenceOrCitation().add(xbelCitation);
@@ -510,7 +520,8 @@ public class XbelNetworkExporter {
 		//Document document = new Document();
 		Header header = new Header();
 		header.setName(this.network.getName());
-		header.setDescription(this.network.getDescription());
+		String description = Objects.firstNonNull(this.network.getDescription(), "XBEL network");
+		header.setDescription(description);
 		header.setVersion(version);
 		header.setCopyright(copyright);
 		header.setContactInfo(contactInfo);
@@ -538,6 +549,9 @@ public class XbelNetworkExporter {
 			org.ndexbio.xbel.model.Namespace xbelNamespace = new org.ndexbio.xbel.model.Namespace();
 			xbelNamespace.setPrefix(modelNamespace.getPrefix());
 			xbelNamespace.setResourceLocation(modelNamespace.getUri());
+			if (Strings.isNullOrEmpty(modelNamespace.getUri())){
+				System.out.println("++++ empty namespace uri prefix = " +modelNamespace.getPrefix());
+			}
 			nsg.getNamespace().add(xbelNamespace);
 		}
 		try {
@@ -589,30 +603,16 @@ public class XbelNetworkExporter {
 			this.networkName = nn;
 
 			try {
+				//this.context = JAXBContext.newInstance(Document.class);
 				this.context = JAXBContext.newInstance(Document.class);
-				this.marshaller = context.createMarshaller();
-				this.marshaller.setProperty(Marshaller.JAXB_FRAGMENT,
-						Boolean.TRUE);
-
-			} catch (JAXBException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-
-		public XbelMarshaller(String nn, Class<Header> type) {
-			Preconditions.checkArgument(!Strings.isNullOrEmpty(nn),
-					"A network name is required");
-			this.networkName = nn;
-			this.type = type;
-			try {
-				this.context = JAXBContext.newInstance(type);
 				this.marshaller = context.createMarshaller();
 				this.marshaller.setProperty(Marshaller.JAXB_FRAGMENT,
 						Boolean.TRUE);
 				this.marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, 
 						Boolean.TRUE);
-				
+				NamespacePrefixMapper npm = new XbelPrefixMapper();
+				this.marshaller.setProperty("com.sun.xml.bind.namespacePrefixMapper", 
+						npm);
 
 			} catch (JAXBException e) {
 				// TODO Auto-generated catch block
@@ -620,16 +620,28 @@ public class XbelNetworkExporter {
 			}
 		}
 
+		
+
 		public void open() {
 			try {
-				this.writer = XMLOutputFactory.newFactory()
+				XMLOutputFactory xmlFactory = XMLOutputFactory.newFactory();
+				xmlFactory.setProperty("javax.xml.stream.isRepairingNamespaces", Boolean.TRUE);
+				//this.writer = xmlFactory
+				//		.createXMLStreamWriter(
+				//				new FileOutputStream("/tmp/" + this.networkName
+				//						+ this.xbelExt));
+				this.writer = xmlFactory
 						.createXMLStreamWriter(
-								new FileOutputStream("/tmp/" + this.networkName
-										+ this.xbelExt));
+								new FileOutputStream("/home/fcriscuo/OpenBEL_Framework-3.0.0/exported_small_corpus.xbel" ));
+				//this.writer.setDefaultNamespace("http://belframework.org/schema/1.0/xbel");
+				this.writer.setPrefix("bel", "http://belframework.org/schema/1.0/xbel");
 				this.writer.writeStartDocument("UTF-8", "1.0");	
-				this.writer.writeStartElement("document");	
+				this.writer.writeStartElement("bel:document");
+				this.writer.writeNamespace("xsi", "http://www.w3.org/2001/XMLSchema-instance");
+				this.writer.writeAttribute("http://www.w3.org/2001/XMLSchema-instance", "schemaLocation", 
+						"http://belframework.org/schema/1.0/xbel http://resource.belframework.org/belframework/1.0/schema/xbel.xsd");
 				
-				// this.writer.writeStartElement("rootElement");
+				
 			} catch (FileNotFoundException | XMLStreamException
 					| FactoryConfigurationError e) {
 				
@@ -639,29 +651,31 @@ public class XbelNetworkExporter {
 
 		public void writeDocument(Document d) throws JAXBException {
 			JAXBElement<Document> element = new JAXBElement<Document>(
-					QName.valueOf("Document"), (Class<Document>) d.getClass(),
+					QName.valueOf("bel:document"), (Class<Document>) d.getClass(),
 					d);
 			this.marshaller.marshal(element, this.writer);
 		}
 		
 		public void writeHeader(Header h) throws JAXBException {
 			JAXBElement<Header> element = new JAXBElement<Header>(
-					QName.valueOf("header"), (Class<Header>) h.getClass(),
+					QName.valueOf("bel:header"), (Class<Header>) h.getClass(),
 					h);
+			
 			this.marshaller.marshal(element, this.writer);
 		}
 
 		public void writeNamespaceGroup(NamespaceGroup nsg)
 				throws JAXBException {
 			JAXBElement<NamespaceGroup> element = new JAXBElement<NamespaceGroup>(
-					QName.valueOf("namespaceGroup"),
+					QName.valueOf("bel:namespaceGroup"),
 					(Class<NamespaceGroup>) nsg.getClass(), nsg);
 			this.marshaller.marshal(element, this.writer);
 		}
+		
 
 		public void writeStatementGroup(StatementGroup sg) throws JAXBException {
 			JAXBElement<StatementGroup> element = new JAXBElement<StatementGroup>(
-					QName.valueOf("statementGroup"),
+					QName.valueOf("bel:statementGroup"),
 					(Class<StatementGroup>) sg.getClass(), sg);
 			this.marshaller.marshal(element, this.writer);
 		}
@@ -684,7 +698,25 @@ public class XbelNetworkExporter {
 		}
 
 	}
-	
+	public class XbelPrefixMapper extends NamespacePrefixMapper{
+		private static final String BEL_NS = "bel";
+		private static final String BEL_URI =
+				"http://belframework.org/schema/1.0/xbel";
+		private static final String XSI_NS = "xsi";
+		private static final String XSI_URI = 
+				"http://www.w3.org/2001/XMLSchema-instance";
+		
+		@Override
+		public String getPreferredPrefix(String nsUri, String suggestion, boolean requiredPrefix) {
+			if(nsUri.equals(XSI_URI)) {
+				return XSI_NS;
+			}
+			
+				return BEL_NS;
+			
+		}
+		
+	}
 	
 	
 	/*

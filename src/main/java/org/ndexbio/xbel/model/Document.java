@@ -46,7 +46,7 @@ import javax.xml.bind.annotation.XmlType;
     "annotationDefinitionGroup",
     "statementGroup"
 })
-@XmlRootElement(name = "document")
+@XmlRootElement(name = "document", namespace = "http://belframework.org/schema/1.0/xbel")
 public class Document {
 
     @XmlElement(required = true)
