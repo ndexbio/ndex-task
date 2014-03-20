@@ -37,7 +37,7 @@ public class BulkFileUploadUtility {
 		this.ds = new LocalDataService();
 	}
 
-	private static final String DEFAULT_DIRECTORY = "/tmp/ndex/corpus";
+	private static final String DEFAULT_DIRECTORY = "/tmp/ndex/bulk";
 	private static final Logger logger = LoggerFactory.getLogger(BulkFileUploadUtility.class);
 	private static final String NETWORK_UPLOAD_PATH = "/opt/ndex/uploaded-networks/";
 	
@@ -133,8 +133,8 @@ class LocalDataService extends OrientDBNoTxConnectionService {
 
 		private User getLoggedInUser() {
 			User user = new User();
-			user.setId("C31R0");
-			user.setUsername("biologist1");
+			user.setId("C31R3");
+			user.setUsername("dbowner");
 			return user;
 			
 		}

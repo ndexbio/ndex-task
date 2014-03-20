@@ -1,6 +1,13 @@
 package org.ndexbio.task;
 
+import java.io.File;
+
+import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.models.data.ITask;
+import org.ndexbio.common.models.data.Status;
+import org.ndexbio.common.models.object.NdexDataModelService;
+import org.ndexbio.task.service.NdexJVMDataModelService;
+import org.ndexbio.xbel.exporter.XbelNetworkExporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,19 +27,24 @@ public class XbelExporterTask extends NdexTask {
 	
 	private String networkId;
 	private static final String NETWORK_EXPORT_PATH = "/opt/ndex/exported-networks/";
+	private static final String XBEL_FILE_EXTENSION = ".xbel";
+	private final NdexDataModelService modelService;
+	private Status taskStatus;
 	
 	
 	private static final Logger logger = LoggerFactory
 			.getLogger(XbelExporterTask.class);
-
-	public XbelExporterTask(ITask itask) {
-		super(itask);
-		Preconditions.checkArgument(null != itask, "An ITask object is required");
-		Preconditions.checkArgument(!Strings.isNullOrEmpty(itask.getResource()), 
-				 "The ITask entry must specify a network id");
+	
+	public XbelExporterTask(String taskId) throws
+		IllegalArgumentException, SecurityException, NdexException{
 		
-		this.networkId =itask.getResource();
+			super(taskId);
+			this.networkId = this.getTask().getResource();
+			this.modelService = new NdexJVMDataModelService();
+			
 	}
+
+	
 
 	@Override
 	public ITask call() throws Exception {
@@ -45,11 +57,40 @@ public class XbelExporterTask extends NdexTask {
 		}
 	}
 	
+	/*
+	 * private method to invoke the xbel network exporter
+	 */
 	private void exportNetwork() throws Exception{
-		
+		this.taskStatus = Status.PROCESSING;
+		this.startTask();
+		String exportFilename = this.resolveExportFile();
+		XbelNetworkExporter exporter = new XbelNetworkExporter(this.networkId,
+				 this.modelService, exportFilename);
+		exporter.exportNetwork();
+		this.taskStatus = Status.COMPLETED;
+		this.updateTaskStatus(this.taskStatus);
 	}
 	
-	
+	/*
+	 * private method to resolve the filename for the exported file
+	 * Current convention is to use a fixed based directory under /opt/ndex
+	 * add a subdriectory based on the username and use the network name plus the
+	 * xbel extension as a filename
+	 */
+	private String resolveExportFile() {
+		StringBuilder sb = new StringBuilder(this.NETWORK_EXPORT_PATH);
+		sb.append(File.separator);
+		sb.append(this.getTask().getOwner().getUsername());
+		if (! new File(sb.toString()).exists()) {
+			new File(sb.toString()).mkdir();
+		}
+		sb.append(File.separator);
+		sb.append(this.modelService.getNetworkById(networkId).getName());
+		sb.append(this.XBEL_FILE_EXTENSION);
+		return sb.toString();
+		
+		
+	}
 
 	protected String getNetworkId() {
 		return networkId;

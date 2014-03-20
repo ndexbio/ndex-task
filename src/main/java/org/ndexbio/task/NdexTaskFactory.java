@@ -22,6 +22,9 @@ import org.ndexbio.common.persistence.orientdb.NdexTaskService;
 			if( task.getType() == TaskType.PROCESS_UPLOADED_NETWORK) {
 				return new FileUploadTask(taskId);
 			}
+			if( task.getType() == TaskType.EXPORT_NETWORK_TO_FILE) {
+				return new XbelExporterTask(taskId);
+			}
 			throw new IllegalArgumentException("Task type: " +task.getType() +" is not supported");
 		} catch (IllegalArgumentException | SecurityException | NdexException e) {
 			// TODO Auto-generated catch block
