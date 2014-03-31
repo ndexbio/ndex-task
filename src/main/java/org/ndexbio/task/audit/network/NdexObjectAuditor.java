@@ -18,7 +18,7 @@ import com.google.common.collect.Sets;
 
 /*
  * Represents a generic class that supports basic tracking of NdexObject collections.
- * It creates a Set of a particular subclass of NdexObjects (e.g. Edge, Node, upport , etc) 
+ * It creates a Set of a particular subclass of NdexObjects (e.g. Edge, Node, Support , etc) 
  * and supports a method that allows individual set entries to be removed.
  * It also provides a method that will list the JdexId of entries remaining in the set.
  * 

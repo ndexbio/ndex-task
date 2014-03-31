@@ -671,9 +671,8 @@ public class XbelNetworkExporter {
 	}
 
 	private List<org.ndexbio.common.models.object.Citation> getCitationsByNetworkId() {
-		List<org.ndexbio.common.models.object.Citation> modelCitations = Lists
-				.newArrayList(this.modelService
-						.getCitationsByNetworkId(networkId));
+		List<org.ndexbio.common.models.object.Citation> modelCitations = this.modelService
+						.getCitationsByNetworkId(networkId);
 		System.out.println("Network " + networkId + " has "
 				+ modelCitations.size() + " citations");
 		return modelCitations;

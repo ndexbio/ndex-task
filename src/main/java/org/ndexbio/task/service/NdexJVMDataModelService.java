@@ -113,7 +113,7 @@ public class NdexJVMDataModelService implements NdexDataModelService {
 	public List<Namespace> getNamespacesByNetworkId(String networkId) {
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(networkId),
 				"A network id is required");
-		List<Namespace> namespaceList = Lists.newArrayList();
+		
 		try {
 			return (List<Namespace>) Iterables.filter(networkService.getNamespaces(networkId, 0, 1000), namespacePredicate);
 			

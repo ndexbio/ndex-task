@@ -1,17 +1,20 @@
 package org.ndexbio.task;
 
 import java.io.File;
+import java.io.IOException;
 
 import org.ndexbio.common.models.object.NdexDataModelService;
+import org.ndexbio.task.event.NdexNetworkState;
+import org.ndexbio.task.event.NdexTaskEventHandler;
 import org.ndexbio.task.service.NdexJVMDataModelService;
 import org.ndexbio.xbel.exporter.XbelNetworkExporter;
 import org.ndexbio.xbel.exporter.XbelNetworkExporter.XbelMarshaller;
 
-public class TestXbelExporter {
+public class TestXbelExporterApp {
 
 	private static final String NETWORK_EXPORT_PATH = "/opt/ndex/exported-networks/";
 	private static final String XBEL_FILE_EXTENSION = ".xbel";
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		//String networkId = "C25R732"; // is for large corpus
 		String networkId = "C25R3"; // is for small corpus
 		//add shutdown hook
@@ -20,11 +23,17 @@ public class TestXbelExporter {
 				System.out.println("TextXbelExporter completed.");
 			}
 		});
+		
 		NdexDataModelService  modelService = new NdexJVMDataModelService();
+		// initiate the network state
+		initiateStateForMonitoring(modelService, networkId);
+		NdexTaskEventHandler eventHandler = new NdexTaskEventHandler("/tmp/ndextaskevents.csv");
 		XbelNetworkExporter exporter = new XbelNetworkExporter(networkId, 
 				modelService,
 				resolveExportFile(modelService, networkId));
+		//
 		exporter.exportNetwork();
+		eventHandler.shutdown();
 
 	}
 
@@ -40,6 +49,12 @@ public class TestXbelExporter {
 		sb.append(XBEL_FILE_EXTENSION);
 		System.out.println("Export file: " +sb.toString());
 		return sb.toString();
+	
+	}
+	
+	private static void initiateStateForMonitoring(NdexDataModelService  modelService, String networkId) {
+		NdexNetworkState.INSTANCE.setNetworkId(networkId);
+		NdexNetworkState.INSTANCE.setNetworkName(modelService.getNetworkById(networkId).getName());
 		
 		
 	}

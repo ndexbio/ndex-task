@@ -29,5 +29,6 @@
 	</classpathentry>
 	<classpathentry combineaccessrules="false" kind="src" path="/ndex-common"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/ndexbio-rest"/>
+	<classpathentry kind="con" path="org.eclipse.ajdt.core.ASPECTJRT_CONTAINER"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
