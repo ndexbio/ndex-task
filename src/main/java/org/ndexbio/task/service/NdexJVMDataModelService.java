@@ -51,7 +51,7 @@ public class NdexJVMDataModelService implements NdexDataModelService {
 	}
 	
 	@Override
-	public Iterable<Citation> getCitationsByNetworkId(String networkId) {
+	public List<Citation> getCitationsByNetworkId(String networkId) {
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(networkId), 
 				"A network id is required");
 		try {
@@ -64,7 +64,7 @@ public class NdexJVMDataModelService implements NdexDataModelService {
 	}
 
 	@Override
-	public Iterable<Edge> getEdgesBySupportId(String supportId) {
+	public List<Edge> getEdgesBySupportId(String supportId) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -110,12 +110,12 @@ public class NdexJVMDataModelService implements NdexDataModelService {
 	 * 
 	 */
 	@Override
-	public Iterable<Namespace> getNamespacesByNetworkId(String networkId) {
+	public List<Namespace> getNamespacesByNetworkId(String networkId) {
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(networkId),
 				"A network id is required");
 		List<Namespace> namespaceList = Lists.newArrayList();
 		try {
-			return Iterables.filter(networkService.getNamespaces(networkId, 0, 1000), namespacePredicate);
+			return (List<Namespace>) Iterables.filter(networkService.getNamespaces(networkId, 0, 1000), namespacePredicate);
 			
 		} catch (IllegalArgumentException | NdexException e) {
 			logger.error(e.getMessage());
@@ -149,13 +149,13 @@ public class NdexJVMDataModelService implements NdexDataModelService {
 	 * They are distinguished from External Annotations by not having a URI
 	 * 
 	 */
-	public Iterable<Namespace> getInternalAnnotationsByNetworkId(
+	public List<Namespace> getInternalAnnotationsByNetworkId(
 			String networkId) {
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(networkId), 
 				"A network id is required");
 		List<Namespace> internalAnnotationList = Lists.newArrayList();
 		try {
-			return Iterables.filter(networkService.getNamespaces(networkId, 0, 1000), internalAnnotationPredicate);
+			return (List<Namespace>) Iterables.filter(networkService.getNamespaces(networkId, 0, 1000), internalAnnotationPredicate);
 			
 			
 		} catch (IllegalArgumentException | NdexException e) {
@@ -171,13 +171,13 @@ public class NdexJVMDataModelService implements NdexDataModelService {
 	 * They are distinguished from internal annotations by having a URI property
 	 * 
 	 */
-	public Iterable<Namespace> getExternalAnnotationsByNetworkId(
+	public List<Namespace> getExternalAnnotationsByNetworkId(
 			String networkId) {
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(networkId), 
 				"A network id is required");
 		List<Namespace> externalAnnotationList = Lists.newArrayList();
 		try {
-			return Iterables.filter(networkService.getNamespaces(networkId, 0, 1000), externalAnnotationPredicate);
+			return (List<Namespace>) Iterables.filter(networkService.getNamespaces(networkId, 0, 1000), externalAnnotationPredicate);
 			
 			
 		} catch (IllegalArgumentException | NdexException e) {
