@@ -7,6 +7,7 @@ import org.ndexbio.common.models.object.NdexDataModelService;
 import org.ndexbio.task.event.NdexNetworkState;
 import org.ndexbio.task.event.NdexTaskEventHandler;
 import org.ndexbio.task.service.NdexJVMDataModelService;
+import org.ndexbio.task.service.NdexTaskModelService;
 import org.ndexbio.xbel.exporter.XbelNetworkExporter;
 import org.ndexbio.xbel.exporter.XbelNetworkExporter.XbelMarshaller;
 
@@ -24,7 +25,7 @@ public class TestXbelExporterApp {
 			}
 		});
 		
-		NdexDataModelService  modelService = new NdexJVMDataModelService();
+		NdexTaskModelService  modelService = new NdexJVMDataModelService();
 		// initiate the network state
 		initiateStateForMonitoring(modelService, networkId);
 		NdexTaskEventHandler eventHandler = new NdexTaskEventHandler("/tmp/ndextaskevents.csv");
@@ -37,7 +38,7 @@ public class TestXbelExporterApp {
 
 	}
 
-	private static String resolveExportFile(NdexDataModelService  modelService, String networkId) {
+	private static String resolveExportFile(NdexTaskModelService  modelService, String networkId) {
 		StringBuilder sb = new StringBuilder(NETWORK_EXPORT_PATH);
 		sb.append(File.separator);
 		sb.append("fcriscuo");
@@ -52,7 +53,7 @@ public class TestXbelExporterApp {
 	
 	}
 	
-	private static void initiateStateForMonitoring(NdexDataModelService  modelService, String networkId) {
+	private static void initiateStateForMonitoring(NdexTaskModelService  modelService, String networkId) {
 		NdexNetworkState.INSTANCE.setNetworkId(networkId);
 		NdexNetworkState.INSTANCE.setNetworkName(modelService.getNetworkById(networkId).getName());
 		

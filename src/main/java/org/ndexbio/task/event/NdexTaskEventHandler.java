@@ -13,11 +13,8 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Queues;
 import com.google.common.eventbus.Subscribe;
-import com.google.common.eventbus.AllowConcurrentEvents;
+import com.google.common.eventbus.AllowConcurrentEvents; 
 
-/*
- * represents a POC event handler that will simply write out NdextTaskEvent properties to System out
- */
 
 public class NdexTaskEventHandler {
 	private final FileWriter fw;

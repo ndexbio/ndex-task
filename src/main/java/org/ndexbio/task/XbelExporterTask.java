@@ -1,19 +1,17 @@
 package org.ndexbio.task;
 
 import java.io.File;
+import java.io.IOException;
 
 import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.models.data.ITask;
 import org.ndexbio.common.models.data.Status;
-import org.ndexbio.common.models.object.NdexDataModelService;
 import org.ndexbio.task.event.NdexTaskEventHandler;
 import org.ndexbio.task.service.NdexJVMDataModelService;
+import org.ndexbio.task.service.NdexTaskModelService;
 import org.ndexbio.xbel.exporter.XbelNetworkExporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 
 /*
  * Represents an NdexTask subclass responsible for exporting an XBEL network
@@ -31,7 +29,7 @@ public class XbelExporterTask extends NdexTask {
 	private static final String NETWORK_EXPORT_EVENT_PATH = "/opt/ndex/exported-networks-events/";
 	private static final String XBEL_FILE_EXTENSION = ".xbel";
 	private static final String EVENT_FILE_EXTENSION = ".csv";
-	private final NdexDataModelService modelService;
+	private final NdexTaskModelService modelService;
 	private NdexTaskEventHandler eventHandler;
 	private Status taskStatus;
 	
@@ -48,8 +46,6 @@ public class XbelExporterTask extends NdexTask {
 			
 	}
 
-	
-
 	@Override
 	public ITask call() throws Exception {
 		try {
@@ -62,7 +58,9 @@ public class XbelExporterTask extends NdexTask {
 			logger.info(this.getClass().getName() +" interupted");
 			return null;
 		} finally {
-			this.eventHandler.shutdown();
+			if (null != this.eventHandler) {
+				this.eventHandler.shutdown();
+			}
 		}
 	}
 	

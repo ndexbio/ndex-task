@@ -37,7 +37,7 @@ public class BulkFileUploadUtility {
 		this.ds = new LocalDataService();
 	}
 
-	private static final String DEFAULT_DIRECTORY = "/tmp/ndex/corpus";
+	private static final String DEFAULT_DIRECTORY = "/tmp/ndex/bulk";
 	private static final Logger logger = LoggerFactory.getLogger(BulkFileUploadUtility.class);
 	private static final String NETWORK_UPLOAD_PATH = "/opt/ndex/uploaded-networks/";
 	

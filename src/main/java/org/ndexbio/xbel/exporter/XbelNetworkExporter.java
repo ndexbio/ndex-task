@@ -2,8 +2,6 @@ package org.ndexbio.xbel.exporter;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
@@ -33,6 +31,7 @@ import org.ndexbio.task.audit.NdexAuditService;
 import org.ndexbio.task.audit.NdexAuditServiceFactory;
 import org.ndexbio.task.audit.NdexAuditUtils;
 import org.ndexbio.task.audit.network.NdexObjectAuditor;
+import org.ndexbio.task.service.NdexTaskModelService;
 import org.ndexbio.xbel.model.AnnotationDefinitionGroup;
 import org.ndexbio.xbel.model.AnnotationGroup;
 import org.ndexbio.xbel.model.Annotation;
@@ -59,11 +58,10 @@ import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
 import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
 
 public class XbelNetworkExporter {
-	private final NdexDataModelService modelService;
+	private final NdexTaskModelService modelService;
 	private final String networkId;
 	private final Network network;
 	private Network subNetwork;
@@ -93,7 +91,7 @@ public class XbelNetworkExporter {
 	private static final Logger logger = LoggerFactory
 			.getLogger(XbelNetworkExporter.class);
 
-	public XbelNetworkExporter(String networkId, NdexDataModelService service,
+	public XbelNetworkExporter(String networkId, NdexTaskModelService service,
 			String exportFilename) {
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(networkId),
 				"A network id is required");

@@ -1,7 +1,6 @@
 package org.ndexbio.task;
 
 import java.util.concurrent.CompletionService;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
@@ -17,9 +16,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-import javassist.tools.rmi.ObjectNotFoundException;
-
-import com.google.common.collect.Queues;
 import com.orientechnologies.orient.core.id.ORID;
 import com.tinkerpop.frames.VertexFrame;
 
@@ -57,6 +53,15 @@ public class NdexQueuedTaskProcessor {
 		 taskExecutor = Executors.newFixedThreadPool(MAX_THREADS);
 	       this.taskCompletionService =
 	           new ExecutorCompletionService<Integer>(taskExecutor);       
+	}
+	
+	private void processITasksQueuedForDeletion() {
+		try {
+			this.taskService.deleteTasksQueuedForDeletion();
+		} catch (NdexException e) {
+			logger.error(e.getMessage());
+			e.printStackTrace();
+		}
 	}
 	
 	
@@ -142,12 +147,15 @@ public class NdexQueuedTaskProcessor {
 	
 
 	public static void main(String[] args) {
-		logger.info("invoked");
+		
 		NdexQueuedTaskProcessor taskProcessor = new NdexQueuedTaskProcessor();
+		logger.info(taskProcessor.getClass().getSimpleName() +" invoked");
 		try {
 			if (taskProcessor.determineActiveTasks() < 1){
 				taskProcessor.processQueuedITasks();
 			}
+			// delete tasks queued for deletion
+			taskProcessor.processITasksQueuedForDeletion();
 		} catch (NdexException e) {
 			logger.error(e.getMessage());
 			e.printStackTrace();
@@ -155,7 +163,7 @@ public class NdexQueuedTaskProcessor {
 			taskProcessor.shutdown();
 		}
 		
-		logger.info("Completed.");
+		logger.info(taskProcessor.getClass().getSimpleName() + " completed.");
 	}
 	
 

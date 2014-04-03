@@ -45,7 +45,7 @@ public class TestXbelExportTask {
 	
 	public static void main(String[] args) throws IOException {
 		//String networkId = "C25R732"; // is for large corpus
-		String[] ids = new String[]{"C25R3"}; // is for small corpus
+		String[] ids = new String[]{"C25R732"}; // is for small corpus
 		TestXbelExportTask test = new TestXbelExportTask(ids);
 		//add shutdown hook
 		Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -128,8 +128,8 @@ class LocalDataService extends OrientDBNoTxConnectionService {
 
 		private User getLoggedInUser() {
 			User user = new User();
-			user.setId("C31R3");
-			user.setUsername("dbowner");
+			user.setId("C31R1");
+			user.setUsername("biologist2");
 			return user;
 			
 		}
