@@ -63,6 +63,7 @@ import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
 public class XbelNetworkExporter {
 	private final NdexTaskModelService modelService;
 	private final String networkId;
+	private final String userId;
 	private final Network network;
 	private Network subNetwork;
 	private XbelStack<StatementGroup> sgStack;
@@ -91,17 +92,20 @@ public class XbelNetworkExporter {
 	private static final Logger logger = LoggerFactory
 			.getLogger(XbelNetworkExporter.class);
 
-	public XbelNetworkExporter(String networkId, NdexTaskModelService service,
+	public XbelNetworkExporter(String userId, String networkId, NdexTaskModelService service,
 			String exportFilename) {
+		Preconditions.checkArgument(!Strings.isNullOrEmpty(userId),
+				"A userId id is required");
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(networkId),
 				"A network id is required");
 		Preconditions.checkArgument(null != service,
 				"A NdexDataModelService object is required");
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(exportFilename),"A filename is required");
+		this.userId = userId;
 		this.networkId = networkId;
 		this.modelService = service;
 		xm = new XbelMarshaller(exportFilename);
-		this.network = this.modelService.getNetworkById(this.networkId);
+		this.network = this.modelService.getNetworkById(this.userId, this.networkId);
 		this.sgStack = new XbelStack<StatementGroup>("StatementGroup",
 				Boolean.FALSE);
 		this.stmtStack = new XbelStack<Statement>("Statement", Boolean.FALSE);
@@ -109,6 +113,10 @@ public class XbelNetworkExporter {
 				"XBEL Term", Boolean.FALSE);
 		
 		this.initiateAuditService(network.getName());
+		System.out.println("XBEL network id " +this.networkId 
+				+" will be exported to " +exportFilename
+				+" for user id " +this.userId
+				);
 
 	}
 	
@@ -240,7 +248,7 @@ public class XbelNetworkExporter {
 			iad.setDescription(ns.getMetadata().get("description"));
 			iad.setUsage(ns.getMetadata().get("description"));
 			iad.setListAnnotation(this.xbelFactory.createListAnnotation());
-			for (BaseTerm bt : this.modelService.getBaseTermsByNamespace(ns.getPrefix(), this.networkId)){
+			for (BaseTerm bt : this.modelService.getBaseTermsByNamespace(this.userId, ns.getPrefix(), this.networkId)){
 				iad.getListAnnotation().getListValue().add(bt.getName());
 			}
 		}
@@ -255,7 +263,7 @@ public class XbelNetworkExporter {
 		List<org.ndexbio.common.models.object.Citation> modelCitations = this
 				.getCitationsByNetworkId();
 		for (org.ndexbio.common.models.object.Citation citation : modelCitations) {
-			this.subNetwork = this.modelService.getSubnetworkByCitationId(
+			this.subNetwork = this.modelService.getSubnetworkByCitationId(this.userId,
 					this.networkId, citation.getId());
 			if (null == subNetwork) {
 				continue;

@@ -5,7 +5,7 @@ import java.io.IOException;
 
 import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.models.data.ITask;
-import org.ndexbio.common.models.data.Status;
+import org.ndexbio.common.models.object.Status;
 import org.ndexbio.task.event.NdexTaskEventHandler;
 import org.ndexbio.task.service.NdexJVMDataModelService;
 import org.ndexbio.task.service.NdexTaskModelService;
@@ -72,7 +72,8 @@ public class XbelExporterTask extends NdexTask {
 		this.startTask();
 		String exportFilename = this.resolveFilename(this.NETWORK_EXPORT_PATH, this.XBEL_FILE_EXTENSION);
 		
-		XbelNetworkExporter exporter = new XbelNetworkExporter(this.networkId,
+		XbelNetworkExporter exporter = new XbelNetworkExporter(this.getUserId(),
+				this.networkId,
 				 this.modelService, exportFilename);
 		exporter.exportNetwork();
 		this.taskStatus = Status.COMPLETED;
@@ -93,7 +94,7 @@ public class XbelExporterTask extends NdexTask {
 			new File(sb.toString()).mkdir();
 		}
 		sb.append(File.separator);
-		sb.append(this.modelService.getNetworkById(networkId).getName());
+		sb.append(this.modelService.getNetworkById(this.getUserId(),networkId).getName());
 		sb.append(extension);
 		return sb.toString();		
 	}

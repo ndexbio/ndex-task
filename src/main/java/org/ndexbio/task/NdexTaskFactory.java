@@ -2,8 +2,7 @@ package org.ndexbio.task;
 
 import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.models.data.ITask;
-import org.ndexbio.common.models.data.TaskType;
-
+import org.ndexbio.common.models.object.TaskType;
 import org.ndexbio.common.persistence.orientdb.NdexTaskService;
 
 /*

@@ -4,7 +4,7 @@ import java.io.File;
 
 import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.models.data.ITask;
-import org.ndexbio.common.models.data.Status;
+import org.ndexbio.common.models.object.Status;
 import org.ndexbio.task.parsingengines.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

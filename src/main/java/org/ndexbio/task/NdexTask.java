@@ -6,7 +6,7 @@ import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.exceptions.ObjectNotFoundException;
 import org.ndexbio.common.helpers.IdConverter;
 import org.ndexbio.common.models.data.ITask;
-import org.ndexbio.common.models.data.Status;
+import org.ndexbio.common.models.object.Status;
 import org.ndexbio.common.persistence.orientdb.NdexTaskService;
 
 import com.orientechnologies.orient.core.id.ORID;
@@ -17,6 +17,7 @@ import com.tinkerpop.frames.VertexFrame;
 public abstract class NdexTask implements Callable<ITask> {
 	
 	private final String taskId;
+	private final String userId;
 	private final NdexTaskService taskService;
 	private  ITask task;
 	
@@ -25,13 +26,16 @@ public abstract class NdexTask implements Callable<ITask> {
 		this.taskId = aTaskId;
 		this.taskService = new NdexTaskService();
 		this.task = taskService.getITask(taskId);
+		this.userId = (String) this.task.getOwner().asVertex().getId();
 	}
 	
 	public NdexTask(ITask itask) {
 		this.taskService = new NdexTaskService();
 		this.task = itask;
 		this.taskId = this.resolveVertexId(itask);
+		this.userId = this.resolveVertexId(this.task.getOwner());
 	}
+	protected String getUserId() { return this.userId;}
 	
 	protected String getTaskId() {return this.taskId; }
 	
