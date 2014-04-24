@@ -831,7 +831,7 @@ public class XbelNetworkExporter {
 	}
 
 	/*
-	 * an inner class that encapsulates a regular stack supPorts a VERBOSE
+	 * an inner class that encapsulates a regular stack supports a VERBOSE
 	 * option that logs stack operations
 	 */
 

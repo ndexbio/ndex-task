@@ -55,14 +55,6 @@ public class NdexQueuedTaskProcessor {
 	           new ExecutorCompletionService<Integer>(taskExecutor);       
 	}
 	
-	private void processITasksQueuedForDeletion() {
-		try {
-			this.taskService.deleteTasksQueuedForDeletion();
-		} catch (NdexException e) {
-			logger.error(e.getMessage());
-			e.printStackTrace();
-		}
-	}
 	
 	
 	/*
@@ -154,8 +146,7 @@ public class NdexQueuedTaskProcessor {
 			if (taskProcessor.determineActiveTasks() < 1){
 				taskProcessor.processQueuedITasks();
 			}
-			// delete tasks queued for deletion
-			taskProcessor.processITasksQueuedForDeletion();
+			
 		} catch (NdexException e) {
 			logger.error(e.getMessage());
 			e.printStackTrace();
