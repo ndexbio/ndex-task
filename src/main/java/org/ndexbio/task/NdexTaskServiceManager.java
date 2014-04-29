@@ -12,7 +12,12 @@ import com.google.common.util.concurrent.ServiceManager;
 
 
 /*
- * Represents a standalone application that will invoke Service implementations
+ * Represents a standalone application that will invoke asynchronous tasks that 
+ * implement the Google Guava Service interface
+ * This application is designed to run continuously, preferably as a 
+ * UNIX/Linux daemon and to be automatically started by an /etc/init.d script
+ * 
+ * Re: registerServices method for instructions on how to add a new Service
  * 
  */
 public class NdexTaskServiceManager {
@@ -40,6 +45,10 @@ public class NdexTaskServiceManager {
 		return this.manager.isHealthy();
 	}
 	
+	/*
+	 * Private method to log the status of all registered tasks
+	 */
+	
 	private String displayServiceStatus() {
 		StringBuilder sb = new StringBuilder();
 		for (java.util.Map.Entry<State, Service> entry : this.manager.servicesByState().entries()) {
@@ -49,6 +58,11 @@ public class NdexTaskServiceManager {
 		return sb.toString();
 	}
 
+	/*
+	 * The application's main method; intended to run continuously
+	 * Periodically, the application will check the status of all registered tasks.
+	 * If any task isn't running, the application will log the status of all tasks
+	 */
 	public static void main(String[] args) {
 		NdexTaskServiceManager taskManager = new NdexTaskServiceManager();
 		taskManager.startTasks();
@@ -72,6 +86,12 @@ public class NdexTaskServiceManager {
 		
 	}
 	
+	/*
+	 * Private method to register a new Service implementation
+	 * The invocation frequency is determined by the Service's scheduler
+	 * To add a new Service, simply add an new instance to the list
+	 * eg.  list.add( new myNewservice());
+	 */
 	private List<Service> registerServices() {
 		List<Service> list = Lists.newArrayList();
 		// register the task deletion service 

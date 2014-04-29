@@ -10,7 +10,10 @@ import com.google.common.util.concurrent.AbstractScheduledService;
 
 /*
  * Represents a scheduled task that runs  on a periodic basis to scan for
- * database Task entries that have been marked for deletion
+ * database Task entries that have been marked for deletion.
+ * The scheduler method determines the frequency of invocation
+ * This service is invoked by registering an instance of this class with a Google
+ * Service Manager
  */
 
 public class TaskDeletionService extends AbstractScheduledService {
@@ -30,7 +33,10 @@ public class TaskDeletionService extends AbstractScheduledService {
 	}
 
 	/*
-	 * scan the Tasks for those marked for deletion
+	 * the runOneIteration method is what the ServiceManager invokes and represents the
+	 * work of the Service
+	 * the runOneIteration really means one iteration per time interval
+	 * scan the Tasks for those marked for deletion and remove them from the database
 	 */
 	@Override
 	protected void runOneIteration() throws Exception {
@@ -41,6 +47,7 @@ public class TaskDeletionService extends AbstractScheduledService {
 
 	/*
 	 * schedule a scan for every minute
+	 * TODO: make the time interval a property
 	 */
 	@Override
 	protected Scheduler scheduler() {
