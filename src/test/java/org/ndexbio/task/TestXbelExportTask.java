@@ -38,7 +38,8 @@ public class TestXbelExportTask {
 	
 	public static void main(String[] args) throws IOException {
 		//String networkId = "C25R732"; // is for large corpus
-		String[] ids = new String[]{"C25R1308"}; // is for small corpus
+//		String[] ids = new String[]{"C25R1308"}; // is for small corpus
+		String[] ids = new String[]{"C2R2"}; // is for small corpus
 		TestXbelExportTask test = new TestXbelExportTask(ids);
 		//add shutdown hook
 		Runtime.getRuntime().addShutdownHook(new Thread() {

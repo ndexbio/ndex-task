@@ -3,8 +3,6 @@
 	<name>ndex-task</name>
 	<comment></comment>
 	<projects>
-		<project>ndex-common</project>
-		<project>ndexbio-rest</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

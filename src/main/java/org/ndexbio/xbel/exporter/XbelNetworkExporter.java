@@ -17,16 +17,16 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
-import org.ndexbio.common.models.object.BaseTerm;
-import org.ndexbio.common.models.object.Edge;
-import org.ndexbio.common.models.object.FunctionTerm;
 import org.ndexbio.common.models.object.NdexDataModelService;
-import org.ndexbio.common.models.object.Network;
-import org.ndexbio.common.models.object.Namespace;
-import org.ndexbio.common.models.object.ReifiedEdgeTerm;
-import org.ndexbio.common.models.object.Support;
-import org.ndexbio.common.models.object.Term;
-import org.ndexbio.common.models.object.Node;
+import org.ndexbio.common.models.object.network.BaseTerm;
+import org.ndexbio.common.models.object.network.Edge;
+import org.ndexbio.common.models.object.network.FunctionTerm;
+import org.ndexbio.common.models.object.network.Namespace;
+import org.ndexbio.common.models.object.network.Network;
+import org.ndexbio.common.models.object.network.Node;
+import org.ndexbio.common.models.object.network.ReifiedEdgeTerm;
+import org.ndexbio.common.models.object.network.Support;
+import org.ndexbio.common.models.object.network.Term;
 import org.ndexbio.task.audit.NdexAuditService;
 import org.ndexbio.task.audit.NdexAuditServiceFactory;
 import org.ndexbio.task.audit.NdexAuditUtils;
@@ -260,9 +260,9 @@ public class XbelNetworkExporter {
 	 * for the NDEx objects that belong to that Citation
 	 */
 	private void processCitationSubnetworks() {
-		List<org.ndexbio.common.models.object.Citation> modelCitations = this
+		List<org.ndexbio.common.models.object.network.Citation> modelCitations = this
 				.getCitationsByNetworkId();
-		for (org.ndexbio.common.models.object.Citation citation : modelCitations) {
+		for (org.ndexbio.common.models.object.network.Citation citation : modelCitations) {
 			this.subNetwork = this.modelService.getSubnetworkByCitationId(this.userId,
 					this.networkId, citation.getId());
 			if (null == subNetwork) {
@@ -315,7 +315,7 @@ public class XbelNetworkExporter {
 	 * inner level statement group and contains a collection of edges
 	 */
 	private void processCitationSupports(
-			org.ndexbio.common.models.object.Citation modelCitation) {
+			org.ndexbio.common.models.object.network.Citation modelCitation) {
 		for (String supportId : modelCitation.getSupports()) {
 
 			Support support = this.subNetwork.getSupports().get(supportId);
@@ -587,13 +587,13 @@ public class XbelNetworkExporter {
 
 	private String createXbelCitation(AnnotationGroup annotGroup) {
 		Citation xbelCitation = new Citation();
-		Map<String, org.ndexbio.common.models.object.Citation> networkCitations = this.subNetwork
+		Map<String, org.ndexbio.common.models.object.network.Citation> networkCitations = this.subNetwork
 				.getCitations();
 		if (networkCitations.size() == 1) {
 
-			for (Map.Entry<String, org.ndexbio.common.models.object.Citation> entry : networkCitations
+			for (Map.Entry<String, org.ndexbio.common.models.object.network.Citation> entry : networkCitations
 					.entrySet()) {
-				org.ndexbio.common.models.object.Citation modelCitation = entry
+				org.ndexbio.common.models.object.network.Citation modelCitation = entry
 						.getValue();
 				xbelCitation.setName(modelCitation.getType());
 				xbelCitation.setReference(modelCitation.getIdentifier());
@@ -676,8 +676,8 @@ public class XbelNetworkExporter {
 
 	}
 
-	private List<org.ndexbio.common.models.object.Citation> getCitationsByNetworkId() {
-		List<org.ndexbio.common.models.object.Citation> modelCitations = this.modelService
+	private List<org.ndexbio.common.models.object.network.Citation> getCitationsByNetworkId() {
+		List<org.ndexbio.common.models.object.network.Citation> modelCitations = this.modelService
 						.getCitationsByNetworkId(networkId);
 		System.out.println("Network " + networkId + " has "
 				+ modelCitations.size() + " citations");

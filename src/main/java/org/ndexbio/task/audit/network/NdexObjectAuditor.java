@@ -6,9 +6,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.ndexbio.common.models.object.Edge;
 import org.ndexbio.common.models.object.NdexObject;
-import org.ndexbio.common.models.object.Network;
+import org.ndexbio.common.models.object.network.Edge;
+import org.ndexbio.common.models.object.network.Network;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;

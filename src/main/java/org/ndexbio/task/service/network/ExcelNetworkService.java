@@ -8,6 +8,7 @@ import org.ndexbio.common.models.data.IEdge;
 import org.ndexbio.common.models.data.INamespace;
 import org.ndexbio.common.models.data.INode;
 import org.ndexbio.common.models.object.*;
+import org.ndexbio.common.models.object.network.Namespace;
 import org.ndexbio.service.CommonNetworkService;
 import org.ndexbio.common.JdexIdService;
 

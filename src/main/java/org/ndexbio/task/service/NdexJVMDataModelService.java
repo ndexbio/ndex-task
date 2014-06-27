@@ -9,12 +9,11 @@ import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.models.dao.CommonDAOValues;
 import org.ndexbio.common.models.dao.DAOFactorySupplier;
 import org.ndexbio.common.models.dao.NetworkDAO;
-import org.ndexbio.common.models.object.BaseTerm;
-import org.ndexbio.common.models.object.Citation;
-import org.ndexbio.common.models.object.Edge;
-import org.ndexbio.common.models.object.Namespace;
-import org.ndexbio.common.models.object.Network;
-
+import org.ndexbio.common.models.object.network.BaseTerm;
+import org.ndexbio.common.models.object.network.Citation;
+import org.ndexbio.common.models.object.network.Edge;
+import org.ndexbio.common.models.object.network.Namespace;
+import org.ndexbio.common.models.object.network.Network;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

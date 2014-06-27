@@ -13,6 +13,7 @@ import org.ndexbio.common.exceptions.*;
 import org.ndexbio.common.helpers.IdConverter;
 import org.ndexbio.common.models.data.*;
 import org.ndexbio.common.models.object.*;
+import org.ndexbio.common.models.object.privilege.User;
 import org.ndexbio.common.persistence.orientdb.OrientDBNoTxConnectionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
