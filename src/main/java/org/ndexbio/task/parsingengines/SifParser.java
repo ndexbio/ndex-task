@@ -101,11 +101,11 @@ public class SifParser implements IParsingEngine {
 			boolean extendedBinarySIF = checkForExtendedFormat();
 			if (extendedBinarySIF) {
 				this.processExtendedBinarySIF(bufferedReader);
-				this.networkService.setFormat("EXTENDED_BINARY_SIF");
+//				this.networkService.setFormat("EXTENDED_BINARY_SIF");
 			} else {
 				boolean tabDelimited = scanForTabs();
 				this.processSimpleSIFLines(tabDelimited, bufferedReader);
-				this.networkService.setFormat("BINARY_SIF");
+//				this.networkService.setFormat("BINARY_SIF");
 			}
 
 			// close database connection
@@ -346,7 +346,7 @@ public class SifParser implements IParsingEngine {
 				if (source.equals("http://purl.org/pc2/4/pid")){
 					source = "PID";
 				}
-				this.networkService.setSource(source);
+//				this.networkService.setSource(source);
 			}
 			
 		}

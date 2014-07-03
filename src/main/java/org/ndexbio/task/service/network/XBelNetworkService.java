@@ -50,7 +50,7 @@ public class XBelNetworkService extends CommonNetworkService {
 
 	}
 
-	public IBaseTerm createIBaseTerm(Parameter p, Long jdexId)
+/*	public IBaseTerm createIBaseTerm(Parameter p, Long jdexId)
 			throws ExecutionException, NdexException {
 		Preconditions
 				.checkArgument(null != p, "A Parameter object is required");
@@ -69,13 +69,13 @@ public class XBelNetworkService extends CommonNetworkService {
 		this.commitCurrentNetwork();
 		return bt;
 	}
-
+*/
 	/*
 	 * public method to map a XBEL model namespace object to a orientdb
 	 * INamespace object n.b. this method may result in a new vertex in the
 	 * orientdb database being created
 	 */
-	public INamespace findOrCreateINamespace(Namespace namespace)
+/*	public INamespace findOrCreateINamespace(Namespace namespace)
 			throws NdexException, ExecutionException {
 		Preconditions.checkArgument(null != namespace,
 				"A Namespace object is required");
@@ -90,7 +90,7 @@ public class XBelNetworkService extends CommonNetworkService {
 		Long jdexId = NdexIdentifierCache.INSTANCE.accessIdentifierCache().get(
 				namespaceIdentifier);
 		boolean persisted = persistenceService.isEntityPersisted(jdexId);
-		INamespace iNamespace = persistenceService
+		Namespace iNamespace = persistenceService
 				.findOrCreateINamespace(jdexId);
 		if (persisted)
 			return iNamespace;
@@ -102,13 +102,13 @@ public class XBelNetworkService extends CommonNetworkService {
 		this.commitCurrentNetwork();
 		return iNamespace;
 	}
-
+*/
 	/*
 	 * public method to map a XBEL model Citation object to a orientdb ICitation
 	 * object n.b. this method may result in a new vertex in the orientdb
 	 * database being created
 	 */
-
+/*
 	public ICitation findOrCreateICitation(Citation citation)
 			throws NdexException, ExecutionException {
 		Preconditions.checkArgument(null != citation,
@@ -138,14 +138,14 @@ public class XBelNetworkService extends CommonNetworkService {
 		return iCitation;
 
 	}
-
+*/
 	/*
 	 * public method to map a XBEL model evidence string in the context of a
 	 * Citation to a orientdb ISupport object n.b. this method may result in a
 	 * new vertex in the orientdb database being created
 	 */
 
-	public ISupport findOrCreateISupport(String evidenceString,
+/*	public ISupport findOrCreateISupport(String evidenceString,
 			ICitation iCitation) throws ExecutionException, NdexException {
 		Preconditions.checkArgument(null != evidenceString,
 				"An evidence string is required");
@@ -231,13 +231,13 @@ public class XBelNetworkService extends CommonNetworkService {
 		}
 		
 	}
-
+*/
 	/*
 	 * public method to map a XBEL model Parameter object to a orientdb
 	 * IBaseTerm object n.b. this method creates a vertex in the orientdb
 	 * database
 	 */
-
+/*
 	public IBaseTerm findOrCreateParameter(Parameter parameter)
 			throws ExecutionException, NdexException {
 		if (null == parameter.getNs())
@@ -354,7 +354,7 @@ public class XBelNetworkService extends CommonNetworkService {
 		return this.getPersistenceService().findOrCreateIFunctionTerm(jdexId);
 	}
 
-
+*/
 
 
 

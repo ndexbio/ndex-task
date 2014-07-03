@@ -50,14 +50,14 @@ public class SIFNetworkService extends CommonNetworkService {
 		return bt;
 	}
 	
-	public INamespace findINamespace(String uri, String prefix) throws ExecutionException{
+	public Namespace findINamespace(String uri, String prefix) throws ExecutionException{
 
 		String namespaceIdentifier = getNamespaceIdentifier(uri, prefix);
 		Long jdexId = NdexIdentifierCache.INSTANCE.accessIdentifierCache().get(
 				namespaceIdentifier);
 		boolean persisted = persistenceService.isEntityPersisted(jdexId);
 		if (persisted){
-			return persistenceService.findOrCreateINamespace(jdexId);
+			return persistenceService.findOrCreateNamespace(jdexId);
 		} else {
 			return null;
 		}

@@ -8,7 +8,7 @@ import org.ndexbio.common.models.data.IEdge;
 import org.ndexbio.common.models.data.INamespace;
 import org.ndexbio.common.models.data.INode;
 import org.ndexbio.common.models.object.*;
-import org.ndexbio.common.models.object.network.Namespace;
+import org.ndexbio.model.object.network.Namespace;
 import org.ndexbio.service.CommonNetworkService;
 import org.ndexbio.common.JdexIdService;
 
@@ -45,15 +45,15 @@ public class ExcelNetworkService extends CommonNetworkService  {
 	 * INamespace object n.b. this method may result in a new vertex in the
 	 * orientdb database being created
 	 */
-	public INamespace createINamespace(Namespace ns, Long jdexId)
-			throws ExecutionException {
+	public Namespace createINamespace(Namespace ns, Long jdexId)
+			throws Exception {
 		Preconditions.checkArgument(null != ns,
 				"A Namespace object is required");
 		Preconditions.checkArgument(null != jdexId && jdexId.longValue() > 0,
 				"A valid jdex id is required");
-		INamespace newNamespace = persistenceService
+		Namespace newNamespace = persistenceService
 				.findOrCreateINamespace(jdexId);
-		newNamespace.setJdexId(jdexId.toString());
+		newNamespace.setId(jdexId);
 		newNamespace.setPrefix(ns.getPrefix());
 		newNamespace.setUri(ns.getUri());
 		return newNamespace;
