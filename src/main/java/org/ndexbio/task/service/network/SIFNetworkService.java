@@ -10,6 +10,7 @@ import org.ndexbio.common.models.data.IEdge;
 import org.ndexbio.common.models.data.INamespace;
 import org.ndexbio.common.models.data.INode;
 import org.ndexbio.common.JdexIdService;
+import org.ndexbio.model.object.network.Namespace;
 import org.ndexbio.service.CommonNetworkService;
 
 import com.google.common.base.Joiner;
@@ -26,12 +27,12 @@ public class SIFNetworkService extends CommonNetworkService {
 
 	
 
-	public SIFNetworkService() {
+	public SIFNetworkService() throws NdexException {
 		super();
 		
 	}
 
-	public IBaseTerm findOrCreateIBaseTerm(String name, INamespace namespace, Long jdexId)
+/*	public IBaseTerm findOrCreateIBaseTerm(String name, INamespace namespace, Long jdexId)
 			throws ExecutionException {
 		Preconditions.checkArgument(null != name, "A name is required");
 		boolean persisted = persistenceService.isEntityPersisted(jdexId);
@@ -41,23 +42,23 @@ public class SIFNetworkService extends CommonNetworkService {
 		bt.setTermNamespace(namespace);
 		bt.setJdexId(jdexId.toString());
 		this.persistenceService.getCurrentNetwork().addTerm(bt);
-		/*
+		
 		logger.info("Created baseTerm " 
 				+ bt.getTermNamespace().getPrefix() + " " 
 				+ bt.getTermNamespace().getUri() + " "
 				+ bt.getName());
-		*/
+		
 		return bt;
 	}
 	
-	public INamespace findINamespace(String uri, String prefix) throws ExecutionException{
+	public Namespace findINamespace(String uri, String prefix) throws ExecutionException{
 
 		String namespaceIdentifier = getNamespaceIdentifier(uri, prefix);
 		Long jdexId = NdexIdentifierCache.INSTANCE.accessIdentifierCache().get(
 				namespaceIdentifier);
 		boolean persisted = persistenceService.isEntityPersisted(jdexId);
 		if (persisted){
-			return persistenceService.findOrCreateINamespace(jdexId);
+			return persistenceService.findOrCreateNamespace(jdexId);
 		} else {
 			return null;
 		}
@@ -89,6 +90,7 @@ public class SIFNetworkService extends CommonNetworkService {
 	}
 
 
+
 	public INode findOrCreateINode(IBaseTerm baseTerm)
 			throws ExecutionException {
 		Preconditions.checkArgument(null != baseTerm,
@@ -101,11 +103,12 @@ public class SIFNetworkService extends CommonNetworkService {
 		if (persisted) return iNode;
 		iNode.setJdexId(jdexId.toString());
 		iNode.setRepresents(baseTerm);
-		this.persistenceService.getCurrentNetwork().addNdexNode(iNode);
+//		this.persistenceService.getCurrentNetwork().addNdexNode(iNode);
 		return iNode;
 
 	}
-	
+	*/
+/*	
 	public INode findOrCreateINode(String id, IBaseTerm baseTerm)
 			throws ExecutionException {
 		Preconditions.checkArgument(null != baseTerm,
@@ -118,7 +121,7 @@ public class SIFNetworkService extends CommonNetworkService {
 		if (persisted) return iNode;
 		iNode.setJdexId(jdexId.toString());
 		iNode.setRepresents(baseTerm);
-		this.persistenceService.getCurrentNetwork().addNdexNode(iNode);
+	//	this.persistenceService.getCurrentNetwork().addNdexNode(iNode);
 		return iNode;
 
 	}
@@ -148,11 +151,12 @@ public class SIFNetworkService extends CommonNetworkService {
 			iCitation.setType(type);
 			iCitation.setIdentifier(identifier);
 			//logger.info("Created citation " + iCitation.getType() + ":" + iCitation.getIdentifier());
-			this.persistenceService.getCurrentNetwork().addCitation(iCitation);
+//			this.persistenceService.getCurrentNetwork().addCitation(iCitation);
 			return iCitation;
 	}
+*/
 
-	public IEdge createIEdge(INode subjectNode, INode objectNode,
+/*	public IEdge createIEdge(INode subjectNode, INode objectNode,
 			IBaseTerm predicate)
 			throws ExecutionException {
 		if (null != objectNode && null != subjectNode && null != predicate) {
@@ -162,50 +166,18 @@ public class SIFNetworkService extends CommonNetworkService {
 			edge.setSubject(subjectNode);
 			edge.setPredicate(predicate);
 			edge.setObject(objectNode);
-			this.persistenceService.getCurrentNetwork().addNdexEdge(edge);
+//			this.persistenceService.getCurrentNetwork().addNdexEdge(edge);
 			return edge;
 			//System.out.println("Created edge " + edge.getJdexId());
 		} 
 		return null;
 	}
-	
-	private String getNamespaceIdentifier(INamespace namespace){
+*/	
+	private String getNamespaceIdentifier(Namespace namespace){
 		if (namespace.getPrefix() != null ) return namespace.getPrefix();
 		return namespace.getUri();
 	}
-	
-	private String getNamespaceIdentifier(String uri, String prefix){
-		String namespaceIdentifier = null;
-		if (uri == null && prefix == null){
-			prefix = "LOCAL";
-			namespaceIdentifier = "NAMESPACE:LOCAL";
-		} else if (prefix != null){
-			namespaceIdentifier = idJoiner.join("NAMESPACE", prefix);
-		} else if (uri != null){
-			prefix = this.findPrefixForNamespaceURI(uri);
-			if (prefix != null){
-				namespaceIdentifier = idJoiner.join("NAMESPACE", prefix);				
-			} else {
-				namespaceIdentifier = idJoiner.join("NAMESPACE", uri);	
-			}	
-		}
-		return namespaceIdentifier;
-	}
-
-	private String findPrefixForNamespaceURI(String uri) {
-		if (uri.equals("http://biopax.org/generated/group/")) return "GROUP";
-		if (uri.equals("http://identifiers.org/uniprot/")) return "UniProt";
-		if (uri.equals("http://purl.org/pc2/4/")) return "PathwayCommons2";
-		//System.out.println("No Prefix for " + uri);
-		
-		return null;
-	}
-	
-	private String findURIForNamespacePrefix(String prefix){
-		if (prefix.equals("UniProt")) return "http://identifiers.org/uniprot/";
-		return null;
-	}
-	
+/*	
 	// This is called to create terms used in metadata annotations
 	public IBaseTerm findOrCreateBaseTerm(String identifier, INamespace namespace)
 			throws ExecutionException {
@@ -242,7 +214,7 @@ public class SIFNetworkService extends CommonNetworkService {
 				jdexCacheId);
 		return this.findOrCreateIBaseTerm(identifier, namespace, jdexId);
 	}
-
+*/
 
 
 
