@@ -10,8 +10,6 @@ import java.net.URISyntaxException;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-import org.ndexbio.common.NdexClasses;
-import org.ndexbio.common.access.NdexDatabase;
 import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.models.data.IBaseTerm;
 import org.ndexbio.common.models.data.ICitation;
@@ -19,9 +17,6 @@ import org.ndexbio.common.models.data.IEdge;
 import org.ndexbio.common.models.data.INamespace;
 import org.ndexbio.common.models.data.INetwork;
 import org.ndexbio.common.models.data.INode;
-import org.ndexbio.common.models.object.network.BaseTerm;
-import org.ndexbio.common.persistence.orientdb.NDExNoTxMemoryPersistence;
-import org.ndexbio.model.object.network.Node;
 import org.ndexbio.task.service.network.SIFNetworkService;
 
 import com.google.common.base.Preconditions;
@@ -35,8 +30,6 @@ import com.google.common.io.Files;
  * 
  * see: http://wiki.cytoscape.org/Cytoscape_User_Manual/Network_Formats
  */
-
-//TODO: need to load format and source later. -- cj
 public class SifParser implements IParsingEngine {
 	private final File sifFile;
 	private final String sifURI;
@@ -45,24 +38,19 @@ public class SifParser implements IParsingEngine {
 	private final String extendedBinarySIFPropertiesHeader = "NAME	ORGANISM	URI	DATASOURCE";
 	private final List<String> msgBuffer;
 	private INetwork network;
-//	private String ownerName;
-//	private SIFNetworkService networkService;
-	private NDExNoTxMemoryPersistence persistenceService;
+	private String ownerName;
+	private SIFNetworkService networkService;
 
 	public SifParser(String fn, String ownerName) throws Exception {
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(fn),
 				"A filename is required");
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(ownerName),
 				"A network owner name is required");
-//		this.ownerName = ownerName;
+		this.setOwnerName(ownerName);
 		this.msgBuffer = Lists.newArrayList();
 		this.sifFile = new File(fn);
 		this.sifURI = sifFile.toURI().toString();
-		this.persistenceService = new NDExNoTxMemoryPersistence(new NdexDatabase());
-		
-		String title = Files.getNameWithoutExtension(this.sifFile.getName());
-
-		persistenceService.createNewNetwork(ownerName, title, null);
+		this.networkService = new SIFNetworkService();
 
 	}
 
@@ -82,12 +70,11 @@ public class SifParser implements IParsingEngine {
 		return network;
 	}
 
-/*	
 	private void setNetwork() throws Exception {
 		String title = Files.getNameWithoutExtension(this.sifFile.getName());
 		this.networkService.createNewNetwork(this.getOwnerName(), title);
 	}
-*/
+
 	/**************************************************************************
 	 * Whitespace (space or tab) is used to delimit the names in the simple
 	 * interaction file format. However, in some cases spaces are desired in a
@@ -99,7 +86,7 @@ public class SifParser implements IParsingEngine {
 	 **************************************************************************/
 	public void parseFile() {
 		try {
-
+			this.setNetwork();
 			this.getMsgBuffer().add("Parsing lines from " + this.getSIFURI());
 			BufferedReader bufferedReader;
 
@@ -114,18 +101,18 @@ public class SifParser implements IParsingEngine {
 			boolean extendedBinarySIF = checkForExtendedFormat();
 			if (extendedBinarySIF) {
 				this.processExtendedBinarySIF(bufferedReader);
-		//		this.networkService.setFormat("EXTENDED_BINARY_SIF");
+				this.networkService.setFormat("EXTENDED_BINARY_SIF");
 			} else {
 				boolean tabDelimited = scanForTabs();
 				this.processSimpleSIFLines(tabDelimited, bufferedReader);
-		//		this.networkService.setFormat("BINARY_SIF");
+				this.networkService.setFormat("BINARY_SIF");
 			}
 
 			// close database connection
-			this.persistenceService.persistNetwork();
+			this.networkService.persistNewNetwork();
 		} catch (Exception e) {
 			// delete network and close the database connection
-			this.persistenceService.abortTransaction();
+			this.networkService.rollbackCurrentTransaction();
 			e.printStackTrace();
 		}
 	}
@@ -195,19 +182,19 @@ public class SifParser implements IParsingEngine {
 					tokens = line.split("\\s+");
 				}
 
-		//		if (tokens.length == 1)
-		//			addNode(tokens[0]);  cj
-		//		if (tokens.length == 3)
-		//			addEdge(tokens[0], tokens[1], tokens[2]);  cj
+				if (tokens.length == 1)
+					addNode(tokens[0]);
+				if (tokens.length == 3)
+					addEdge(tokens[0], tokens[1], tokens[2]);
 				// TODO: handle case of multiple object nodes
 			}
 		} catch (IOException e) {
 			this.getMsgBuffer().add(e.getMessage());
-		} /*catch (ExecutionException e) {
+		} catch (ExecutionException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			this.getMsgBuffer().add(e.getMessage());
-		} */finally {
+		} finally {
 			bufferedReader.close();
 		}
 	}
@@ -230,7 +217,7 @@ public class SifParser implements IParsingEngine {
 			String line;
 			while ((line = bufferedReader.readLine()) != null) {
 				if (line.indexOf(extendedBinarySIFAliasHeader) != -1) {
-			//		processExtendedBinarySIFAliases(bufferedReader);  cj
+					processExtendedBinarySIFAliases(bufferedReader);
 					break;
 				}
 				String[] tokens = null;
@@ -246,10 +233,10 @@ public class SifParser implements IParsingEngine {
 						pubMedIds = tokens[4].split(";");
 					}
 
-	//				IEdge edge = addEdge(subject, predicate, object);  --cj
+					IEdge edge = addEdge(subject, predicate, object);
 					if (pubMedIds != null) {
 						for (String pubMedId : pubMedIds) {
-					//		this.addCitation(edge, pubMedId);
+							this.addCitation(edge, pubMedId);
 						}
 					}
 
@@ -257,17 +244,19 @@ public class SifParser implements IParsingEngine {
 			}
 		} catch (IOException e) {
 			this.getMsgBuffer().add(e.getMessage());
-		} /*catch (ExecutionException e) {
+		} catch (ExecutionException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			this.getMsgBuffer().add(e.getMessage());
-		} */finally {
+		} catch (NdexException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
 			bufferedReader.close();
 		}
 	}
 
-	//commented out for now. -- cj
-/*	private void addCitation(IEdge edge, String citationString)
+	private void addCitation(IEdge edge, String citationString)
 			throws NdexException, ExecutionException {
 		String[] citationStringElements = citationString.split(":");
 		if (citationStringElements.length == 2) {
@@ -275,8 +264,8 @@ public class SifParser implements IParsingEngine {
 					citationStringElements[0], citationStringElements[1]);
 			edge.addCitation(citation);
 		}
-	} */
-/*
+	}
+
 	private void processExtendedBinarySIFAliases(BufferedReader bufferedReader)
 			throws IOException, ExecutionException {
 
@@ -329,7 +318,7 @@ public class SifParser implements IParsingEngine {
 			}
 		}
 	}
-*/
+
 	private void processExtendedBinarySIFProperties(
 			BufferedReader bufferedReader) throws IOException {
 
@@ -340,20 +329,15 @@ public class SifParser implements IParsingEngine {
 		String line = bufferedReader.readLine();
 		if (line != null) {
 			String[] values = line.split("\t");
-			if (values.length > 1 && values[0] != null) {
+			if (values.length > 0 && values[0] != null) {
 				System.out.println("Description: " + values[0]);
-				this.persistenceService.getCurrentNetwork().setDescription(values[0]);
-				this.persistenceService.getCurrentNetwork().setName(values[1]);
-				this.persistenceService.getNetworkDoc().field(NdexClasses.Network_P_desc, values[0])
-				  .field(NdexClasses.Network_P_name, values[0])
-				  .save();
+				this.networkService.setDescription(values[0]);
+				this.networkService.getCurrentNetwork().setName(values[0]);
 			}
 
 			if (values.length > 0 && values[0] != null) {
 				System.out.println("Description: " + values[0]);
-				this.persistenceService.getCurrentNetwork().setDescription(values[0]);
-				this.persistenceService.getNetworkDoc().field(NdexClasses.Network_P_desc, values[0])
-				  .save();
+				this.networkService.setDescription(values[0]);
 			}
 			
 			if (values.length > 3 && values[3] != null) {
@@ -362,25 +346,25 @@ public class SifParser implements IParsingEngine {
 				if (source.equals("http://purl.org/pc2/4/pid")){
 					source = "PID";
 				}
-		//		this.networkService.setSource(source);
+				this.networkService.setSource(source);
 			}
 			
 		}
 	}
-/*
-	private Node addNode(String name) throws ExecutionException {
+
+	private INode addNode(String name) throws ExecutionException {
 		IBaseTerm term = findOrCreateBaseTerm(name);
 		if (null != term) {
-			Node node = persistenceService.findOrCreateNode(term);
+			INode node = this.networkService.findOrCreateINode(term);
 			return node;
 		}
 		return null;
 	}
 
-	private Node findNode(String identifier) throws ExecutionException {
-		BaseTerm term = findBaseTerm(identifier);
+	private INode findNode(String identifier) throws ExecutionException {
+		IBaseTerm term = findBaseTerm(identifier);
 		if (null != term) {
-			Node node = term.getRepresentedNode();
+			INode node = term.getRepresentedNode();
 			return node;
 		}
 		return null;
@@ -396,7 +380,7 @@ public class SifParser implements IParsingEngine {
 
 	}
 
-	private BaseTerm findBaseTerm(String termString) throws ExecutionException {
+	private IBaseTerm findBaseTerm(String termString) throws ExecutionException {
 		// case 1 : termString is a URI
 		// example: http://identifiers.org/uniprot/P19838
 		// treat the last element in the URI as the identifier and the rest as
@@ -408,23 +392,17 @@ public class SifParser implements IParsingEngine {
 		IBaseTerm iBaseTerm = null;
 		try {
 			URI termStringURI = new URI(termString);
-			String fragment = termStringURI.getFragment();
-			String namespaceURI =termStringURI.get 
-			if ( fragment == null ) {
-				String path = termStringURI.getPath();
-				if (path != null && path.indexOf("/") != -1) {
-					fragment = path.substring(path.lastIndexOf('/') + 1);
-					String namespaceURI = termString.substring(0,
-							termString.lastIndexOf('/') + 1);
-					INamespace namespace = this.networkService.findINamespace(
-							namespaceURI, null);
-					iBaseTerm = this.networkService.findNodeBaseTerm(identifier,
-							namespace);
-					return iBaseTerm;
-				} else
-				  throw new NdexException ("Unsupported URI format in term: " + termString);
+			String path = termStringURI.getPath();
+			if (path != null && path.indexOf("/") != -1) {
+				String identifier = path.substring(path.lastIndexOf('/') + 1);
+				String namespaceURI = termString.substring(0,
+						termString.lastIndexOf('/') + 1);
+				INamespace namespace = this.networkService.findINamespace(
+						namespaceURI, null);
+				iBaseTerm = this.networkService.findNodeBaseTerm(identifier,
+						namespace);
+				return iBaseTerm;
 			}
-			
 
 		} catch (URISyntaxException e) {
 			// ignore and move on to next case
@@ -522,10 +500,12 @@ public class SifParser implements IParsingEngine {
 
 		return iBaseTerm;
 	}
-*/
-/*	public String getOwnerName() {
+
+	public String getOwnerName() {
 		return ownerName;
 	}
-*/
-	
+
+	private void setOwnerName(String ownerName) {
+		this.ownerName = ownerName;
+	}
 }
