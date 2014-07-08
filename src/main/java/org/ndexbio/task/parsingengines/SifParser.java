@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
 import org.ndexbio.common.NdexClasses;
@@ -19,8 +20,10 @@ import org.ndexbio.common.models.data.IEdge;
 import org.ndexbio.common.models.data.INamespace;
 import org.ndexbio.common.models.data.INetwork;
 import org.ndexbio.common.models.data.INode;
-import org.ndexbio.common.models.object.network.BaseTerm;
+import org.ndexbio.model.object.network.BaseTerm;
+import org.ndexbio.common.models.object.network.RawNamespace;
 import org.ndexbio.common.persistence.orientdb.NDExNoTxMemoryPersistence;
+import org.ndexbio.model.object.network.Namespace;
 import org.ndexbio.model.object.network.Node;
 import org.ndexbio.task.service.network.SIFNetworkService;
 
@@ -61,7 +64,7 @@ public class SifParser implements IParsingEngine {
 		this.sifURI = sifFile.toURI().toString();
 		this.persistenceService = new NDExNoTxMemoryPersistence(new NdexDatabase());
 		
-		String title = Files.getNameWithoutExtension(this.sifFile.getName());
+		String title =  Files.getNameWithoutExtension(this.sifFile.getName());
 
 		persistenceService.createNewNetwork(ownerName, title, null);
 
@@ -395,7 +398,7 @@ public class SifParser implements IParsingEngine {
 				predicateTerm);
 
 	}
-
+*/
 	private BaseTerm findBaseTerm(String termString) throws ExecutionException {
 		// case 1 : termString is a URI
 		// example: http://identifiers.org/uniprot/P19838
@@ -405,25 +408,28 @@ public class SifParser implements IParsingEngine {
 		// when creating, set the prefix based on the PREFIX-URI table for known
 		// namespaces, otherwise do not set.
 		//
-		IBaseTerm iBaseTerm = null;
+		BaseTerm iBaseTerm = null;
 		try {
 			URI termStringURI = new URI(termString);
 			String fragment = termStringURI.getFragment();
-			String namespaceURI =termStringURI.get 
+			String prefix;
 			if ( fragment == null ) {
 				String path = termStringURI.getPath();
 				if (path != null && path.indexOf("/") != -1) {
 					fragment = path.substring(path.lastIndexOf('/') + 1);
-					String namespaceURI = termString.substring(0,
+					prefix = termString.substring(0,
 							termString.lastIndexOf('/') + 1);
-					INamespace namespace = this.networkService.findINamespace(
-							namespaceURI, null);
-					iBaseTerm = this.networkService.findNodeBaseTerm(identifier,
-							namespace);
-					return iBaseTerm;
 				} else
 				  throw new NdexException ("Unsupported URI format in term: " + termString);
+			} else {
+				prefix = termStringURI.getScheme()+":"+termStringURI.getSchemeSpecificPart()+"#";
 			}
+
+			RawNamespace rns = new RawNamespace(null, prefix);
+			Namespace namespace = persistenceService.getNamespace(rns);
+			
+			iBaseTerm = persistenceService.findNodeBaseTerm(fragment,namespace);
+			return iBaseTerm;
 			
 
 		} catch (URISyntaxException e) {
@@ -456,7 +462,7 @@ public class SifParser implements IParsingEngine {
 		return iBaseTerm;
 
 	}
-
+/*
 	private IBaseTerm findOrCreateBaseTerm(String termString)
 			throws ExecutionException {
 		// case 1 : termString is a URI

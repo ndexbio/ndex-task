@@ -2,6 +2,9 @@ package org.ndexbio.task.parsingengines;
 
 import static org.junit.Assert.*;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -22,14 +25,26 @@ public class SifParserTest {
 	public static void tearDownAfterClass() throws Exception {
 		db.close();
 	}
+	
+	@Test 
+	public void URITest () throws URISyntaxException {
+		URI termStringURI = new URI("http://www.foo.bar.org/testpath/something#NW223");
+		String scheme = termStringURI.getScheme();
+		System.out.println(scheme);
+		String p = termStringURI.getSchemeSpecificPart();
+		System.out.println(p);
+		String f = termStringURI.getFragment();
+		System.out.println(f);
+		
+	}
 
-	@Test
+/*	@Test
 	public void test() throws Exception {
 		SifParser parser = new SifParser("gal-filtered.sif", "Support");
 		parser.parseFile();
 		
 		
 		
-	}
+	} */
 
 }
