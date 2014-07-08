@@ -232,7 +232,7 @@ public class XbelNetworkExporter {
 		for (Namespace ns : this.modelService.getExternalAnnotationsByNetworkId(networkId)){
 			ExternalAnnotationDefinition ead = this.xbelFactory.createExternalAnnotationDefinition();
 			ead.setId(ns.getPrefix());
-			ead.setUrl(ns.getUri());
+			ead.setUrl(ns.getURI());
 			adg.getExternalAnnotationDefinition().add(ead);
 		}
 	}
@@ -657,8 +657,8 @@ public class XbelNetworkExporter {
 		for (Namespace modelNamespace : namespaces) {
 			org.ndexbio.xbel.model.Namespace xbelNamespace = this.xbelFactory.createNamespace();
 			xbelNamespace.setPrefix(modelNamespace.getPrefix());
-			xbelNamespace.setResourceLocation(modelNamespace.getUri());
-			if (Strings.isNullOrEmpty(modelNamespace.getUri())) {
+			xbelNamespace.setResourceLocation(modelNamespace.getURI());
+			if (Strings.isNullOrEmpty(modelNamespace.getURI())) {
 				System.out.println("++++ empty namespace uri prefix = "
 						+ modelNamespace.getPrefix());
 			}

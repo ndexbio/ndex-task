@@ -55,7 +55,7 @@ public class ExcelNetworkService extends CommonNetworkService  {
 				.findOrCreateINamespace(jdexId);
 		newNamespace.setJdexId(jdexId.toString());
 		newNamespace.setPrefix(ns.getPrefix());
-		newNamespace.setUri(ns.getUri());
+		newNamespace.setURI(ns.getURI());
 		return newNamespace;
 	}
 

@@ -78,7 +78,7 @@ public class NdexJVMDataModelService implements NdexTaskModelService {
 	Predicate<Namespace> namespacePredicate = new Predicate<Namespace>(){
 		@Override
 		public boolean apply(Namespace ns) {
-			return !Strings.isNullOrEmpty(ns.getUri()) && ns.getUri().contains("namespace");
+			return !Strings.isNullOrEmpty(ns.getURI()) && ns.getURI().contains("namespace");
 		}
 		
 	};
@@ -89,7 +89,7 @@ public class NdexJVMDataModelService implements NdexTaskModelService {
 	Predicate<Namespace> internalAnnotationPredicate = new Predicate<Namespace>() {
 		@Override
 		public boolean apply(Namespace ns) {
-			return Strings.isNullOrEmpty(ns.getUri());
+			return Strings.isNullOrEmpty(ns.getURI());
 		}
 		
 	};
@@ -100,7 +100,7 @@ public class NdexJVMDataModelService implements NdexTaskModelService {
 	Predicate<Namespace> externalAnnotationPredicate = new Predicate<Namespace>() {
 
 		public boolean apply(Namespace ns) {
-			return !Strings.isNullOrEmpty(ns.getUri()) && ns.getUri().contains("annotation");
+			return !Strings.isNullOrEmpty(ns.getURI()) && ns.getURI().contains("annotation");
 		}
 		
 	};
