@@ -49,8 +49,6 @@ public class SifParser implements IParsingEngine {
 	private final String extendedBinarySIFPropertiesHeader = "NAME	ORGANISM	URI	DATASOURCE";
 	private final List<String> msgBuffer;
 	private INetwork network;
-//	private String ownerName;
-//	private SIFNetworkService networkService;
 	private NDExNoTxMemoryPersistence persistenceService;
 
 	public SifParser(String fn, String ownerName) throws Exception {
@@ -58,7 +56,6 @@ public class SifParser implements IParsingEngine {
 				"A filename is required");
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(ownerName),
 				"A network owner name is required");
-//		this.ownerName = ownerName;
 		this.msgBuffer = Lists.newArrayList();
 		this.sifFile = new File(fn);
 		this.sifURI = sifFile.toURI().toString();
@@ -185,7 +182,7 @@ public class SifParser implements IParsingEngine {
 	}
 
 	private void processSimpleSIFLines(boolean tabDelimited,
-			BufferedReader bufferedReader) throws IOException {
+			BufferedReader bufferedReader) throws IOException, ExecutionException {
 
 		try {
 
@@ -198,10 +195,10 @@ public class SifParser implements IParsingEngine {
 					tokens = line.split("\\s+");
 				}
 
-		//		if (tokens.length == 1)
-		//			addNode(tokens[0]);  cj
-		//		if (tokens.length == 3)
-		//			addEdge(tokens[0], tokens[1], tokens[2]);  cj
+				if (tokens.length == 1)
+					addNode(tokens[0]); 
+				if (tokens.length == 3)
+					addEdge(tokens[0], tokens[1], tokens[2]);  
 				// TODO: handle case of multiple object nodes
 			}
 		} catch (IOException e) {
@@ -249,7 +246,7 @@ public class SifParser implements IParsingEngine {
 						pubMedIds = tokens[4].split(";");
 					}
 
-	//				IEdge edge = addEdge(subject, predicate, object);  --cj
+					Edge edge = addEdge(subject, predicate, object);  --cj
 					if (pubMedIds != null) {
 						for (String pubMedId : pubMedIds) {
 					//		this.addCitation(edge, pubMedId);
@@ -370,168 +367,26 @@ public class SifParser implements IParsingEngine {
 			
 		}
 	}
-/*
+
 	private Node addNode(String name) throws ExecutionException {
-		IBaseTerm term = findOrCreateBaseTerm(name);
-		if (null != term) {
-			Node node = persistenceService.findOrCreateNode(term);
-			return node;
-		}
-		return null;
+	/*	BaseTerm term = persistenceService.getBaseTerm(name);
+		
+		if ( term == null) 
+			throw new NdexException ("Internal Error: Failed to get Baseterm " + name + "from persistenceService.");
+	*/	
+		Node node = persistenceService.getNodeByBaseTerm(name);
+		return node;
 	}
 
-	private Node findNode(String identifier) throws ExecutionException {
-		BaseTerm term = findBaseTerm(identifier);
-		if (null != term) {
-			Node node = term.getRepresentedNode();
-			return node;
-		}
-		return null;
-	}
 
 	private IEdge addEdge(String subject, String predicate, String object)
 			throws ExecutionException {
-		INode subjectNode = addNode(subject);
-		INode objectNode = addNode(object);
-		IBaseTerm predicateTerm = findOrCreateBaseTerm(predicate);
+		Node subjectNode = addNode(subject);
+		Node objectNode = addNode(object);
+		BaseTerm predicateTerm = persistenceService.getBaseTerm(predicate);
 		return this.networkService.createIEdge(subjectNode, objectNode,
 				predicateTerm);
 
 	}
-*/
-	private BaseTerm findBaseTerm(String termString) throws ExecutionException {
-		// case 1 : termString is a URI
-		// example: http://identifiers.org/uniprot/P19838
-		// treat the last element in the URI as the identifier and the rest as
-		// the namespace URI
-		// find or create the namespace based on the URI
-		// when creating, set the prefix based on the PREFIX-URI table for known
-		// namespaces, otherwise do not set.
-		//
-		BaseTerm iBaseTerm = null;
-		try {
-			URI termStringURI = new URI(termString);
-			String fragment = termStringURI.getFragment();
-			String prefix;
-			if ( fragment == null ) {
-				String path = termStringURI.getPath();
-				if (path != null && path.indexOf("/") != -1) {
-					fragment = path.substring(path.lastIndexOf('/') + 1);
-					prefix = termString.substring(0,
-							termString.lastIndexOf('/') + 1);
-				} else
-				  throw new NdexException ("Unsupported URI format in term: " + termString);
-			} else {
-				prefix = termStringURI.getScheme()+":"+termStringURI.getSchemeSpecificPart()+"#";
-			}
-
-			RawNamespace rns = new RawNamespace(null, prefix);
-			Namespace namespace = persistenceService.getNamespace(rns);
-			
-			iBaseTerm = persistenceService.findNodeBaseTerm(fragment,namespace);
-			return iBaseTerm;
-			
-
-		} catch (URISyntaxException e) {
-			// ignore and move on to next case
-		}
-
-		// case 2: termString is of the form NamespacePrefix:Identifier
-		// find or create the namespace based on the prefix
-		// when creating, set the URI based on the PREFIX-URI table for known
-		// namespaces, otherwise do not set.
-		//
-		String[] termStringComponents = termString.split(":");
-		if (termStringComponents != null && termStringComponents.length == 2) {
-			String identifier = termStringComponents[1];
-			String prefix = termStringComponents[0];
-			INamespace namespace = this.networkService.findINamespace(null,
-					prefix);
-			iBaseTerm = this.networkService.findNodeBaseTerm(identifier,
-					namespace);
-			return iBaseTerm;
-		}
-
-		// case 3: termString cannot be parsed, use it as the identifier.
-		// find or create the namespace for prefix "LOCAL" and use that as the
-		// namespace.
-
-		iBaseTerm = this.networkService.findNodeBaseTerm(termString,
-				this.networkService.findINamespace(null, "LOCAL"));
-
-		return iBaseTerm;
-
-	}
-/*
-	private IBaseTerm findOrCreateBaseTerm(String termString)
-			throws ExecutionException {
-		// case 1 : termString is a URI
-		// example: http://identifiers.org/uniprot/P19838
-		// treat the last element in the URI as the identifier and the rest as
-		// the namespace URI
-		// find or create the namespace based on the URI
-		// when creating, set the prefix based on the PREFIX-URI table for known
-		// namespaces, otherwise do not set.
-		//
-		IBaseTerm iBaseTerm = null;
-		try {
-			URI termStringURI = new URI(termString);
-			String path = termStringURI.getPath();
-			if (path != null && path.indexOf("/") != -1) {
-				String identifier = path.substring(path.lastIndexOf('/') + 1);
-				String namespaceURI = termString.substring(0,
-						termString.lastIndexOf('/') + 1);
-				INamespace namespace = this.networkService
-						.findOrCreateINamespace(namespaceURI, null);
-				iBaseTerm = this.networkService.findOrCreateNodeBaseTerm(
-						identifier, namespace);
-				return iBaseTerm;
-			}
-
-		} catch (URISyntaxException e) {
-			// ignore and move on to next case
-		}
-
-		// case 2: termString is of the form NamespacePrefix:Identifier
-		// find or create the namespace based on the prefix
-		// when creating, set the URI based on the PREFIX-URI table for known
-		// namespaces, otherwise do not set.
-		//
-		//String[] termStringComponents = termString.split(":");
-		int colonIndex = termString.indexOf(":");
-		// special case for HGNC prefix with colon
-		int hgncIdIndex = termString.indexOf("HGNC:HGNC:");
-		if (colonIndex != -1 && termString.length() > colonIndex + 2 || hgncIdIndex == 0) {
-			String identifier = null;
-			String prefix = null;
-			if (hgncIdIndex == 0){
-				prefix = "HGNC:HGNC";
-				identifier = termString.substring(10);
-			} else {
-				identifier = termString.substring(colonIndex + 1);
-				prefix = termString.substring(0, colonIndex);
-			}
-			
-			INamespace namespace = this.networkService.findOrCreateINamespace(
-					null, prefix);
-			iBaseTerm = this.networkService.findOrCreateNodeBaseTerm(
-					identifier, namespace);
-			return iBaseTerm;
-		}
-
-		// case 3: termString cannot be parsed, use it as the identifier.
-		// find or create the namespace for prefix "LOCAL" and use that as the
-		// namespace.
-
-		iBaseTerm = this.networkService.findOrCreateNodeBaseTerm(termString,
-				this.networkService.findOrCreateINamespace(null, "LOCAL"));
-
-		return iBaseTerm;
-	}
-*/
-/*	public String getOwnerName() {
-		return ownerName;
-	}
-*/
 	
 }

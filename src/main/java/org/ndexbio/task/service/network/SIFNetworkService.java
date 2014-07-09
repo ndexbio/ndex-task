@@ -20,7 +20,7 @@ import com.google.common.base.Preconditions;
  * Subclass of CommonNetworkService implements database operations specific to 
  * SIF-formatted files
  */
-
+@Deprecated
 public class SIFNetworkService extends CommonNetworkService {
 
 	private static Joiner idJoiner = Joiner.on(":").skipNulls();
@@ -32,82 +32,7 @@ public class SIFNetworkService extends CommonNetworkService {
 		
 	}
 
-/*	public IBaseTerm findOrCreateIBaseTerm(String name, INamespace namespace, Long jdexId)
-			throws ExecutionException {
-		Preconditions.checkArgument(null != name, "A name is required");
-		boolean persisted = persistenceService.isEntityPersisted(jdexId);
-		final IBaseTerm bt = persistenceService.findOrCreateIBaseTerm(jdexId);
-		if (persisted) return bt;
-		bt.setName(name);
-		bt.setTermNamespace(namespace);
-		bt.setJdexId(jdexId.toString());
-		this.persistenceService.getCurrentNetwork().addTerm(bt);
-		
-		logger.info("Created baseTerm " 
-				+ bt.getTermNamespace().getPrefix() + " " 
-				+ bt.getTermNamespace().getUri() + " "
-				+ bt.getName());
-		
-		return bt;
-	}
-	
-	public Namespace findINamespace(String uri, String prefix) throws ExecutionException{
 
-		String namespaceIdentifier = getNamespaceIdentifier(uri, prefix);
-		Long jdexId = NdexIdentifierCache.INSTANCE.accessIdentifierCache().get(
-				namespaceIdentifier);
-		boolean persisted = persistenceService.isEntityPersisted(jdexId);
-		if (persisted){
-			return persistenceService.findOrCreateNamespace(jdexId);
-		} else {
-			return null;
-		}
-	}
-	
-	public INamespace findOrCreateINamespace(String uri, String prefix)
-			throws ExecutionException {
-		String namespaceIdentifier = getNamespaceIdentifier(uri, prefix);
-		
-		if (uri == null && prefix != null){
-			uri = findURIForNamespacePrefix(prefix);
-		}
-		
-		Long jdexId = NdexIdentifierCache.INSTANCE.accessIdentifierCache().get(
-				namespaceIdentifier);
-		boolean persisted = persistenceService.isEntityPersisted(jdexId);
-		INamespace iNamespace = persistenceService
-				.findOrCreateINamespace(jdexId);
-		if (persisted) return iNamespace;
-
-		// Not persisted, fill out blank Namespace
-		iNamespace.setJdexId(jdexId.toString());
-		if (prefix == null) prefix = this.findPrefixForNamespaceURI(uri);
-		if (prefix != null) iNamespace.setPrefix(prefix);
-		if (uri != null) iNamespace.setUri(uri);
-		this.persistenceService.getCurrentNetwork().addNamespace(iNamespace);
-		logger.info("Created namespace " + iNamespace.getPrefix() + " " + iNamespace.getUri());
-		return iNamespace;
-	}
-
-
-
-	public INode findOrCreateINode(IBaseTerm baseTerm)
-			throws ExecutionException {
-		Preconditions.checkArgument(null != baseTerm,
-				"A IBaseTerm object is required");
-		String nodeIdentifier = idJoiner.join("NODE", baseTerm.getName());
-		Long jdexId = NdexIdentifierCache.INSTANCE.accessIdentifierCache().get(
-				nodeIdentifier);
-		boolean persisted = persistenceService.isEntityPersisted(jdexId);
-		INode iNode = persistenceService.findOrCreateINode(jdexId);
-		if (persisted) return iNode;
-		iNode.setJdexId(jdexId.toString());
-		iNode.setRepresents(baseTerm);
-//		this.persistenceService.getCurrentNetwork().addNdexNode(iNode);
-		return iNode;
-
-	}
-	*/
 /*	
 	public INode findOrCreateINode(String id, IBaseTerm baseTerm)
 			throws ExecutionException {
