@@ -18,14 +18,15 @@ public class SifParserTest {
 	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		db = NdexAOrientDBConnectionPool.getInstance().acquire();
+//		db = NdexAOrientDBConnectionPool.getInstance().acquire();
 	}
 
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
-		db.close();
+//		db.close();
 	}
-	
+
+/*	
 	@Test 
 	public void URITest () throws URISyntaxException {
 		URI termStringURI = new URI("http://www.foo.bar.org/testpath/something#NW223");
@@ -37,14 +38,14 @@ public class SifParserTest {
 		System.out.println(f);
 		
 	}
-
-/*	@Test
+*/
+	@Test
 	public void test() throws Exception {
 		SifParser parser = new SifParser("gal-filtered.sif", "Support");
 		parser.parseFile();
 		
 		
 		
-	} */
+	} 
 
 }

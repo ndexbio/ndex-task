@@ -49,7 +49,7 @@ public class SifParser implements IParsingEngine {
 	private final String extendedBinarySIFAliasHeader = "PARTICIPANT	PARTICIPANT_TYPE	PARTICIPANT_NAME	UNIFICATION_XREF	RELATIONSHIP_XREF";
 	private final String extendedBinarySIFPropertiesHeader = "NAME	ORGANISM	URI	DATASOURCE";
 	private final List<String> msgBuffer;
-//	private INetwork network;
+
 	private NDExNoTxMemoryPersistence persistenceService;
 
 	public SifParser(String fn, String ownerName) throws Exception {
@@ -58,7 +58,9 @@ public class SifParser implements IParsingEngine {
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(ownerName),
 				"A network owner name is required");
 		this.msgBuffer = Lists.newArrayList();
-		this.sifFile = new File(fn);
+		//this.sifFile = new File(fn);
+		
+		this.sifFile = new File(getClass().getClassLoader().getResource(fn).toURI());
 		this.sifURI = sifFile.toURI().toString();
 		this.persistenceService = new NDExNoTxMemoryPersistence(new NdexDatabase());
 		
@@ -80,17 +82,6 @@ public class SifParser implements IParsingEngine {
 		return sifFile;
 	}
 
-	/*
-	public INetwork getNetwork() {
-		return network;
-	}
-*/
-/*	
-	private void setNetwork() throws Exception {
-		String title = Files.getNameWithoutExtension(this.sifFile.getName());
-		this.networkService.createNewNetwork(this.getOwnerName(), title);
-	}
-*/
 	/**************************************************************************
 	 * Whitespace (space or tab) is used to delimit the names in the simple
 	 * interaction file format. However, in some cases spaces are desired in a
