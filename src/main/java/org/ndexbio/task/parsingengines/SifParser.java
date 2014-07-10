@@ -23,6 +23,7 @@ import org.ndexbio.common.models.data.INode;
 import org.ndexbio.model.object.network.BaseTerm;
 import org.ndexbio.common.models.object.network.RawNamespace;
 import org.ndexbio.common.persistence.orientdb.NDExNoTxMemoryPersistence;
+import org.ndexbio.model.object.network.Edge;
 import org.ndexbio.model.object.network.Namespace;
 import org.ndexbio.model.object.network.Node;
 import org.ndexbio.task.service.network.SIFNetworkService;
@@ -48,7 +49,7 @@ public class SifParser implements IParsingEngine {
 	private final String extendedBinarySIFAliasHeader = "PARTICIPANT	PARTICIPANT_TYPE	PARTICIPANT_NAME	UNIFICATION_XREF	RELATIONSHIP_XREF";
 	private final String extendedBinarySIFPropertiesHeader = "NAME	ORGANISM	URI	DATASOURCE";
 	private final List<String> msgBuffer;
-	private INetwork network;
+//	private INetwork network;
 	private NDExNoTxMemoryPersistence persistenceService;
 
 	public SifParser(String fn, String ownerName) throws Exception {
@@ -79,10 +80,11 @@ public class SifParser implements IParsingEngine {
 		return sifFile;
 	}
 
+	/*
 	public INetwork getNetwork() {
 		return network;
 	}
-
+*/
 /*	
 	private void setNetwork() throws Exception {
 		String title = Files.getNameWithoutExtension(this.sifFile.getName());
@@ -182,7 +184,7 @@ public class SifParser implements IParsingEngine {
 	}
 
 	private void processSimpleSIFLines(boolean tabDelimited,
-			BufferedReader bufferedReader) throws IOException, ExecutionException {
+			BufferedReader bufferedReader) throws IOException, ExecutionException, NdexException {
 
 		try {
 
@@ -222,7 +224,7 @@ public class SifParser implements IParsingEngine {
 	 * header so we start processing edges on the next line.
 	 */
 	private void processExtendedBinarySIF(BufferedReader bufferedReader)
-			throws IOException {
+			throws IOException, ExecutionException, NdexException {
 		try {
 			// skip the header line
 			bufferedReader.readLine();
@@ -230,7 +232,7 @@ public class SifParser implements IParsingEngine {
 			String line;
 			while ((line = bufferedReader.readLine()) != null) {
 				if (line.indexOf(extendedBinarySIFAliasHeader) != -1) {
-			//		processExtendedBinarySIFAliases(bufferedReader);  cj
+			// cj		processExtendedBinarySIFAliases(bufferedReader);  
 					break;
 				}
 				String[] tokens = null;
@@ -246,7 +248,7 @@ public class SifParser implements IParsingEngine {
 						pubMedIds = tokens[4].split(";");
 					}
 
-					Edge edge = addEdge(subject, predicate, object);  --cj
+					Edge edge = addEdge(subject, predicate, object);  
 					if (pubMedIds != null) {
 						for (String pubMedId : pubMedIds) {
 					//		this.addCitation(edge, pubMedId);
@@ -276,7 +278,7 @@ public class SifParser implements IParsingEngine {
 			edge.addCitation(citation);
 		}
 	} */
-/*
+
 	private void processExtendedBinarySIFAliases(BufferedReader bufferedReader)
 			throws IOException, ExecutionException {
 
@@ -300,7 +302,7 @@ public class SifParser implements IParsingEngine {
 					String participantIdentifier = tokens[0];
 					// find the node that represents the term specified by the
 					// participantIdentifier
-					INode participant = findNode(participantIdentifier);
+					Node participant = this.persistenceService.getNodeByBaseTerm(participantIdentifier);
 					if (participant == null)
 						break;
 					//String type = tokens[1];
@@ -311,17 +313,17 @@ public class SifParser implements IParsingEngine {
 						name = name.substring(0, humanSuffixIndex);
 					}
 					participant.setName(name);
-					participant.addAlias(participant.getRepresents());
+	// cj				participant.addAlias(participant.getRepresents());
 					if (tokens.length > 3) {
 						String[] unificationAliases = tokens[3].split(";");
 						for (String alias : unificationAliases) {
-							participant.addAlias(findOrCreateBaseTerm(alias));
+	// cj						participant.addAlias(findOrCreateBaseTerm(alias));
 						}
 						if (tokens.length > 4) {
 							String[] relationshipAliases = tokens[4].split(";");
 							for (String alias : relationshipAliases) {
-								participant
-										.addRelatedTerm(findOrCreateBaseTerm(alias));
+		// cj						participant
+		//								.addRelatedTerm(findOrCreateBaseTerm(alias));
 							}
 						}
 					}
@@ -329,7 +331,7 @@ public class SifParser implements IParsingEngine {
 			}
 		}
 	}
-*/
+
 	private void processExtendedBinarySIFProperties(
 			BufferedReader bufferedReader) throws IOException {
 
@@ -379,12 +381,12 @@ public class SifParser implements IParsingEngine {
 	}
 
 
-	private IEdge addEdge(String subject, String predicate, String object)
-			throws ExecutionException {
+	private Edge addEdge(String subject, String predicate, String object)
+			throws ExecutionException, NdexException {
 		Node subjectNode = addNode(subject);
 		Node objectNode = addNode(object);
 		BaseTerm predicateTerm = persistenceService.getBaseTerm(predicate);
-		return this.networkService.createIEdge(subjectNode, objectNode,
+		return persistenceService.createEdge(subjectNode, objectNode,
 				predicateTerm);
 
 	}
