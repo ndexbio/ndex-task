@@ -8,8 +8,9 @@ import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
 
-import org.ndexbio.common.cache.NdexIdentifierCache;
+import org.ndexbio.common.access.NdexDatabase;
 import org.ndexbio.common.models.data.INetwork;
+import org.ndexbio.common.persistence.orientdb.NDExNoTxMemoryPersistence;
 import org.ndexbio.task.parsingengines.XbelFileValidator.ValidationState;
 import org.ndexbio.task.service.network.XBelNetworkService;
 import org.ndexbio.xbel.splitter.AnnotationDefinitionGroupSplitter;
@@ -43,9 +44,9 @@ public class XbelParser implements IParsingEngine
     private AnnotationDefinitionGroupSplitter adSplitter;
     private StatementGroupSplitter sgSplitter;
     private HeaderSplitter headerSplitter;
-    private INetwork network;
+//    private INetwork network;
     private String ownerName;
-    private XBelNetworkService networkService;
+    private NDExNoTxMemoryPersistence networkService;
     private static final Logger logger = LoggerFactory.getLogger(XbelParser.class);
 
     
@@ -61,7 +62,7 @@ public class XbelParser implements IParsingEngine
         this.validationState = new XbelFileValidator(fn).getValidationState();
         logger.info(this.validationState.getValidationMessage());
         this.context = JAXBContext.newInstance("org.ndexbio.xbel.model");
-        this.networkService = new XBelNetworkService();
+        this.networkService = new NDExNoTxMemoryPersistence(new NdexDatabase());
         this.nsSplitter = new NamespaceGroupSplitter(context, this.networkService);
         this.adSplitter = new AnnotationDefinitionGroupSplitter(context, networkService);
         this.sgSplitter = new StatementGroupSplitter(context, this.networkService);

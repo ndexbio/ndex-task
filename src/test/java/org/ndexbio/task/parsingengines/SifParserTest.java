@@ -16,7 +16,7 @@ public class SifParserTest {
 
 	private static ODatabaseDocumentTx db;
 	
-	@BeforeClass
+/*	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 //		db = NdexAOrientDBConnectionPool.getInstance().acquire();
 	}
@@ -25,7 +25,7 @@ public class SifParserTest {
 	public static void tearDownAfterClass() throws Exception {
 //		db.close();
 	}
-
+*/
 /*	
 	@Test 
 	public void URITest () throws URISyntaxException {

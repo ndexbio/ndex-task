@@ -12,9 +12,11 @@ import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
-import org.ndexbio.common.models.data.IBaseTerm;
-import org.ndexbio.common.models.data.INetwork;
-import org.ndexbio.common.models.data.INode;
+import org.ndexbio.common.access.NdexDatabase;
+import org.ndexbio.common.persistence.orientdb.NDExNoTxMemoryPersistence;
+import org.ndexbio.model.object.network.BaseTerm;
+import org.ndexbio.model.object.network.Network;
+import org.ndexbio.model.object.network.Node;
 import org.ndexbio.task.service.network.ExcelNetworkService;
 
 import com.google.common.base.Preconditions;
@@ -32,10 +34,10 @@ public class ExcelParser implements IParsingEngine
     private final File excelFile;
     private final String excelURI;
     private final List<String> msgBuffer;
-    private INetwork network;
+    private Network network;
     private String ownerName;
-    private ExcelNetworkService networkService;
-
+  //  private ExcelNetworkService networkService;
+    private NDExNoTxMemoryPersistence networkService;
 
 
     public ExcelParser(String fileName, String ownerName) throws Exception
@@ -44,7 +46,7 @@ public class ExcelParser implements IParsingEngine
         Preconditions.checkArgument(!Strings.isNullOrEmpty(ownerName), 
         		"A network owner name is required");
         this.setOwnerName(ownerName);
-        this.networkService = new ExcelNetworkService();
+        this.networkService = new NDExNoTxMemoryPersistence(new NdexDatabase());
         this.msgBuffer = Lists.newArrayList();
         this.excelFile = new File(fileName);
         this.excelURI = excelFile.toURI().toString();
@@ -63,7 +65,8 @@ public class ExcelParser implements IParsingEngine
     * If there is a second worksheet, it holds meta information
     * in a property-value format.
     **************************************************************************/
-    public void parseFile()
+    @Override
+	public void parseFile()
     {
 
         this.getMsgBuffer().add("Parsing lines from " + this.getExcelURI());
@@ -78,7 +81,7 @@ public class ExcelParser implements IParsingEngine
         catch (FileNotFoundException e1)
         {
             this.getMsgBuffer().add("Could not read " + this.getExcelURI());
-            this.networkService.rollbackCurrentTransaction();  // close connection to database
+            this.networkService.abortTransaction();
             // e1.printStackTrace();
             return;
         }
