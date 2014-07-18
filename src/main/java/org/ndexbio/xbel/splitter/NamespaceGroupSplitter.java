@@ -1,12 +1,11 @@
 package org.ndexbio.xbel.splitter;
 
-import java.util.concurrent.ExecutionException;
-
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 
 import org.ndexbio.common.exceptions.NdexException;
-import org.ndexbio.task.service.network.XBelNetworkService;
+import org.ndexbio.common.models.object.network.RawNamespace;
+import org.ndexbio.common.persistence.orientdb.NdexPersistenceService;
 import org.ndexbio.xbel.model.Namespace;
 import org.ndexbio.xbel.model.NamespaceGroup;
 import org.slf4j.Logger;
@@ -17,14 +16,17 @@ public class NamespaceGroupSplitter extends XBelSplitter {
 	private static final String xmlElement = "namespaceGroup";
 	private static final Logger logger = LoggerFactory
 			.getLogger(NamespaceGroupSplitter.class);
+	
+	private NdexPersistenceService networkService;
 
 	/*
 	 * Extension of XBelSplitter to parse NamespaceGroup data from an XBEL
 	 * document
 	 */
 	public NamespaceGroupSplitter(JAXBContext context,
-			XBelNetworkService networkService) {
-		super(context, networkService, xmlElement);
+			NdexPersistenceService networkService) {
+		super(context,xmlElement);
+		this.networkService = networkService;
 	}
 
 	@Override
@@ -41,17 +43,10 @@ public class NamespaceGroupSplitter extends XBelSplitter {
 		logger.info("The XBEL document has " + ng.getNamespace().size()
 				+ " namespaces");
 
-		// create BEL namespace
-		Namespace belNamespace = new Namespace();
-		belNamespace.setPrefix("BEL");
-		belNamespace
-				.setResourceLocation("http://belframework.org/schema/1.0/xbel");
-
 		try {
-			this.networkService.findOrCreateINamespace(belNamespace);
-		} catch (ExecutionException e1) {
-			logger.error(e1.getMessage());
-			e1.printStackTrace();
+			// create BEL namespace
+			RawNamespace belNamespace = new RawNamespace("BEL","http://belframework.org/schema/1.0/xbel");
+			this.networkService.getNamespace(belNamespace);
 		} catch (NdexException e) {
 			logger.error(e.getMessage());
 			e.printStackTrace();
@@ -60,12 +55,8 @@ public class NamespaceGroupSplitter extends XBelSplitter {
 		for (Namespace ns : ng.getNamespace()) {
 
 			try {
-				this.networkService.findOrCreateINamespace(ns);
+				this.networkService.getNamespace(new RawNamespace(ns.getPrefix(),ns.getResourceLocation()));
 
-			} catch (ExecutionException e) {
-
-				logger.error(e.getMessage());
-				e.printStackTrace();
 			} catch (NdexException e) {
 				logger.error(e.getMessage());
 				e.printStackTrace();

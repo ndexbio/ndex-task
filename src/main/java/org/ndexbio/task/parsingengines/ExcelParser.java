@@ -13,7 +13,7 @@ import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.ndexbio.common.access.NdexDatabase;
-import org.ndexbio.common.persistence.orientdb.NDExNoTxMemoryPersistence;
+import org.ndexbio.common.persistence.orientdb.NdexPersistenceService;
 import org.ndexbio.model.object.network.BaseTerm;
 import org.ndexbio.model.object.network.Network;
 import org.ndexbio.model.object.network.Node;
@@ -37,7 +37,7 @@ public class ExcelParser implements IParsingEngine
     private Network network;
     private String ownerName;
   //  private ExcelNetworkService networkService;
-    private NDExNoTxMemoryPersistence networkService;
+    private NdexPersistenceService networkService;
 
 
     public ExcelParser(String fileName, String ownerName) throws Exception
@@ -46,7 +46,7 @@ public class ExcelParser implements IParsingEngine
         Preconditions.checkArgument(!Strings.isNullOrEmpty(ownerName), 
         		"A network owner name is required");
         this.setOwnerName(ownerName);
-        this.networkService = new NDExNoTxMemoryPersistence(new NdexDatabase());
+        this.networkService = new NdexPersistenceService(new NdexDatabase());
         this.msgBuffer = Lists.newArrayList();
         this.excelFile = new File(fileName);
         this.excelURI = excelFile.toURI().toString();

@@ -18,6 +18,7 @@ import org.ndexbio.common.models.data.IFunctionTerm;
 import org.ndexbio.common.models.data.INode;
 import org.ndexbio.common.models.data.ISupport;
 import org.ndexbio.common.models.data.ITerm;
+import org.ndexbio.common.persistence.orientdb.NdexPersistenceService;
 import org.ndexbio.task.service.network.XBelNetworkService;
 import org.ndexbio.xbel.model.Annotation;
 import org.ndexbio.xbel.model.AnnotationGroup;
@@ -40,10 +41,13 @@ public class StatementGroupSplitter extends XBelSplitter {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(StatementGroupSplitter.class);
+	
+	private NdexPersistenceService networkService;
 
 	public StatementGroupSplitter(JAXBContext context,
-			XBelNetworkService networkService) {
-		super(context, networkService, xmlElement);
+			NdexPersistenceService networkService) {
+		super(context, xmlElement);
+		this.networkService = networkService;
 
 	}
 
@@ -160,7 +164,7 @@ public class StatementGroupSplitter extends XBelSplitter {
 		return null;
 	}
 
-	private ICitation citationFromAnnotationGroup(
+	private org.ndexbio.model.object.network.Citation citationFromAnnotationGroup(
 			AnnotationGroup annotationGroup) throws ExecutionException,
 			NdexException {
 		if (null == annotationGroup)
@@ -168,8 +172,13 @@ public class StatementGroupSplitter extends XBelSplitter {
 		for (Object object : annotationGroup
 				.getAnnotationOrEvidenceOrCitation()) {
 			if (object instanceof Citation) {
+				
+				Citation c = (Citation)object;
+				
 				return this.networkService
-						.findOrCreateICitation((Citation) object);
+						.getCitation(c.getName(), c.getType().toString(), c.getReference(), 
+							(c.getAuthorGroup() == null ? null : c.getAuthorGroup().getAuthor())	
+					        );
 			}
 		}
 		return null;

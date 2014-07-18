@@ -22,11 +22,10 @@ import org.ndexbio.common.models.data.INetwork;
 import org.ndexbio.common.models.data.INode;
 import org.ndexbio.model.object.network.BaseTerm;
 import org.ndexbio.common.models.object.network.RawNamespace;
-import org.ndexbio.common.persistence.orientdb.NDExNoTxMemoryPersistence;
+import org.ndexbio.common.persistence.orientdb.NdexPersistenceService;
 import org.ndexbio.model.object.network.Edge;
 import org.ndexbio.model.object.network.Namespace;
 import org.ndexbio.model.object.network.Node;
-import org.ndexbio.task.service.network.SIFNetworkService;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
@@ -50,7 +49,7 @@ public class SifParser implements IParsingEngine {
 	private final String extendedBinarySIFPropertiesHeader = "NAME	ORGANISM	URI	DATASOURCE";
 	private final List<String> msgBuffer;
 
-	private NDExNoTxMemoryPersistence persistenceService;
+	private NdexPersistenceService persistenceService;
 
 	public SifParser(String fn, String ownerName) throws Exception {
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(fn),
@@ -62,7 +61,7 @@ public class SifParser implements IParsingEngine {
 		
 		this.sifFile = new File(getClass().getClassLoader().getResource(fn).toURI());
 		this.sifURI = sifFile.toURI().toString();
-		this.persistenceService = new NDExNoTxMemoryPersistence(new NdexDatabase());
+		this.persistenceService = new NdexPersistenceService(new NdexDatabase());
 		
 		String title =  Files.getNameWithoutExtension(this.sifFile.getName());
 

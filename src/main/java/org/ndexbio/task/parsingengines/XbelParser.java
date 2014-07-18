@@ -9,8 +9,9 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
 
 import org.ndexbio.common.access.NdexDatabase;
+import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.models.data.INetwork;
-import org.ndexbio.common.persistence.orientdb.NDExNoTxMemoryPersistence;
+import org.ndexbio.common.persistence.orientdb.NdexPersistenceService;
 import org.ndexbio.task.parsingengines.XbelFileValidator.ValidationState;
 import org.ndexbio.task.service.network.XBelNetworkService;
 import org.ndexbio.xbel.splitter.AnnotationDefinitionGroupSplitter;
@@ -46,12 +47,12 @@ public class XbelParser implements IParsingEngine
     private HeaderSplitter headerSplitter;
 //    private INetwork network;
     private String ownerName;
-    private NDExNoTxMemoryPersistence networkService;
+    private NdexPersistenceService networkService;
     private static final Logger logger = LoggerFactory.getLogger(XbelParser.class);
 
     
     
-    public XbelParser(String fn, String ownerName) throws JAXBException
+    public XbelParser(String fn, String ownerName) throws JAXBException, NdexException
     {
         Preconditions.checkArgument(!Strings.isNullOrEmpty(fn), "A filename is required");
         Preconditions.checkArgument(!Strings.isNullOrEmpty(ownerName),
@@ -62,11 +63,11 @@ public class XbelParser implements IParsingEngine
         this.validationState = new XbelFileValidator(fn).getValidationState();
         logger.info(this.validationState.getValidationMessage());
         this.context = JAXBContext.newInstance("org.ndexbio.xbel.model");
-        this.networkService = new NDExNoTxMemoryPersistence(new NdexDatabase());
+        this.networkService = new NdexPersistenceService(new NdexDatabase());
         this.nsSplitter = new NamespaceGroupSplitter(context, this.networkService);
         this.adSplitter = new AnnotationDefinitionGroupSplitter(context, networkService);
         this.sgSplitter = new StatementGroupSplitter(context, this.networkService);
-        this.headerSplitter = new HeaderSplitter(context, this.networkService);
+        this.headerSplitter = new HeaderSplitter(context);
         
         this.initReader();
     }
@@ -80,9 +81,6 @@ public class XbelParser implements IParsingEngine
             this.processAnnotationDefinitions();
             this.processStatementGroups();
             
-            // Clear the identifier and the term cache
-            //logger.info("Clearing identifier cache");
-            NdexIdentifierCache.INSTANCE.accessIdentifierCache().invalidateAll();
             
             // set edge count and node count,
             // then close database connection
@@ -110,8 +108,11 @@ public class XbelParser implements IParsingEngine
             throw new Exception(e);
         }
         String networkTitle = this.headerSplitter.getHeader().getName();
-        this.network = this.networkService.createNewNetwork(this.getOwnerName(), networkTitle);
-        this.networkService.setFormat("BEL_DOCUMENT");
+        this.networkService.createNewNetwork(
+        		this.getOwnerName(), 
+        		networkTitle,
+        		this.headerSplitter.getHeader().getVersion());
+//        this.networkService.setFormat("BEL_DOCUMENT");
 
     }
 
