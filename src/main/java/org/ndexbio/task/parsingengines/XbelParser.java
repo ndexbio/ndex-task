@@ -50,7 +50,7 @@ public class XbelParser implements IParsingEngine
     private NdexPersistenceService networkService;
     private static final Logger logger = LoggerFactory.getLogger(XbelParser.class);
 
-    
+    public static final String belPrefix = "BEL";
     
     public XbelParser(String fn, String ownerName) throws JAXBException, NdexException
     {

@@ -9,16 +9,13 @@ import java.util.concurrent.ExecutionException;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 
-import org.ndexbio.common.cache.NdexIdentifierCache;
 import org.ndexbio.common.exceptions.NdexException;
-import org.ndexbio.common.models.data.IBaseTerm;
-import org.ndexbio.common.models.data.ICitation;
-import org.ndexbio.common.models.data.IEdge;
-import org.ndexbio.common.models.data.IFunctionTerm;
-import org.ndexbio.common.models.data.INode;
-import org.ndexbio.common.models.data.ISupport;
-import org.ndexbio.common.models.data.ITerm;
 import org.ndexbio.common.persistence.orientdb.NdexPersistenceService;
+import org.ndexbio.model.object.network.BaseTerm;
+import org.ndexbio.model.object.network.Edge;
+import org.ndexbio.model.object.network.FunctionTerm;
+import org.ndexbio.model.object.network.Support;
+import org.ndexbio.task.parsingengines.XbelParser;
 import org.ndexbio.task.service.network.XBelNetworkService;
 import org.ndexbio.xbel.model.Annotation;
 import org.ndexbio.xbel.model.AnnotationGroup;
@@ -73,7 +70,7 @@ public class StatementGroupSplitter extends XBelSplitter {
 	// StatementGroup. And the same
 	// is true for Supports.
 	private void processStatementGroup(StatementGroup sg,
-			ISupport outerSupport, ICitation outerCitation,
+			Support outerSupport, org.ndexbio.model.object.network.Citation outerCitation,
 			Map<String, String> outerAnnotations) throws ExecutionException,
 			NdexException {
 
@@ -97,7 +94,7 @@ public class StatementGroupSplitter extends XBelSplitter {
 			}
 		}
 
-		ICitation citation = citationFromAnnotationGroup(annotationGroup);
+		org.ndexbio.model.object.network.Citation citation = citationFromAnnotationGroup(annotationGroup);
 		if (citation != null) {
 			// The AnnotationGroup had a Citation. This overrides the
 			// outerCitation.
@@ -116,7 +113,7 @@ public class StatementGroupSplitter extends XBelSplitter {
 		// because
 		// any ISupport created will be in the context of the ICitation and
 		// should be linked to it.
-		ISupport support = supportFromAnnotationGroup(annotationGroup, citation);
+		Support support = supportFromAnnotationGroup(annotationGroup, citation);
 		if (support == null) {
 			// The AnnotationGroup had no Support, therefore use the
 			// outerSupport
@@ -147,8 +144,8 @@ public class StatementGroupSplitter extends XBelSplitter {
 		return annotationMap;
 	}
 
-	private ISupport supportFromAnnotationGroup(
-			AnnotationGroup annotationGroup, ICitation citation)
+	private Support supportFromAnnotationGroup(
+			AnnotationGroup annotationGroup, org.ndexbio.model.object.network.Citation citation)
 			throws ExecutionException, NdexException {
 		if (null == annotationGroup)
 			return null;
@@ -157,16 +154,15 @@ public class StatementGroupSplitter extends XBelSplitter {
 			if (object instanceof String) {
 				// No explicit type for Evidence, therefore if it is a string,
 				// its an Evidence and we find/create an ISupport
-				return this.networkService.findOrCreateISupport(
-						(String) object, citation);
+				return this.networkService.getSupport(
+						(String) object, citation.getId());
 			}
 		}
 		return null;
 	}
 
 	private org.ndexbio.model.object.network.Citation citationFromAnnotationGroup(
-			AnnotationGroup annotationGroup) throws ExecutionException,
-			NdexException {
+			AnnotationGroup annotationGroup) throws NdexException {
 		if (null == annotationGroup)
 			return null;
 		for (Object object : annotationGroup
@@ -187,23 +183,25 @@ public class StatementGroupSplitter extends XBelSplitter {
 	/*
 	 * process statement group
 	 */
-	private void processStatements(StatementGroup sg, ISupport support,
-			ICitation citation, Map<String,String> annotations) throws ExecutionException, NdexException {
+	private void processStatements(StatementGroup sg, Support support,
+			org.ndexbio.model.object.network.Citation citation, Map<String,String> annotations) 
+					throws ExecutionException, NdexException {
 		List<Statement> statementList = sg.getStatement();
 		for (Statement statement : statementList) {
 			processStatement(statement, support, citation, annotations, 0);
 		}
 	}
 
-	private IEdge processStatement(Statement statement, ISupport support,
-	ICitation citation, Map<String,String> annotations, int level) throws ExecutionException, NdexException {
+	private Edge processStatement(Statement statement, Support support,
+			org.ndexbio.model.object.network.Citation citation, Map<String,String> annotations, int level) 
+					throws ExecutionException, NdexException {
 		if (level > 1) throw new NdexException("Attempt to process XBEL nested statement at level greater than 1");
 		if (null != statement.getSubject()) {
 
 			// All statements are expected to have a subject.
 			// It is valid to have a statement with just a subject
 			// It creates a node - the biological meaning is "this exists"
-			INode subjectNode = this.processStatementSubject(statement
+			Node subjectNode = this.processStatementSubject(statement
 					.getSubject());
 			// A typical statement, however, has a relationship, and object
 			// as well as a subject
@@ -284,12 +282,13 @@ public class StatementGroupSplitter extends XBelSplitter {
 		}
 	}
 
-	private IFunctionTerm processFunctionTerm(Term term)
+	private FunctionTerm processFunctionTerm(Term term)
 			throws ExecutionException, NdexException {
 		// XBEL "Term" corresponds to NDEx FunctionTerm
-		IBaseTerm function = this.networkService.findOrCreateFunction(term.getFunction());
+		
+		BaseTerm function = this.networkService.getBaseTerm(XbelParser.belPrefix +":"+term.getFunction());
 
-		List<ITerm> argumentList = this.processInnerTerms(term);
+		List<org.ndexbio.model.object.network.Term> argumentList = this.processInnerTerms(term);
 
 		return persistFunctionTerm(term, function, argumentList);
 	}
@@ -308,20 +307,25 @@ public class StatementGroupSplitter extends XBelSplitter {
 	 * String of the JDex IDs of its children. For BaseTerms, it is a String
 	 * containing the namespace and term value.
 	 */
-	private List<ITerm> processInnerTerms(Term term) throws ExecutionException,
+	private List<org.ndexbio.model.object.network.Term> 
+	       processInnerTerms(Term term) throws ExecutionException,
 			NdexException {
 
-		List<ITerm> argumentList = new ArrayList<ITerm>();
+		List<org.ndexbio.model.object.network.Term> argumentList = 
+				new ArrayList<org.ndexbio.model.object.network.Term> ();
 
 		for (Object item : term.getParameterOrTerm()) {
 			if (item instanceof Term) {
 
-				IFunctionTerm functionTerm = processFunctionTerm((Term) item);
+				FunctionTerm functionTerm = processFunctionTerm((Term) item);
 				argumentList.add(functionTerm);
 
 			} else if (item instanceof Parameter) {
-				IBaseTerm baseTerm = this.networkService
-						.findOrCreateParameter((Parameter) item);
+				Parameter parameter = (Parameter)item;
+				String termString = 
+				 ((parameter.getNs() == null) ? XbelParser.belPrefix : parameter.getNs()) +
+				  		":" + parameter.getValue();
+				BaseTerm baseTerm = this.networkService.getBaseTerm(termString);
 				argumentList.add(baseTerm);
 			} else {
 				Preconditions.checkArgument(true,
@@ -338,11 +342,11 @@ public class StatementGroupSplitter extends XBelSplitter {
 				idJoiner.join("TERM", function.getJdexId(), argumentJdexList));
 	}
 
-	private IFunctionTerm persistFunctionTerm(Term term, IBaseTerm function,
-			List<ITerm> argumentList) {
+	private FunctionTerm persistFunctionTerm(Term term, BaseTerm function,
+			List<org.ndexbio.model.object.network.Term> argumentList) {
 		try {
 			List<String> argumentJdexList = Lists.newArrayList();
-			for (ITerm it : argumentList){
+			for (org.ndexbio.model.object.network.Term it : argumentList){
 				argumentJdexList.add(it.getJdexId());
 			}
 			Long jdexId = generateFunctionTermJdexId(function, argumentJdexList);
