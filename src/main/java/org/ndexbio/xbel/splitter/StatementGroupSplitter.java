@@ -14,6 +14,8 @@ import org.ndexbio.common.persistence.orientdb.NdexPersistenceService;
 import org.ndexbio.model.object.network.BaseTerm;
 import org.ndexbio.model.object.network.Edge;
 import org.ndexbio.model.object.network.FunctionTerm;
+import org.ndexbio.model.object.network.Node;
+import org.ndexbio.model.object.network.ReifiedEdgeTerm;
 import org.ndexbio.model.object.network.Support;
 import org.ndexbio.task.parsingengines.XbelParser;
 import org.ndexbio.task.service.network.XBelNetworkService;
@@ -208,13 +210,13 @@ public class StatementGroupSplitter extends XBelSplitter {
 			// In that case, we can create an edge
 
 			if (null != statement.getRelationship()) {
-				IBaseTerm predicate = this.networkService
-						.findOrCreatePredicate(statement.getRelationship());
+				BaseTerm predicate = this.networkService.getBaseTerm(
+						XbelParser.belPrefix + ":"+statement.getRelationship().name());
 
-				INode objectNode = this.processStatementObject(statement
+				Node objectNode = this.processStatementObject(statement
 						.getObject(), support, citation, annotations, level);
 
-				return this.networkService.createIEdge(subjectNode, objectNode,
+				return this.networkService.createEdge(subjectNode, objectNode,
 						predicate, support, citation, annotations);
 			} else {
 				//System.out.println("Handling subject-only statement for node: " + subjectNode.getJdexId() );
@@ -228,16 +230,16 @@ public class StatementGroupSplitter extends XBelSplitter {
 	}
 	
 
-	private INode processStatementSubject(Subject sub)
+	private Node processStatementSubject(Subject sub)
 			throws ExecutionException, NdexException {
 		if (null == sub) {
 			return null;
 		}
 		try {
-			IFunctionTerm representedTerm = this.processFunctionTerm(sub
+			FunctionTerm representedTerm = this.processFunctionTerm(sub
 					.getTerm());
-			INode subjectNode = this.networkService
-					.findOrCreateINodeForIFunctionTerm(representedTerm);
+			Node subjectNode = this.networkService.
+					getNodeByFunctionTerm(representedTerm);
 			return subjectNode;
 		} catch (ExecutionException e) {
 			logger.error(e.getMessage());
@@ -247,10 +249,13 @@ public class StatementGroupSplitter extends XBelSplitter {
 
 	}
 
-	private INode processStatementObject(org.ndexbio.xbel.model.Object obj, ISupport support,
-			ICitation citation, Map<String,String> annotations, int level)
+	private Node processStatementObject(org.ndexbio.xbel.model.Object obj, 
+			  Support support,
+			  org.ndexbio.model.object.network.Citation citation, 
+			  Map<String,String> annotations, int level)
 			throws ExecutionException, NdexException {
 		if (null == obj) {
+			//TODO: Is this allowed? throws an exceptions? --cj
 			return null;
 		}
 		try {
@@ -263,16 +268,19 @@ public class StatementGroupSplitter extends XBelSplitter {
 				//  2. a term of type "reifiedEdgeTerm" which references the edge
 				//  3. a object node which the term represents
 				//
-				IEdge reifiedEdge = this.processStatement(obj.getStatement(), support, citation, annotations, level + 1);
-				ITerm representedTerm = this.networkService.createReifiedEdgeTerm(reifiedEdge);
+				Edge reifiedEdge = this.processStatement(obj.getStatement(), support,
+						              citation, annotations, level + 1);
+				ReifiedEdgeTerm representedTerm = this.networkService.getReifedEdgeTermForEdge(reifiedEdge.getId());
+				
 				INode objectNode = this.networkService
 						.findOrCreateINodeForIReifiedEdgeTerm(representedTerm);
 				return objectNode;
 			} else {
-				IFunctionTerm representedTerm = this.processFunctionTerm(obj
+				FunctionTerm representedTerm = this.processFunctionTerm(obj
 						.getTerm());
-				INode objectNode = this.networkService
-						.findOrCreateINodeForIFunctionTerm(representedTerm);
+				Node objectNode = this.networkService.getNodeByFunctionTerm(
+						representedTerm);
+					
 				return objectNode;
 			}
 		} catch (ExecutionException e) {
