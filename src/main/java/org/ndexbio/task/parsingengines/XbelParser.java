@@ -2,6 +2,7 @@ package org.ndexbio.task.parsingengines;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -10,10 +11,8 @@ import javax.xml.parsers.SAXParserFactory;
 
 import org.ndexbio.common.access.NdexDatabase;
 import org.ndexbio.common.exceptions.NdexException;
-import org.ndexbio.common.models.data.INetwork;
 import org.ndexbio.common.persistence.orientdb.NdexPersistenceService;
 import org.ndexbio.task.parsingengines.XbelFileValidator.ValidationState;
-import org.ndexbio.task.service.network.XBelNetworkService;
 import org.ndexbio.xbel.splitter.AnnotationDefinitionGroupSplitter;
 import org.ndexbio.xbel.splitter.HeaderSplitter;
 import org.ndexbio.xbel.splitter.NamespaceGroupSplitter;
@@ -52,13 +51,16 @@ public class XbelParser implements IParsingEngine
 
     public static final String belPrefix = "BEL";
     
-    public XbelParser(String fn, String ownerName) throws JAXBException, NdexException
+    public XbelParser(String fn, String ownerName) throws JAXBException, NdexException, URISyntaxException
     {
         Preconditions.checkArgument(!Strings.isNullOrEmpty(fn), "A filename is required");
         Preconditions.checkArgument(!Strings.isNullOrEmpty(ownerName),
         		"A network owner name is required");
 
-        this.xmlFile = new File(fn).toURI().toString();
+        //File f = new File(getClass().getClassLoader().getResource(fn).toURI());
+        this.xmlFile = new File(getClass().getClassLoader().getResource(fn).toURI())
+             .toURI().toString(); 
+        		//File(fn).toURI().toString();
         this.setOwnerName(ownerName);
         this.validationState = new XbelFileValidator(fn).getValidationState();
         logger.info(this.validationState.getValidationMessage());
