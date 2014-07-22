@@ -72,7 +72,8 @@ public class XbelParser implements IParsingEngine
         this.initReader();
     }
   
-    public void parseFile()
+    @Override
+	public void parseFile()
     {
         try
         {
@@ -84,12 +85,12 @@ public class XbelParser implements IParsingEngine
             
             // set edge count and node count,
             // then close database connection
-            this.networkService.persistNewNetwork();
+            this.networkService.persistNetwork();
         }
         catch (Exception e)
         {
             // rollback current transaction and close the database connection
-            this.networkService.rollbackCurrentTransaction();
+            this.networkService.abortTransaction();
             e.printStackTrace();
         }
 

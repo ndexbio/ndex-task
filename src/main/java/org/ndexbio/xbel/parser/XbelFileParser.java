@@ -48,7 +48,7 @@ public class XbelFileParser {
 	private HeaderSplitter headerSplitter;
 	private String ownerName;
 	
-	private INetwork network;
+//	private INetwork network;
 	private XBelNetworkService networkService;
 	private static final Logger logger = LoggerFactory.getLogger(XbelFileParser.class);
 

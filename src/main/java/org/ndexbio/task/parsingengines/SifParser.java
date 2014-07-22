@@ -106,6 +106,7 @@ public class SifParser implements IParsingEngine {
 
 			boolean extendedBinarySIF = checkForExtendedFormat();
 			if (extendedBinarySIF) {
+				this.processExtendedBinarySIF(bufferedReader);
 //				this.networkService.setFormat("EXTENDED_BINARY_SIF");
 			} else {
 				boolean tabDelimited = scanForTabs();
@@ -222,7 +223,7 @@ public class SifParser implements IParsingEngine {
 			String line;
 			while ((line = bufferedReader.readLine()) != null) {
 				if (line.indexOf(extendedBinarySIFAliasHeader) != -1) {
-			// cj		processExtendedBinarySIFAliases(bufferedReader);  
+					processExtendedBinarySIFAliases(bufferedReader);  
 					break;
 				}
 				String[] tokens = null;
@@ -270,7 +271,7 @@ public class SifParser implements IParsingEngine {
 	} */
 
 	private void processExtendedBinarySIFAliases(BufferedReader bufferedReader)
-			throws IOException, ExecutionException {
+			throws IOException, ExecutionException, NdexException {
 
 		// "PARTICIPANT	PARTICIPANT_TYPE	PARTICIPANT_NAME	UNIFICATION_XREF	RELATIONSHIP_XREF";
 		System.out.println("Processing Aliases");
@@ -303,18 +304,15 @@ public class SifParser implements IParsingEngine {
 						name = name.substring(0, humanSuffixIndex);
 					}
 					participant.setName(name);
-	// cj				participant.addAlias(participant.getRepresents());
+					
+			//		participant.addAlias(participant.getRepresents()); -- removed by cj. This is redundent to the represents edge.
+					
 					if (tokens.length > 3) {
 						String[] unificationAliases = tokens[3].split(";");
-						for (String alias : unificationAliases) {
-	// cj						participant.addAlias(findOrCreateBaseTerm(alias));
-						}
+						this.persistenceService.addAliasToNode(participant.getId(),unificationAliases);
 						if (tokens.length > 4) {
 							String[] relationshipAliases = tokens[4].split(";");
-							for (String alias : relationshipAliases) {
-		// cj						participant
-		//								.addRelatedTerm(findOrCreateBaseTerm(alias));
-							}
+							this.persistenceService.addRelatedTermToNode(participant.getId(), relationshipAliases);
 						}
 					}
 				}
@@ -377,7 +375,7 @@ public class SifParser implements IParsingEngine {
 		Node objectNode = addNode(object);
 		BaseTerm predicateTerm = persistenceService.getBaseTerm(predicate);
 		return persistenceService.createEdge(subjectNode, objectNode,
-				predicateTerm);
+				predicateTerm, null,null,null);
 
 	}
 	

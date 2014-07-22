@@ -18,7 +18,6 @@ import org.ndexbio.model.object.network.Node;
 import org.ndexbio.model.object.network.ReifiedEdgeTerm;
 import org.ndexbio.model.object.network.Support;
 import org.ndexbio.task.parsingengines.XbelParser;
-import org.ndexbio.task.service.network.XBelNetworkService;
 import org.ndexbio.xbel.model.Annotation;
 import org.ndexbio.xbel.model.AnnotationGroup;
 import org.ndexbio.xbel.model.Citation;
@@ -30,13 +29,10 @@ import org.ndexbio.xbel.model.Term;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 
 public class StatementGroupSplitter extends XBelSplitter {
 	private static final String xmlElement = "statementGroup";
-	private static Joiner idJoiner = Joiner.on(":").skipNulls();
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(StatementGroupSplitter.class);
@@ -131,8 +127,7 @@ public class StatementGroupSplitter extends XBelSplitter {
 	}
 
 	private Map<String, String> annotationsFromAnnotationGroup(
-			AnnotationGroup annotationGroup) throws ExecutionException,
-			NdexException {
+			AnnotationGroup annotationGroup) {
 		if (null == annotationGroup)
 			return null;
 		Map<String,String> annotationMap = new HashMap<String, String>();
@@ -148,7 +143,7 @@ public class StatementGroupSplitter extends XBelSplitter {
 
 	private Support supportFromAnnotationGroup(
 			AnnotationGroup annotationGroup, org.ndexbio.model.object.network.Citation citation)
-			throws ExecutionException, NdexException {
+			throws ExecutionException {
 		if (null == annotationGroup)
 			return null;
 		for (Object object : annotationGroup
@@ -218,15 +213,15 @@ public class StatementGroupSplitter extends XBelSplitter {
 
 				return this.networkService.createEdge(subjectNode, objectNode,
 						predicate, support, citation, annotations);
-			} else {
-				//System.out.println("Handling subject-only statement for node: " + subjectNode.getJdexId() );
-				this.networkService.populateINodeFromSubjectOnlyStatement(subjectNode, support, citation, annotations);
-				return null;
-			}
+			} 
+			
+			//System.out.println("Handling subject-only statement for node: " + subjectNode.getJdexId() );
+			this.networkService.addMetaDataToNode(subjectNode, support, citation, annotations);
+			return null;
 
-		} else {
-			throw new NdexException("No subject for XBEL statement in " + statement.toString());
-		}
+		} 
+
+		throw new NdexException("No subject for XBEL statement in " + statement.toString());
 	}
 	
 
@@ -272,17 +267,16 @@ public class StatementGroupSplitter extends XBelSplitter {
 						              citation, annotations, level + 1);
 				ReifiedEdgeTerm representedTerm = this.networkService.getReifedEdgeTermForEdge(reifiedEdge.getId());
 				
-				INode objectNode = this.networkService
-						.findOrCreateINodeForIReifiedEdgeTerm(representedTerm);
+				Node objectNode = this.networkService.getNodeByReifiedEdgeTerm(representedTerm);
+						
 				return objectNode;
-			} else {
-				FunctionTerm representedTerm = this.processFunctionTerm(obj
+			} 
+			
+			FunctionTerm representedTerm = this.processFunctionTerm(obj
 						.getTerm());
-				Node objectNode = this.networkService.getNodeByFunctionTerm(
-						representedTerm);
+			Node objectNode = this.networkService.getNodeByFunctionTerm(representedTerm);
 					
-				return objectNode;
-			}
+			return objectNode;
 		} catch (ExecutionException e) {
 			logger.error(e.getMessage());
 			e.printStackTrace();
@@ -298,7 +292,7 @@ public class StatementGroupSplitter extends XBelSplitter {
 
 		List<org.ndexbio.model.object.network.Term> argumentList = this.processInnerTerms(term);
 
-		return persistFunctionTerm(term, function, argumentList);
+		return persistFunctionTerm(function, argumentList);
 	}
 
 	/*
@@ -343,33 +337,18 @@ public class StatementGroupSplitter extends XBelSplitter {
 		return argumentList;
 	}
 
+	/*
 	private Long generateFunctionTermJdexId(IBaseTerm function,
 			List<String> argumentJdexList) throws ExecutionException {
 
 		return NdexIdentifierCache.INSTANCE.accessTermCache().get(
 				idJoiner.join("TERM", function.getJdexId(), argumentJdexList));
-	}
+	}*/
 
-	private FunctionTerm persistFunctionTerm(Term term, BaseTerm function,
+	private FunctionTerm persistFunctionTerm( BaseTerm function,
 			List<org.ndexbio.model.object.network.Term> argumentList) {
 		try {
-			List<String> argumentJdexList = Lists.newArrayList();
-			for (org.ndexbio.model.object.network.Term it : argumentList){
-				argumentJdexList.add(it.getJdexId());
-			}
-			Long jdexId = generateFunctionTermJdexId(function, argumentJdexList);
-
-			boolean persisted = this.networkService.isEntityPersisted(jdexId);
-			IFunctionTerm ft = this.networkService
-					.findOrCreateIFunctionTerm(jdexId);
-			if (persisted)
-				return ft;
-			ft.setJdexId(jdexId.toString());
-			ft.setTermFunc(function);
-			ft.setTermParameters(argumentList);
-			ft.setTermOrderedParameterIds(argumentJdexList);
-			networkService.getCurrentNetwork().addTerm(ft);
-			return ft;
+			return this.networkService.getFunctionTerm(function.getId(), argumentList);
 
 		} catch (ExecutionException e) {
 			logger.error(e.getMessage());
