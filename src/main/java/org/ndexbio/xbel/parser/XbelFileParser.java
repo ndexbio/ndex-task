@@ -2,14 +2,17 @@ package org.ndexbio.xbel.parser;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
 
-import org.ndexbio.common.cache.NdexIdentifierCache;
+import org.ndexbio.common.access.NdexDatabase;
+import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.models.data.INetwork;
+import org.ndexbio.common.persistence.orientdb.NdexPersistenceService;
 import org.ndexbio.task.parsingengines.XbelFileValidator;
 import org.ndexbio.task.parsingengines.XbelFileValidator.ValidationState;
 import org.ndexbio.task.service.network.XBelNetworkService;
@@ -49,25 +52,26 @@ public class XbelFileParser {
 	private String ownerName;
 	
 //	private INetwork network;
-	private XBelNetworkService networkService;
+	private NdexPersistenceService networkService;
 	private static final Logger logger = LoggerFactory.getLogger(XbelFileParser.class);
 
-	public XbelFileParser(String fn, String ownerName) throws JAXBException {
+	public XbelFileParser(String fn, String ownerName) throws JAXBException, URISyntaxException, NdexException {
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(fn),
 				"A filename is required");
-		/*
-		 * maintain a  default user for legacy tests
-		 * TODO: refactor legacy tests & remove default user
-		 */
-		this.setOwnerName(Objects.firstNonNull(ownerName, "jstegall"));
-		this.xmlFile = new File(fn).toURI().toString();
+
+		this.ownerName = ownerName;
+		this.xmlFile = new File(getClass().getClassLoader().getResource(fn).toURI())
+        .toURI().toString();
+           //new File(fn).toURI().toString();
 		this.validationState = new XbelFileValidator(fn).getValidationState();
 		logger.info(this.validationState.getValidationMessage());
 		this.context = JAXBContext.newInstance("org.ndexbio.xbel.model");
-		this.nsSplitter = new NamespaceGroupSplitter(context, networkService);
+        this.networkService = new NdexPersistenceService(new NdexDatabase());
+
+        this.nsSplitter = new NamespaceGroupSplitter(context, networkService);
 		this.adSplitter = new AnnotationDefinitionGroupSplitter(context, networkService);
 		this.sgSplitter = new StatementGroupSplitter(context, networkService);
-		this.headerSplitter = new HeaderSplitter(context, networkService);
+        this.headerSplitter = new HeaderSplitter(context);
 		this.initReader();
 	}
 
@@ -79,10 +83,10 @@ public class XbelFileParser {
 			this.processStatementGroups();
 
 			// persist the network domain model, commit the transaction, close database connection
-			this.networkService.persistNewNetwork();
+			this.networkService.persistNetwork();
 		} catch (Exception e) {
 			// rollback current transaction and close the database connection
-			this.networkService.rollbackCurrentTransaction();
+			this.networkService.abortTransaction();
 			e.printStackTrace();
 		} 	
 	}
@@ -96,9 +100,9 @@ public class XbelFileParser {
 			throw new Exception(e);
 		}
 		String networkTitle = this.headerSplitter.getHeader().getName();
-		this.network = this.networkService.createNewNetwork(this.getOwnerName(), networkTitle);
+		this.networkService.createNewNetwork(this.getOwnerName(), networkTitle,null);
 		
-		logger.info("New network created in XBEL Format: " + network.getName());
+		logger.info("New network created in XBEL Format: " + networkTitle);
 	}
 
 	private void processNamespaces() throws Exception {
@@ -164,10 +168,6 @@ public class XbelFileParser {
 		return ownerName;
 	}
 
-	private void setOwnerName(String ownerName) {
-		this.ownerName = ownerName;
-	}
-	
 	
 
 }

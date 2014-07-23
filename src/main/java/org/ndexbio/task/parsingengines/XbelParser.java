@@ -57,9 +57,8 @@ public class XbelParser implements IParsingEngine
         Preconditions.checkArgument(!Strings.isNullOrEmpty(ownerName),
         		"A network owner name is required");
 
-        //File f = new File(getClass().getClassLoader().getResource(fn).toURI());
-        this.xmlFile = new File(getClass().getClassLoader().getResource(fn).toURI())
-             .toURI().toString(); 
+        File f = new File(getClass().getClassLoader().getResource(fn).toURI());
+        this.xmlFile = f.toURI().toString(); 
         		//File(fn).toURI().toString();
         this.setOwnerName(ownerName);
         this.validationState = new XbelFileValidator(fn).getValidationState();

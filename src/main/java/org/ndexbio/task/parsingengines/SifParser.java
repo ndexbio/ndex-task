@@ -23,6 +23,7 @@ import org.ndexbio.common.models.data.INode;
 import org.ndexbio.model.object.network.BaseTerm;
 import org.ndexbio.common.models.object.network.RawNamespace;
 import org.ndexbio.common.persistence.orientdb.NdexPersistenceService;
+import org.ndexbio.model.object.network.Citation;
 import org.ndexbio.model.object.network.Edge;
 import org.ndexbio.model.object.network.Namespace;
 import org.ndexbio.model.object.network.Node;
@@ -57,9 +58,10 @@ public class SifParser implements IParsingEngine {
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(ownerName),
 				"A network owner name is required");
 		this.msgBuffer = Lists.newArrayList();
-		//this.sifFile = new File(fn);
-		
-		this.sifFile = new File(getClass().getClassLoader().getResource(fn).toURI());
+		if ( fn.startsWith("/")) 
+			this.sifFile = new File(fn);
+		else
+		    this.sifFile = new File(getClass().getClassLoader().getResource(fn).toURI());
 		this.sifURI = sifFile.toURI().toString();
 		this.persistenceService = new NdexPersistenceService(new NdexDatabase());
 		
@@ -67,6 +69,8 @@ public class SifParser implements IParsingEngine {
 
 		persistenceService.createNewNetwork(ownerName, title, null);
 
+		addSystemDefaultNamespaces();
+		
 	}
 
 	public List<String> getMsgBuffer() {
@@ -240,9 +244,21 @@ public class SifParser implements IParsingEngine {
 					}
 
 					Edge edge = addEdge(subject, predicate, object);  
+					
 					if (pubMedIds != null) {
 						for (String pubMedId : pubMedIds) {
-					//		this.addCitation(edge, pubMedId);
+							String[] pubmedIdTokens = pubMedId.split(":");
+							if ( pubmedIdTokens.length ==2 ) {
+								if ( pubmedIdTokens[0].equals("Pubmed")) {
+									Citation c = this.persistenceService.getCitation(
+										"", pubmedIdTokens[0], pubmedIdTokens[1], null);
+									this.persistenceService.addCitationToElement(edge.getId(), c, NdexClasses.Edge);
+								
+								} else {
+									throw new NdexException ("Unsupported Pubmed id format: " + 
+							       pubMedId + " found in file.");
+								}
+							}
 						}
 					}
 
@@ -304,6 +320,7 @@ public class SifParser implements IParsingEngine {
 						name = name.substring(0, humanSuffixIndex);
 					}
 					participant.setName(name);
+					this.persistenceService.setNodeName(participant.getId(), name);
 					
 			//		participant.addAlias(participant.getRepresents()); -- removed by cj. This is redundent to the represents edge.
 					
@@ -379,4 +396,27 @@ public class SifParser implements IParsingEngine {
 
 	}
 	
+	private void addSystemDefaultNamespaces() throws NdexException {
+		this.persistenceService.createNamespace("UniProt", 	"http://identifiers.org/uniprot/");
+		this.persistenceService.createNamespace("HGNC", 	"http://ndex.org/HGNC/");
+		this.persistenceService.createNamespace("Ensembl", 	"http://ndex.org/Ensembl/");
+		this.persistenceService.createNamespace("Pubmed",	"http://www.ncbi.nlm.nih.gov/pubmed/");
+
+		this.persistenceService.createNamespace("CHEBI",	"http://identifiers.org/chebi/");
+		this.persistenceService.createNamespace("Reactome",	"http://identifiers.org/reactome/");
+		this.persistenceService.createNamespace("RefSeq",	"http://identifiers.org/refseq/");
+		this.persistenceService.createNamespace("HGNC Symbol","http://identifiers.org/hgnc.symbol/");
+		this.persistenceService.createNamespace("HGNC",		"http://identifiers.org/hgnc/");
+		this.persistenceService.createNamespace("NCBI Gene","http://identifiers.org/ncbigene/");
+		this.persistenceService.createNamespace("InChIKey",	"http://identifiers.org/inchikey/");
+		this.persistenceService.createNamespace("pubchem-substance","http://identifiers.org/pubchem.substance/");
+		this.persistenceService.createNamespace("pubchem",	"http://identifiers.org/pubchem.compound/");
+		this.persistenceService.createNamespace("omim",		"http://identifiers.org/omim/");
+		this.persistenceService.createNamespace("PROTEIN DATA BANK","http://identifiers.org/pdb/");
+		this.persistenceService.createNamespace("Panther Family","http://identifiers.org/panther.family/");
+		this.persistenceService.createNamespace("CAS",		"http://identifiers.org/cas/");
+
+		
+		
+	}
 }

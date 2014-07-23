@@ -48,6 +48,7 @@ public abstract class XBelSplitter extends XMLFilterImpl {
 	 */
 	private Locator locator;
 
+	@Override
 	public void setDocumentLocator(Locator locator) {
 		super.setDocumentLocator(locator);
 		this.locator = locator;
@@ -58,6 +59,7 @@ public abstract class XBelSplitter extends XMLFilterImpl {
 		this.xmlElement = anElement;
 	}
 
+	@Override
 	public void startElement(String namespaceURI, String localName,
 			String qName, Attributes atts) throws SAXException {
 
@@ -107,6 +109,7 @@ public abstract class XBelSplitter extends XMLFilterImpl {
 		}
 	}
 
+	@Override
 	public void endElement(String namespaceURI, String localName, String qName)
 			throws SAXException {
 
@@ -167,6 +170,7 @@ public abstract class XBelSplitter extends XMLFilterImpl {
 	 */
 	private NamespaceSupport namespaces = new NamespaceSupport();
 
+	@Override
 	public void startPrefixMapping(String prefix, String uri)
 			throws SAXException {
 
@@ -176,6 +180,7 @@ public abstract class XBelSplitter extends XMLFilterImpl {
 		super.startPrefixMapping(prefix, uri);
 	}
 
+	@Override
 	public void endPrefixMapping(String prefix) throws SAXException {
 
 		namespaces.popContext();
