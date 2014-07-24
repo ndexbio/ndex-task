@@ -275,16 +275,6 @@ public class SifParser implements IParsingEngine {
 		}
 	}
 
-	//commented out for now. -- cj
-/*	private void addCitation(IEdge edge, String citationString)
-			throws NdexException, ExecutionException {
-		String[] citationStringElements = citationString.split(":");
-		if (citationStringElements.length == 2) {
-			ICitation citation = this.networkService.findOrCreateICitation(
-					citationStringElements[0], citationStringElements[1]);
-			edge.addCitation(citation);
-		}
-	} */
 
 	private void processExtendedBinarySIFAliases(BufferedReader bufferedReader)
 			throws IOException, ExecutionException, NdexException {
@@ -348,19 +338,15 @@ public class SifParser implements IParsingEngine {
 		if (line != null) {
 			String[] values = line.split("\t");
 			if (values.length > 1 && values[0] != null) {
-				System.out.println("Description: " + values[0]);
-				this.persistenceService.getCurrentNetwork().setDescription(values[0]);
-				this.persistenceService.getCurrentNetwork().setName(values[1]);
-				this.persistenceService.getNetworkDoc().field(NdexClasses.Network_P_desc, values[0])
-				  .field(NdexClasses.Network_P_name, values[0])
-				  .save();
+				this.persistenceService.setNetworkTitleAndDescription(
+						values[1], values[0]);
+//				System.out.println("Description: " + values[0]);
 			}
 
 			if (values.length > 0 && values[0] != null) {
-				System.out.println("Description: " + values[0]);
-				this.persistenceService.getCurrentNetwork().setDescription(values[0]);
-				this.persistenceService.getNetworkDoc().field(NdexClasses.Network_P_desc, values[0])
-				  .save();
+//				System.out.println("Description: " + values[0]);
+				this.persistenceService.setNetworkTitleAndDescription(
+						null, values[0]);
 			}
 			
 			if (values.length > 3 && values[3] != null) {
