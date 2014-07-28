@@ -5,27 +5,21 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.ExecutionException;
+import java.util.logging.Logger;
 
 import org.ndexbio.common.NdexClasses;
 import org.ndexbio.common.access.NdexDatabase;
 import org.ndexbio.common.exceptions.NdexException;
-import org.ndexbio.common.models.data.IBaseTerm;
-import org.ndexbio.common.models.data.ICitation;
-import org.ndexbio.common.models.data.IEdge;
-import org.ndexbio.common.models.data.INamespace;
-import org.ndexbio.common.models.data.INetwork;
-import org.ndexbio.common.models.data.INode;
+import org.ndexbio.model.object.NdexProperty;
 import org.ndexbio.model.object.network.BaseTerm;
-import org.ndexbio.common.models.object.network.RawNamespace;
 import org.ndexbio.common.persistence.orientdb.NdexPersistenceService;
+import org.ndexbio.common.util.TermStringType;
+import org.ndexbio.common.util.TermUtilities;
 import org.ndexbio.model.object.network.Citation;
 import org.ndexbio.model.object.network.Edge;
-import org.ndexbio.model.object.network.Namespace;
 import org.ndexbio.model.object.network.Node;
 
 import com.google.common.base.Preconditions;
@@ -49,6 +43,8 @@ public class SifParser implements IParsingEngine {
 	private final String extendedBinarySIFAliasHeader = "PARTICIPANT	PARTICIPANT_TYPE	PARTICIPANT_NAME	UNIFICATION_XREF	RELATIONSHIP_XREF";
 	private final String extendedBinarySIFPropertiesHeader = "NAME	ORGANISM	URI	DATASOURCE";
 	private final List<String> msgBuffer;
+	
+	private static Logger logger = Logger.getLogger("SifParser");
 
 	private NdexPersistenceService persistenceService;
 
@@ -120,9 +116,10 @@ public class SifParser implements IParsingEngine {
 
 			// close database connection
 			this.persistenceService.persistNetwork();
+			logger.info("finished loading.");
 		} catch (Exception e) {
 			// delete network and close the database connection
-			this.persistenceService.abortTransaction();
+			//this.persistenceService.abortTransaction();
 			e.printStackTrace();
 		}
 	}
@@ -225,6 +222,7 @@ public class SifParser implements IParsingEngine {
 			bufferedReader.readLine();
 
 			String line;
+			int counter = 0;
 			while ((line = bufferedReader.readLine()) != null) {
 				if (line.indexOf(extendedBinarySIFAliasHeader) != -1) {
 					processExtendedBinarySIFAliases(bufferedReader);  
@@ -243,7 +241,12 @@ public class SifParser implements IParsingEngine {
 						pubMedIds = tokens[4].split(";");
 					}
 
-					Edge edge = addEdge(subject, predicate, object);  
+					Edge edge = addEdge(subject, predicate, object);
+					counter ++;
+					if ( counter % 500 == 0 ) {
+						logger.info("processed " + counter + " lines so far. commit this batch.");
+						this.persistenceService.commit();
+					}
 					
 					if (pubMedIds != null) {
 						for (String pubMedId : pubMedIds) {
@@ -255,8 +258,8 @@ public class SifParser implements IParsingEngine {
 									this.persistenceService.addCitationToElement(edge.getId(), c, NdexClasses.Edge);
 								
 								} else {
-									throw new NdexException ("Unsupported Pubmed id format: " + 
-							       pubMedId + " found in file.");
+								  logger.warning("Unsupported Pubmed id format: " + 
+							       pubMedId + " found in file.\n line:\n " + line +"\n Ignore this pubmedId.\n" );
 								}
 							}
 						}
@@ -282,8 +285,9 @@ public class SifParser implements IParsingEngine {
 		// "PARTICIPANT	PARTICIPANT_TYPE	PARTICIPANT_NAME	UNIFICATION_XREF	RELATIONSHIP_XREF";
 		System.out.println("Processing Aliases");
 		String line;
+		int counter = 0;
 		while ((line = bufferedReader.readLine()) != null) {
-			System.out.println("-- " + line);
+		//	System.out.println("-- " + line);
 			if (line.indexOf(extendedBinarySIFPropertiesHeader) != -1) {
 				System.out.println("found properties header");
 				processExtendedBinarySIFProperties(bufferedReader);
@@ -295,6 +299,11 @@ public class SifParser implements IParsingEngine {
 				// Process one line of aliases
 				String[] tokens = null;
 				tokens = line.split("\t");
+				counter ++;
+				if ( counter % 200 == 0 ) {
+					logger.info("Aliases processed " + counter + " lines. commit batch.");
+					this.persistenceService.commit();
+				}
 				if (tokens.length > 2) {
 					String participantIdentifier = tokens[0];
 					// find the node that represents the term specified by the
@@ -337,38 +346,44 @@ public class SifParser implements IParsingEngine {
 		String line = bufferedReader.readLine();
 		if (line != null) {
 			String[] values = line.split("\t");
-			if (values.length > 1 && values[0] != null) {
-				this.persistenceService.setNetworkTitleAndDescription(
-						values[1], values[0]);
-//				System.out.println("Description: " + values[0]);
-			}
-
 			if (values.length > 0 && values[0] != null) {
-//				System.out.println("Description: " + values[0]);
 				this.persistenceService.setNetworkTitleAndDescription(
-						null, values[0]);
+						values[0], null);
 			}
 			
+			List<NdexProperty> props = new ArrayList<NdexProperty>();
+			
+			if (values.length > 1 && values[1] != null) {
+                NdexProperty p = new NdexProperty ("ORGANISM", values[1]);
+                props.add(p);
+			}
+			
+			if (values.length > 2 && values[2] != null) {
+                NdexProperty p = new NdexProperty ("URI", values[2]);
+                props.add(p);
+			}
+
 			if (values.length > 3 && values[3] != null) {
-				System.out.println("Source: " + values[3]);
+			//	System.out.println("Source: " + values[3]);
 				String source = values[3];
 				if (source.equals("http://purl.org/pc2/4/pid")){
 					source = "PID";
 				}
-//				this.networkService.setSource(source);
+				props.add(new NdexProperty("Source" , source));
 			}
-			
+			this.persistenceService.setNetworkProperties(props, null);
 		}
 	}
+	
+	
 
 	private Node addNode(String name) throws ExecutionException {
-	/*	BaseTerm term = persistenceService.getBaseTerm(name);
+		TermStringType stype = TermUtilities.getTermType(name);
+		if ( stype == TermStringType.NAME) {
+			return persistenceService.getNodeByName(name);
+		} 
+		return persistenceService.getNodeByBaseTerm(name);
 		
-		if ( term == null) 
-			throw new NdexException ("Internal Error: Failed to get Baseterm " + name + "from persistenceService.");
-	*/	
-		Node node = persistenceService.getNodeByBaseTerm(name);
-		return node;
 	}
 
 
