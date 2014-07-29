@@ -56,12 +56,14 @@ public class SifParserTest {
 	@Test
 	public void test() throws Exception {
 //		SifParser parser = new SifParser("ca-calmodulin-dependent_protein_kinase_activation.SIF", "Support");
-//		SifParser parser = new SifParser("gal-filtered.sif", "Support");
+		SifParser parser = new SifParser("gal-filtered.sif", "Support");
 		
 //		SifParser parser = new SifParser("Calcineurin-regulated_NFAT-dependent_transcription_in_lymphocytes.SIF","Support");
 //		SifParser parser = new SifParser("/home/chenjing/working/ndex/networks/reactome46_human/Meiosis.SIF","Support");
+//		SifParser parser = new SifParser("/home/chenjing/working/ndex/networks/reactome46_human/Metabolism_of_RNA.SIF","Support");
+		
 //		SifParser parser = new SifParser("/home/chenjing/working/ndex/networks/reactome46_human/Cell_Cycle.SIF","Support");
-		SifParser parser = new SifParser("/home/chenjing/working/ndex/networks/reactome46_human/Signaling_Pathways.SIF","Support");
+//		SifParser parser = new SifParser("/home/chenjing/working/ndex/networks/reactome46_human/Signaling_Pathways.SIF","Support");
 		parser.parseFile();
 		
 /*		try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(

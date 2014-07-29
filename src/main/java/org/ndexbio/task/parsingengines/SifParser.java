@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TreeSet;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;
 
@@ -47,6 +48,8 @@ public class SifParser implements IParsingEngine {
 	private static Logger logger = Logger.getLogger("SifParser");
 
 	private NdexPersistenceService persistenceService;
+	
+	private TreeSet<String> pubmedIdSet;
 
 	public SifParser(String fn, String ownerName) throws Exception {
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(fn),
@@ -67,6 +70,8 @@ public class SifParser implements IParsingEngine {
 
 		addSystemDefaultNamespaces();
 		
+		
+		pubmedIdSet = new TreeSet<String> ();
 	}
 
 	public List<String> getMsgBuffer() {
@@ -116,7 +121,7 @@ public class SifParser implements IParsingEngine {
 
 			// close database connection
 			this.persistenceService.persistNetwork();
-			logger.info("finished loading.");
+			logger.info("finished loading. Total Pubmed Ids: " + this.pubmedIdSet.size());
 		} catch (Exception e) {
 			// delete network and close the database connection
 			//this.persistenceService.abortTransaction();
@@ -253,9 +258,10 @@ public class SifParser implements IParsingEngine {
 							String[] pubmedIdTokens = pubMedId.split(":");
 							if ( pubmedIdTokens.length ==2 ) {
 								if ( pubmedIdTokens[0].equals("Pubmed")) {
-									Citation c = this.persistenceService.getCitation(
+									Long citationId = this.persistenceService.getCitationId(
 										"", pubmedIdTokens[0], pubmedIdTokens[1], null);
-									this.persistenceService.addCitationToElement(edge.getId(), c, NdexClasses.Edge);
+									this.pubmedIdSet.add(pubmedIdTokens[1]);
+									this.persistenceService.addCitationToElement(edge.getId(), citationId, NdexClasses.Edge);
 								
 								} else {
 								  logger.warning("Unsupported Pubmed id format: " + 
@@ -300,7 +306,7 @@ public class SifParser implements IParsingEngine {
 				String[] tokens = null;
 				tokens = line.split("\t");
 				counter ++;
-				if ( counter % 200 == 0 ) {
+				if ( counter % 500 == 0 ) {
 					logger.info("Aliases processed " + counter + " lines. commit batch.");
 					this.persistenceService.commit();
 				}
@@ -308,8 +314,8 @@ public class SifParser implements IParsingEngine {
 					String participantIdentifier = tokens[0];
 					// find the node that represents the term specified by the
 					// participantIdentifier
-					Node participant = this.persistenceService.getNodeByBaseTerm(participantIdentifier);
-					if (participant == null)
+					Long participantNodeId = this.persistenceService.getNodeIdByBaseTerm(participantIdentifier);
+					if (participantNodeId == null)
 						break;
 					//String type = tokens[1];
 					String name = tokens[2];
@@ -318,17 +324,17 @@ public class SifParser implements IParsingEngine {
 					if (humanSuffixIndex != -1){
 						name = name.substring(0, humanSuffixIndex);
 					}
-					participant.setName(name);
-					this.persistenceService.setNodeName(participant.getId(), name);
+					//participant.setName(name);
+					this.persistenceService.setNodeName(participantNodeId, name);
 					
 			//		participant.addAlias(participant.getRepresents()); -- removed by cj. This is redundent to the represents edge.
 					
 					if (tokens.length > 3) {
 						String[] unificationAliases = tokens[3].split(";");
-						this.persistenceService.addAliasToNode(participant.getId(),unificationAliases);
+						this.persistenceService.addAliasToNode(participantNodeId,unificationAliases);
 						if (tokens.length > 4) {
 							String[] relationshipAliases = tokens[4].split(";");
-							this.persistenceService.addRelatedTermToNode(participant.getId(), relationshipAliases);
+							this.persistenceService.addRelatedTermToNode(participantNodeId, relationshipAliases);
 						}
 					}
 				}
@@ -377,29 +383,28 @@ public class SifParser implements IParsingEngine {
 	
 	
 
-	private Node addNode(String name) throws ExecutionException {
+	private Long addNode(String name) throws ExecutionException, NdexException {
 		TermStringType stype = TermUtilities.getTermType(name);
 		if ( stype == TermStringType.NAME) {
-			return persistenceService.getNodeByName(name);
+			return persistenceService.getNodeIdByName(name);
 		} 
-		return persistenceService.getNodeByBaseTerm(name);
+		return persistenceService.getNodeIdByBaseTerm(name);
 		
 	}
 
 
 	private Edge addEdge(String subject, String predicate, String object)
 			throws ExecutionException, NdexException {
-		Node subjectNode = addNode(subject);
-		Node objectNode = addNode(object);
-		BaseTerm predicateTerm = persistenceService.getBaseTerm(predicate);
-		return persistenceService.createEdge(subjectNode, objectNode,
-				predicateTerm, null,null,null);
+		Long subjectNodeId = addNode(subject);
+		Long objectNodeId = addNode(object);
+		Long predicateTermId = persistenceService.getBaseTermId(predicate);
+		return persistenceService.createEdge(subjectNodeId, objectNodeId,
+				predicateTermId, null,null,null);
 
 	}
 	
 	private void addSystemDefaultNamespaces() throws NdexException {
 		this.persistenceService.createNamespace("UniProt", 	"http://identifiers.org/uniprot/");
-		this.persistenceService.createNamespace("HGNC", 	"http://ndex.org/HGNC/");
 		this.persistenceService.createNamespace("Ensembl", 	"http://ndex.org/Ensembl/");
 		this.persistenceService.createNamespace("Pubmed",	"http://www.ncbi.nlm.nih.gov/pubmed/");
 
