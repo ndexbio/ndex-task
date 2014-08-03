@@ -257,6 +257,7 @@ public class SifParser implements IParsingEngine {
 						for (String pubMedId : pubMedIds) {
 							String[] pubmedIdTokens = pubMedId.split(":");
 							if ( pubmedIdTokens.length ==2 ) {
+								//TODO: need to handle ISBN etc. Example in Reactome sif file.
 								if ( pubmedIdTokens[0].equals("Pubmed")) {
 									Long citationId = this.persistenceService.getCitationId(
 										"", pubmedIdTokens[0], pubmedIdTokens[1], null);

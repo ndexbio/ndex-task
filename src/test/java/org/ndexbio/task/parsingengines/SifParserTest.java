@@ -14,8 +14,6 @@ import java.nio.file.StandardCopyOption;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.ndexbio.common.access.NdexAOrientDBConnectionPool;
-import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.task.utility.BulkFileUploadUtility;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,24 +53,27 @@ public class SifParserTest {
 */
 	@Test
 	public void test() throws Exception {
-//		SifParser parser = new SifParser("ca-calmodulin-dependent_protein_kinase_activation.SIF", "Support");
-		SifParser parser = new SifParser("gal-filtered.sif", "Support");
+		SifParser parser = new SifParser("ca-calmodulin-dependent_protein_kinase_activation.SIF", "Support");
+		parser.parseFile();
+		parser = new SifParser("gal-filtered.sif", "Support");
+		parser.parseFile();
 		
-//		SifParser parser = new SifParser("Calcineurin-regulated_NFAT-dependent_transcription_in_lymphocytes.SIF","Support");
+		parser = new SifParser("Calcineurin-regulated_NFAT-dependent_transcription_in_lymphocytes.SIF","Support");
+		parser.parseFile();
+
 //		SifParser parser = new SifParser("/home/chenjing/working/ndex/networks/reactome46_human/Meiosis.SIF","Support");
-//		SifParser parser = new SifParser("/home/chenjing/working/ndex/networks/reactome46_human/Metabolism_of_RNA.SIF","Support");
+	//	SifParser parser = new SifParser("/home/chenjing/working/ndex/networks/reactome46_human/Metabolism_of_RNA.SIF","Support");
 		
 //		SifParser parser = new SifParser("/home/chenjing/working/ndex/networks/reactome46_human/Cell_Cycle.SIF","Support");
 //		SifParser parser = new SifParser("/home/chenjing/working/ndex/networks/reactome46_human/Signaling_Pathways.SIF","Support");
-		parser.parseFile();
 		
 /*		try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(
 				Paths.get("/home/chenjing/working/ndex/networks/reactome46_human"))) 
 		{
             for (Path path : directoryStream) {
               logger.info("Processing file " +path.toString());
-          //    SifParser parser = new SifParser(path.toString(),"Support");
-         //		parser.parseFile();
+              SifParser parser = new SifParser(path.toString(),"Support");
+         		parser.parseFile();
       		
   			 logger.info("file upload for  " + path.toString() +" finished.");
             }
@@ -80,7 +81,7 @@ public class SifParserTest {
         	logger.error(e.getMessage());
         	throw e;
         }
-*/		
+	*/	
 		
 	} 
 

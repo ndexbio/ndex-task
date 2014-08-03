@@ -13,7 +13,10 @@ import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.ndexbio.common.access.NdexDatabase;
+import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.persistence.orientdb.NdexPersistenceService;
+import org.ndexbio.common.util.TermStringType;
+import org.ndexbio.common.util.TermUtilities;
 import org.ndexbio.model.object.network.BaseTerm;
 import org.ndexbio.model.object.network.Network;
 import org.ndexbio.model.object.network.Node;
@@ -125,12 +128,12 @@ public class ExcelParser implements IParsingEngine
 
             // persist the network domain model, commit the transaction, close
             // database connection
-            this.networkService.persistNewNetwork();
+            this.networkService.persistNetwork();
         }
         catch (Exception e)
         {
             // rollback current transaction and close the database connection
-            this.networkService.rollbackCurrentTransaction();
+            this.networkService.abortTransaction();
             e.printStackTrace();
         } 
     }
@@ -138,32 +141,31 @@ public class ExcelParser implements IParsingEngine
     private void createNetwork() throws Exception
     {
         String networkTitle = this.excelFile.getName();
-        this.network = this.networkService
-        		.createNewNetwork(this.getOwnerName(), networkTitle);
-        this.networkService.setFormat("NDEX_EXCEL");
+        this.networkService.createNewNetwork(ownerName, networkTitle, null);
+        		
+        //this.networkService.setFormat("NDEX_EXCEL");
         this.getMsgBuffer().add("New Excel: " + network.getName());
     }
 
 
-    private INode addNode(String name) throws ExecutionException
+    private Long addNode(String name) throws ExecutionException, NdexException
     {
-        IBaseTerm term = this.networkService.findOrCreateNodeBaseTerm(name);
-        if (null != term)
-        {
-            INode node = this.networkService.findOrCreateINode(term);
-            return node;
-        }
-        return null;
-
+       if ( name == null )
+    	   throw new NdexException ("empty name found when creating node.");
+    	TermStringType stype = TermUtilities.getTermType(name);
+		if ( stype == TermStringType.NAME) {
+			return networkService.getNodeIdByName(name);
+		} 
+		return networkService.getNodeIdByBaseTerm(name);
     }
 
-    private void addEdge(String subject, String predicate, String object) throws ExecutionException
+    
+    private void addEdge(String subject, String predicate, String object) throws ExecutionException, NdexException
     {
-        INode subjectNode = addNode(subject);
-        INode objectNode = addNode(object);
-        IBaseTerm predicateTerm = this.networkService.findOrCreatePredicate(predicate);
-        this.networkService.createIEdge(subjectNode, objectNode, predicateTerm);
-
+        Long subjectNode = addNode(subject);
+        Long objectNode = addNode(object);
+        Long predicateTerm = this.networkService.getBaseTermId(predicate);
+        this.networkService.createEdge(subjectNode, objectNode, predicateTerm, null, null, null);
     }
 
     /*
@@ -181,12 +183,12 @@ public class ExcelParser implements IParsingEngine
         return excelURI;
     }
 
-    private void buildNetworkFromWorksheet(HSSFSheet sheet) throws ExecutionException
+    private void buildNetworkFromWorksheet(HSSFSheet sheet) throws ExecutionException, NdexException
     {
         processDataSheet(sheet);
     }
 
-    private void buildNetworkFromWorkSheet(HSSFSheet dataSheet, HSSFSheet metaDataSheet) throws ExecutionException
+    private void buildNetworkFromWorkSheet(HSSFSheet dataSheet, HSSFSheet metaDataSheet) throws ExecutionException, NdexException
     {
         // Iterate over the first 100(?) rows looking for values in col 0
         // Those will be the properties
@@ -202,7 +204,7 @@ public class ExcelParser implements IParsingEngine
 
     }
 
-    private void processDataSheet(HSSFSheet sheet) throws ExecutionException
+    private void processDataSheet(HSSFSheet sheet) throws ExecutionException, NdexException
     {
         Iterator<Row> rowIterator = sheet.iterator();
 
