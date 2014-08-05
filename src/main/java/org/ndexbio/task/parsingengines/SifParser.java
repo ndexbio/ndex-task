@@ -246,9 +246,9 @@ public class SifParser implements IParsingEngine {
 						pubMedIds = tokens[4].split(";");
 					}
 
-					Edge edge = addEdge(subject, predicate, object);
+					Long edgeId = addEdge(subject, predicate, object);
 					counter ++;
-					if ( counter % 500 == 0 ) {
+					if ( counter % 1000 == 0 ) {
 						logger.info("processed " + counter + " lines so far. commit this batch.");
 						this.persistenceService.commit();
 					}
@@ -262,7 +262,7 @@ public class SifParser implements IParsingEngine {
 									Long citationId = this.persistenceService.getCitationId(
 										"", pubmedIdTokens[0], pubmedIdTokens[1], null);
 									this.pubmedIdSet.add(pubmedIdTokens[1]);
-									this.persistenceService.addCitationToElement(edge.getId(), citationId, NdexClasses.Edge);
+									this.persistenceService.addCitationToElement(edgeId, citationId, NdexClasses.Edge);
 								
 								} else {
 								  logger.warning("Unsupported Pubmed id format: " + 
@@ -307,7 +307,7 @@ public class SifParser implements IParsingEngine {
 				String[] tokens = null;
 				tokens = line.split("\t");
 				counter ++;
-				if ( counter % 500 == 0 ) {
+				if ( counter % 1000 == 0 ) {
 					logger.info("Aliases processed " + counter + " lines. commit batch.");
 					this.persistenceService.commit();
 				}
@@ -394,7 +394,7 @@ public class SifParser implements IParsingEngine {
 	}
 
 
-	private Edge addEdge(String subject, String predicate, String object)
+	private Long addEdge(String subject, String predicate, String object)
 			throws ExecutionException, NdexException {
 		Long subjectNodeId = addNode(subject);
 		Long objectNodeId = addNode(object);

@@ -62,11 +62,12 @@ public class XbelFileValidator {
 		return false;
 	}
 
-	private ValidationState run() throws URISyntaxException {
+	private ValidationState run() {
 
 		try {
 
-			xv.validate(new File(getClass().getClassLoader().getResource(this.xmlFileName).toURI()));
+			xv.validate(new File( this.xmlFileName));
+					//getClass().getClassLoader().getResource(this.xmlFileName).toURI()));
 			String message = "File " + this.xmlFileName
 					+ " is a valid xbel file";
 			return new ValidationState(true, message);

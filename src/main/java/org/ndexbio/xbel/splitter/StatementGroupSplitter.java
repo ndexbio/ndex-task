@@ -11,11 +11,6 @@ import javax.xml.bind.JAXBException;
 
 import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.persistence.orientdb.NdexPersistenceService;
-import org.ndexbio.model.object.network.BaseTerm;
-import org.ndexbio.model.object.network.Edge;
-import org.ndexbio.model.object.network.FunctionTerm;
-import org.ndexbio.model.object.network.Node;
-import org.ndexbio.model.object.network.ReifiedEdgeTerm;
 import org.ndexbio.model.object.network.Support;
 import org.ndexbio.task.parsingengines.XbelParser;
 import org.ndexbio.xbel.model.Annotation;
@@ -68,7 +63,7 @@ public class StatementGroupSplitter extends XBelSplitter {
 	// StatementGroup. And the same
 	// is true for Supports.
 	private void processStatementGroup(StatementGroup sg,
-			Support outerSupport, org.ndexbio.model.object.network.Citation outerCitation,
+			Long outerSupportId, Long outerCitationId,
 			Map<String, String> outerAnnotations) throws ExecutionException,
 			NdexException {
 
@@ -92,37 +87,37 @@ public class StatementGroupSplitter extends XBelSplitter {
 			}
 		}
 
-		org.ndexbio.model.object.network.Citation citation = citationFromAnnotationGroup(annotationGroup);
-		if (citation != null) {
+		Long citationId = citationFromAnnotationGroup(annotationGroup);
+		if (citationId != null) {
 			// The AnnotationGroup had a Citation. This overrides the
 			// outerCitation.
 			// Furthermore, this means that the outerSupport does NOT apply to
 			// the inner StatementGroup
 			// The Support will either be null or will be specified in the
 			// AnnotationGroup
-			outerSupport = null;
+			outerSupportId = null;
 		} else {
 			// There was no Citation in the AnnotationGroup, so use the
 			// outerCitation
-			citation = outerCitation;
+			citationId = outerCitationId;
 		}
 
 		// The ICitation is passed to the supportFromAnnotationGroup method
 		// because
 		// any ISupport created will be in the context of the ICitation and
 		// should be linked to it.
-		Support support = supportFromAnnotationGroup(annotationGroup, citation);
-		if (support == null) {
+		Long supportId = supportFromAnnotationGroup(annotationGroup, citationId);
+		if (supportId == null) {
 			// The AnnotationGroup had no Support, therefore use the
 			// outerSupport
-			support = outerSupport;
+			supportId = outerSupportId;
 		}
 
 		// process the Statements belonging to this Statement Group
-		this.processStatements(sg, support, citation, annotations);
+		this.processStatements(sg, supportId, citationId, annotations);
 		// process any embedded StatementGroup(s)
 		for (StatementGroup isg : sg.getStatementGroup()) {
-			this.processStatementGroup(isg, support, citation, annotations);
+			this.processStatementGroup(isg, supportId, citationId, annotations);
 		}
 	}
 
@@ -141,8 +136,8 @@ public class StatementGroupSplitter extends XBelSplitter {
 		return annotationMap;
 	}
 
-	private Support supportFromAnnotationGroup(
-			AnnotationGroup annotationGroup, org.ndexbio.model.object.network.Citation citation)
+	private Long supportFromAnnotationGroup(
+			AnnotationGroup annotationGroup, Long citationId)
 			throws ExecutionException {
 		if (null == annotationGroup)
 			return null;
@@ -151,14 +146,14 @@ public class StatementGroupSplitter extends XBelSplitter {
 			if (object instanceof String) {
 				// No explicit type for Evidence, therefore if it is a string,
 				// its an Evidence and we find/create an ISupport
-				return this.networkService.getSupport(
-						(String) object, citation.getId());
+				return this.networkService.getSupportId(
+						(String) object, citationId);
 			}
 		}
 		return null;
 	}
 
-	private org.ndexbio.model.object.network.Citation citationFromAnnotationGroup(
+	private Long citationFromAnnotationGroup(
 			AnnotationGroup annotationGroup) throws NdexException {
 		if (null == annotationGroup)
 			return null;
@@ -168,8 +163,8 @@ public class StatementGroupSplitter extends XBelSplitter {
 				
 				Citation c = (Citation)object;
 				
-				return this.networkService
-						.getCitation(c.getName(), c.getType().toString(), c.getReference(), 
+				return this.networkService.getCitationId
+						(c.getName(), c.getType().toString(), c.getReference(), 
 							(c.getAuthorGroup() == null ? null : c.getAuthorGroup().getAuthor())	
 					        );
 			}
@@ -180,17 +175,17 @@ public class StatementGroupSplitter extends XBelSplitter {
 	/*
 	 * process statement group
 	 */
-	private void processStatements(StatementGroup sg, Support support,
-			org.ndexbio.model.object.network.Citation citation, Map<String,String> annotations) 
+	private void processStatements(StatementGroup sg, Long supportId,
+			Long citationId, Map<String,String> annotations) 
 					throws ExecutionException, NdexException {
 		List<Statement> statementList = sg.getStatement();
 		for (Statement statement : statementList) {
-			processStatement(statement, support, citation, annotations, 0);
+			processStatement(statement, supportId, citationId, annotations, 0);
 		}
 	}
 
-	private Edge processStatement(Statement statement, Support support,
-			org.ndexbio.model.object.network.Citation citation, Map<String,String> annotations, int level) 
+	private Long processStatement(Statement statement, Long supportId,
+			Long citationId, Map<String,String> annotations, int level) 
 					throws ExecutionException, NdexException {
 		if (level > 1) throw new NdexException("Attempt to process XBEL nested statement at level greater than 1");
 		if (null != statement.getSubject()) {
@@ -198,25 +193,25 @@ public class StatementGroupSplitter extends XBelSplitter {
 			// All statements are expected to have a subject.
 			// It is valid to have a statement with just a subject
 			// It creates a node - the biological meaning is "this exists"
-			Node subjectNode = this.processStatementSubject(statement
+			Long subjectNodeId = this.processStatementSubject(statement
 					.getSubject());
 			// A typical statement, however, has a relationship, and object
 			// as well as a subject
 			// In that case, we can create an edge
 
 			if (null != statement.getRelationship()) {
-				BaseTerm predicate = this.networkService.getBaseTerm(
+				Long predicateId = this.networkService.getBaseTermId(
 						XbelParser.belPrefix + ":"+statement.getRelationship().name());
 
-				Node objectNode = this.processStatementObject(statement
-						.getObject(), support, citation, annotations, level);
+				Long objectNodeId = this.processStatementObject(statement
+						.getObject(), supportId, citationId, annotations, level);
 
-				return this.networkService.createEdge(subjectNode, objectNode,
-						predicate, support, citation, annotations);
+				return this.networkService.createEdge(subjectNodeId, objectNodeId,
+						predicateId, supportId, citationId, annotations);
 			} 
 			
 			//System.out.println("Handling subject-only statement for node: " + subjectNode.getJdexId() );
-			this.networkService.addMetaDataToNode(subjectNode, support, citation, annotations);
+			this.networkService.addMetaDataToNode(subjectNodeId, supportId, citationId, annotations);
 			return null;
 
 		} 
@@ -225,17 +220,17 @@ public class StatementGroupSplitter extends XBelSplitter {
 	}
 	
 
-	private Node processStatementSubject(Subject sub)
+	private Long processStatementSubject(Subject sub)
 			throws ExecutionException, NdexException {
 		if (null == sub) {
 			return null;
 		}
 		try {
-			FunctionTerm representedTerm = this.processFunctionTerm(sub
+			Long representedTermId = this.processFunctionTerm(sub
 					.getTerm());
-			Node subjectNode = this.networkService.
-					getNodeByFunctionTerm(representedTerm);
-			return subjectNode;
+			Long subjectNodeId = this.networkService.
+					getNodeIdByFunctionTermId(representedTermId);
+			return subjectNodeId;
 		} catch (ExecutionException e) {
 			logger.error(e.getMessage());
 			e.printStackTrace();
@@ -244,9 +239,9 @@ public class StatementGroupSplitter extends XBelSplitter {
 
 	}
 
-	private Node processStatementObject(org.ndexbio.xbel.model.Object obj, 
-			  Support support,
-			  org.ndexbio.model.object.network.Citation citation, 
+	private Long processStatementObject(org.ndexbio.xbel.model.Object obj, 
+			  Long supportId,
+			  Long citationId, 
 			  Map<String,String> annotations, int level)
 			throws ExecutionException, NdexException {
 		if (null == obj) {
@@ -263,20 +258,20 @@ public class StatementGroupSplitter extends XBelSplitter {
 				//  2. a term of type "reifiedEdgeTerm" which references the edge
 				//  3. a object node which the term represents
 				//
-				Edge reifiedEdge = this.processStatement(obj.getStatement(), support,
-						              citation, annotations, level + 1);
-				ReifiedEdgeTerm representedTerm = this.networkService.getReifedEdgeTermForEdge(reifiedEdge.getId());
+				Long reifiedEdgeId = this.processStatement(obj.getStatement(), supportId,
+						              citationId, annotations, level + 1);
+				Long representedTermId = this.networkService.getReifiedEdgeTermIdFromEdgeId(reifiedEdgeId);
 				
-				Node objectNode = this.networkService.getNodeByReifiedEdgeTerm(representedTerm);
+				Long objectNodeId = this.networkService.getNodeIdByReifiedEdgeTermId(representedTermId);
 						
-				return objectNode;
+				return objectNodeId;
 			} 
 			
-			FunctionTerm representedTerm = this.processFunctionTerm(obj
+			Long representedTermId = this.processFunctionTerm(obj
 						.getTerm());
-			Node objectNode = this.networkService.getNodeByFunctionTerm(representedTerm);
+			Long objectNodeId = this.networkService.getNodeIdByFunctionTermId(representedTermId);
 					
-			return objectNode;
+			return objectNodeId;
 		} catch (ExecutionException e) {
 			logger.error(e.getMessage());
 			e.printStackTrace();
@@ -284,15 +279,15 @@ public class StatementGroupSplitter extends XBelSplitter {
 		}
 	}
 
-	private FunctionTerm processFunctionTerm(Term term)
+	private Long processFunctionTerm(Term term)
 			throws ExecutionException, NdexException {
 		// XBEL "Term" corresponds to NDEx FunctionTerm
 		
-		BaseTerm function = this.networkService.getBaseTerm(XbelParser.belPrefix +":"+term.getFunction());
+		Long functionId = this.networkService.getBaseTermId(XbelParser.belPrefix +":"+term.getFunction());
 
-		List<org.ndexbio.model.object.network.Term> argumentList = this.processInnerTerms(term);
+		List<Long> argumentList = this.processInnerTerms(term);
 
-		return persistFunctionTerm(function, argumentList);
+		return this.networkService.getFunctionTermId(functionId, argumentList);
 	}
 
 	/*
@@ -309,26 +304,24 @@ public class StatementGroupSplitter extends XBelSplitter {
 	 * String of the JDex IDs of its children. For BaseTerms, it is a String
 	 * containing the namespace and term value.
 	 */
-	private List<org.ndexbio.model.object.network.Term> 
-	       processInnerTerms(Term term) throws ExecutionException,
+	private List<Long> processInnerTerms(Term term) throws ExecutionException,
 			NdexException {
 
-		List<org.ndexbio.model.object.network.Term> argumentList = 
-				new ArrayList<org.ndexbio.model.object.network.Term> ();
+		List<Long> argumentList = new ArrayList<Long> ();
 
 		for (Object item : term.getParameterOrTerm()) {
 			if (item instanceof Term) {
 
-				FunctionTerm functionTerm = processFunctionTerm((Term) item);
-				argumentList.add(functionTerm);
+				Long functionTermId = processFunctionTerm((Term) item);
+				argumentList.add(functionTermId);
 
 			} else if (item instanceof Parameter) {
 				Parameter parameter = (Parameter)item;
 				String termString = 
 				 ((parameter.getNs() == null) ? XbelParser.belPrefix : parameter.getNs()) +
 				  		":" + parameter.getValue();
-				BaseTerm baseTerm = this.networkService.getBaseTerm(termString);
-				argumentList.add(baseTerm);
+				Long baseTermId = this.networkService.getBaseTermId(termString);
+				argumentList.add(baseTermId);
 			} else {
 				Preconditions.checkArgument(true,
 						"unknown argument to function term " + item);
@@ -337,35 +330,4 @@ public class StatementGroupSplitter extends XBelSplitter {
 		return argumentList;
 	}
 
-	/*
-	private Long generateFunctionTermJdexId(IBaseTerm function,
-			List<String> argumentJdexList) throws ExecutionException {
-
-		return NdexIdentifierCache.INSTANCE.accessTermCache().get(
-				idJoiner.join("TERM", function.getJdexId(), argumentJdexList));
-	}*/
-
-	private FunctionTerm persistFunctionTerm( BaseTerm function,
-			List<org.ndexbio.model.object.network.Term> argumentList) {
-		try {
-			return this.networkService.getFunctionTerm(function.getId(), argumentList);
-
-		} catch (ExecutionException e) {
-			logger.error(e.getMessage());
-			e.printStackTrace();
-			return null;
-		}
-
-	}
-
-	/*
-	 * private IBaseTerm createBaseTermForFunctionTerm(Term term, List<ITerm>
-	 * idList) throws ExecutionException { Parameter p = new Parameter();
-	 * p.setNs("BEL"); p.setValue(term.getFunction().value());
-	 * 
-	 * Long jdexId = XbelCacheService.INSTANCE.accessTermCache().get(
-	 * idJoiner.join(p.getNs(), p.getValue())); IBaseTerm bt =
-	 * XBelNetworkService.getInstance().createIBaseTerm(p, jdexId);
-	 * idList.add(bt); return bt; }
-	 */
 }

@@ -56,12 +56,14 @@ public class XbelParser implements IParsingEngine
         Preconditions.checkArgument(!Strings.isNullOrEmpty(fn), "A filename is required");
         Preconditions.checkArgument(!Strings.isNullOrEmpty(ownerName),
         		"A network owner name is required");
-
-        File f = new File(getClass().getClassLoader().getResource(fn).toURI());
-        this.xmlFile = f.toURI().toString(); 
-        		//File(fn).toURI().toString();
+     
+        File f = new File(fn);
+        if ( !f.exists()) {
+        	throw new NdexException("File not found: "+ f.getAbsolutePath());
+        }
+        this.xmlFile = f.getAbsolutePath(); 
         this.setOwnerName(ownerName);
-        this.validationState = new XbelFileValidator(fn).getValidationState();
+        this.validationState = new XbelFileValidator(this.xmlFile).getValidationState();
         logger.info(this.validationState.getValidationMessage());
         this.context = JAXBContext.newInstance("org.ndexbio.xbel.model");
         this.networkService = new NdexPersistenceService(new NdexDatabase());
