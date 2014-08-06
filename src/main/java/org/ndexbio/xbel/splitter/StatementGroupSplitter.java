@@ -33,12 +33,14 @@ public class StatementGroupSplitter extends XBelSplitter {
 			.getLogger(StatementGroupSplitter.class);
 	
 	private NdexPersistenceService networkService;
+	
+	private int counter;
 
 	public StatementGroupSplitter(JAXBContext context,
 			NdexPersistenceService networkService) {
 		super(context, xmlElement);
 		this.networkService = networkService;
-
+		counter=0;
 	}
 
 	@Override
@@ -181,6 +183,11 @@ public class StatementGroupSplitter extends XBelSplitter {
 		List<Statement> statementList = sg.getStatement();
 		for (Statement statement : statementList) {
 			processStatement(statement, supportId, citationId, annotations, 0);
+			counter ++;
+			if ( counter %2000 == 0 ) {
+				logger.info("processed " + counter + " edges so far. commit this batch.");
+				this.networkService.commit();
+			}
 		}
 	}
 

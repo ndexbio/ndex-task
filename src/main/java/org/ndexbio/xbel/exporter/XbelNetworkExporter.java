@@ -17,16 +17,6 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
-import org.ndexbio.common.models.object.NdexDataModelService;
-import org.ndexbio.common.models.object.network.BaseTerm;
-import org.ndexbio.common.models.object.network.Edge;
-import org.ndexbio.common.models.object.network.FunctionTerm;
-import org.ndexbio.common.models.object.network.Namespace;
-import org.ndexbio.common.models.object.network.Network;
-import org.ndexbio.common.models.object.network.Node;
-import org.ndexbio.common.models.object.network.ReifiedEdgeTerm;
-import org.ndexbio.common.models.object.network.Support;
-import org.ndexbio.common.models.object.network.Term;
 import org.ndexbio.task.audit.NdexAuditService;
 import org.ndexbio.task.audit.NdexAuditServiceFactory;
 import org.ndexbio.task.audit.NdexAuditUtils;

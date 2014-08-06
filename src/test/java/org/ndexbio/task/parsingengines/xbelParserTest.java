@@ -10,7 +10,8 @@ public class xbelParserTest {
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		XbelParser parser = new XbelParser("tiny_corpus.xbel", "Support");
+//		XbelParser parser = new XbelParser("small_corpus.xbel", "Support");
+		XbelParser parser = new XbelParser("/home/chenjing/working/ndex/networks/selventa_full.xbel", "Support");
 		parser.parseFile();
 	}
 

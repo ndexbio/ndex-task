@@ -31,8 +31,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.ndexbio.common.models.data.IMetadataObject;
-import org.ndexbio.common.models.data.INetwork;
 import org.ndexbio.xgmml.parser.MetadataEntries;
 import org.ndexbio.xgmml.parser.MetadataParser;
 import org.ndexbio.xgmml.parser.ObjectType;

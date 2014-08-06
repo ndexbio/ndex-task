@@ -3,7 +3,6 @@ package org.ndexbio.task.parsingengines;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -17,10 +16,7 @@ import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.persistence.orientdb.NdexPersistenceService;
 import org.ndexbio.common.util.TermStringType;
 import org.ndexbio.common.util.TermUtilities;
-import org.ndexbio.model.object.network.BaseTerm;
 import org.ndexbio.model.object.network.Network;
-import org.ndexbio.model.object.network.Node;
-import org.ndexbio.task.service.network.ExcelNetworkService;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;

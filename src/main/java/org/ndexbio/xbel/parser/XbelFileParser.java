@@ -11,11 +11,9 @@ import javax.xml.parsers.SAXParserFactory;
 
 import org.ndexbio.common.access.NdexDatabase;
 import org.ndexbio.common.exceptions.NdexException;
-import org.ndexbio.common.models.data.INetwork;
 import org.ndexbio.common.persistence.orientdb.NdexPersistenceService;
 import org.ndexbio.task.parsingengines.XbelFileValidator;
 import org.ndexbio.task.parsingengines.XbelFileValidator.ValidationState;
-import org.ndexbio.task.service.network.XBelNetworkService;
 import org.ndexbio.xbel.splitter.AnnotationDefinitionGroupSplitter;
 import org.ndexbio.xbel.splitter.HeaderSplitter;
 import org.ndexbio.xbel.splitter.NamespaceGroupSplitter;
@@ -25,7 +23,6 @@ import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 
-import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 

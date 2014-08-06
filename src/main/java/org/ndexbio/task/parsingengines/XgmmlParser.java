@@ -4,17 +4,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.List;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import org.apache.poi.hssf.usermodel.HSSFSheet;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.ndexbio.common.models.data.INetwork;
-import org.ndexbio.task.service.network.ExcelNetworkService;
-import org.ndexbio.task.service.network.SIFNetworkService;
+import org.ndexbio.common.access.NdexDatabase;
+import org.ndexbio.common.persistence.orientdb.NdexPersistenceService;
 import org.ndexbio.xgmml.parser.HandlerFactory;
 import org.ndexbio.xgmml.parser.XGMMLParser;
 import org.ndexbio.xgmml.parser.handler.ReadDataManager;
@@ -28,14 +24,13 @@ import org.xml.sax.helpers.ParserAdapter;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 
 public class XgmmlParser implements IParsingEngine {
     private final File xgmmlFile;
     private final String xgmmlURI;
     private String ownerName;
-    private SIFNetworkService networkService;
+    private NdexPersistenceService networkService;
     private XGMMLParser parser;
     private ReadDataManager readDataManager;
     private HandlerFactory handlerFactory;
@@ -50,7 +45,7 @@ public class XgmmlParser implements IParsingEngine {
 		this.setOwnerName(ownerName);
 		this.xgmmlFile = new File(fn);
 		this.xgmmlURI = xgmmlFile.toURI().toString();
-		this.networkService = new SIFNetworkService();
+		this.networkService = new NdexPersistenceService(new NdexDatabase());
 		this.readDataManager = new ReadDataManager(networkService);
 		this.handlerFactory = new HandlerFactory(readDataManager);
 		this.parser = new XGMMLParser(this.handlerFactory, this.readDataManager);
@@ -64,7 +59,7 @@ public class XgmmlParser implements IParsingEngine {
     
 	private void setNetwork() throws Exception {
 		String title = Files.getNameWithoutExtension(this.xgmmlFile.getName());
-		this.networkService.createNewNetwork(this.getOwnerName(), title);
+		this.networkService.createNewNetwork(this.getOwnerName(), title, null);
 	}
 
 	@Override
@@ -77,7 +72,7 @@ public class XgmmlParser implements IParsingEngine {
         catch (FileNotFoundException e1)
         {
             log("Could not read " + this.getXgmmlFile());
-            this.networkService.rollbackCurrentTransaction();  // close connection to database
+            this.networkService.abortTransaction();  //TODO: close connection to database
             // e1.printStackTrace();
             return;
         }
@@ -88,15 +83,13 @@ public class XgmmlParser implements IParsingEngine {
             setNetwork();
             readXGMML();
             
-
-
             // close database connection
-         	this.networkService.persistNewNetwork();
+         	this.networkService.persistNetwork();
         }
         catch (Exception e)
         {
             // rollback current transaction and close the database connection
-            this.networkService.rollbackCurrentTransaction();
+            this.networkService.abortTransaction();
             e.printStackTrace();
         } 
 		
@@ -154,14 +147,6 @@ public class XgmmlParser implements IParsingEngine {
 
 	public void setOwnerName(String ownerName) {
 		this.ownerName = ownerName;
-	}
-
-	public SIFNetworkService getNetworkService() {
-		return networkService;
-	}
-
-	public void setNetworkService(SIFNetworkService networkService) {
-		this.networkService = networkService;
 	}
 
 	public File getXgmmlFile() {

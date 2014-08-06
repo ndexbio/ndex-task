@@ -42,13 +42,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.ndexbio.common.exceptions.NdexException;
-import org.ndexbio.common.models.data.IBaseTerm;
-import org.ndexbio.common.models.data.IEdge;
-import org.ndexbio.common.models.data.IMetadataObject;
-import org.ndexbio.common.models.data.INamespace;
-import org.ndexbio.common.models.data.INetwork;
-import org.ndexbio.common.models.data.INode;
-import org.ndexbio.task.service.network.SIFNetworkService;
+import org.ndexbio.common.persistence.orientdb.NdexPersistenceService;
+import org.ndexbio.common.util.TermStringType;
+import org.ndexbio.common.util.TermUtilities;
+import org.ndexbio.model.object.NdexProperty;
+import org.ndexbio.model.object.network.Network;
 import org.ndexbio.xgmml.parser.ParseState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,7 +54,7 @@ import org.xml.sax.Attributes;
 
 public class ReadDataManager {
 	
-	private SIFNetworkService networkService;
+	private NdexPersistenceService networkService;
 	private String ownerName;
 	private String networkTitle;
 
@@ -109,12 +107,12 @@ public class ReadDataManager {
 	private List<String> currentList;
 	
 	
-	private IMetadataObject currentElement;
-	private INode currentNode;
-	private IEdge currentEdge;
+	private List<NdexProperty> currentProperties;
+	private Long currentNodeId;
+	private Long currentEdgeId;
 
 	
-	private INetwork currentNetwork;
+//	private INetwork currentNetwork;
 	
 	// Network view format properties
 	private Object networkViewId;
@@ -126,7 +124,7 @@ public class ReadDataManager {
 	
 	private static final Logger logger = LoggerFactory.getLogger(ReadDataManager.class);
 
-	public ReadDataManager(SIFNetworkService networkService) {
+	public ReadDataManager(NdexPersistenceService networkService) {
 
 		this.networkService = networkService;
 		
@@ -140,9 +138,9 @@ public class ReadDataManager {
 		graphDoneCount = 0;
 		documentVersion = 0;
 
-		currentElement = null;
-		currentNode = null;
-		currentEdge = null;
+		currentProperties = null;
+		currentNodeId = null;
+		currentEdgeId = null;
 		//parentNetwork = null;
 		currentNetworkIsDirected = true;
 		//currentRow = null;
@@ -172,14 +170,14 @@ public class ReadDataManager {
 	
 	public void dispose() {
 
-		currentNode = null;
-		currentEdge = null;
-		currentElement = null;
+		currentNodeId = null;
+		currentEdgeId = null;
+		currentProperties = null;
 
 	}
 	
 	public void handleSpecialNetworkAttributes() {
-		Map<String, String> metadata = getCurrentNetwork().getMetadata();
+		List<NdexProperty> metadata = getCurrentNetwork().getProperties();
 		// dc:description
 		if (null != metadata.get("dc:description")){
 			
@@ -378,7 +376,7 @@ public class ReadDataManager {
 	}
 	*/
 
-	protected INetwork getCurrentNetwork() {
+	protected Network getCurrentNetwork() {
 		return this.networkService.getCurrentNetwork();
 	}
 	
@@ -427,16 +425,25 @@ public class ReadDataManager {
 		return null;
 	}
 
-	public IEdge addEdge(String subject, String predicate, String object)
+	public Long addEdge(String subject, String predicate, String object)
 			throws ExecutionException, NdexException {
-		INode subjectNode = this.networkService.findINode(subject);
-		INode objectNode = this.networkService.findINode(object);
-		IBaseTerm predicateTerm = findOrCreateBaseTerm(predicate);
-		IEdge edge = this.networkService.createIEdge(subjectNode, objectNode,
-				predicateTerm);
+		Long subjectNodeId = addNode(subject);
+		Long objectNodeId  = addNode(object);
+		Long predicateTermId = this.networkService.getBaseTermId(predicate);
+		Long edge = this.networkService.createEdge(subjectNodeId, objectNodeId,
+				predicateTermId, null, null, null);
 		this.setCurrentEdge(edge);
-		return edge;
+		return edgeId;
 
+	}
+	
+	private Long addNode(String name) throws ExecutionException, NdexException {
+		TermStringType stype = TermUtilities.getTermType(name);
+		if ( stype == TermStringType.NAME) {
+			return this.networkService.getNodeIdByName(name);
+		} 
+		return this.networkService.getNodeIdByBaseTerm(name);
+		
 	}
 	
 	public IBaseTerm findOrCreateBaseTerm(String name, INamespace namespace) throws ExecutionException{
@@ -622,9 +629,6 @@ public class ReadDataManager {
 		return currentEdge;
 	}
 
-	public void setCurrentEdge(IEdge currentEdge) {
-		this.currentEdge = currentEdge;
-	}
 /*
 	public IRow getCurrentRow() {
 		return currentRow;
