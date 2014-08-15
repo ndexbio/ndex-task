@@ -25,6 +25,8 @@ package org.ndexbio.xgmml.parser.handler;
  */
 
 
+import java.util.concurrent.ExecutionException;
+
 import org.ndexbio.xgmml.parser.ParseState;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -34,7 +36,7 @@ public class HandleEdgeHandleList extends AbstractHandler {
 	private static final String DELIMITER = "|";
 
 	@Override
-	public ParseState handle(String namespace, String tag, String qName, Attributes atts, ParseState current) throws SAXException {
+	public ParseState handle(String namespace, String tag, String qName, Attributes atts, ParseState current) throws SAXException, ExecutionException {
 		if (manager.handleList != null) {
 			String list = "";
 
@@ -46,7 +48,7 @@ public class HandleEdgeHandleList extends AbstractHandler {
 				}
 			}
 
-			manager.addGraphicsAttribute(manager.getCurrentEdge(), "edgeHandleList", list);
+			manager.addGraphicsAttribute(manager.getCurrentEdgeId(), "edgeHandleList", list);
 			manager.handleList = null;
 		}
 		return current;

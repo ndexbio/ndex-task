@@ -2,11 +2,11 @@ package org.ndexbio.task.service;
 
 import java.util.List;
 
-import org.ndexbio.common.models.object.network.BaseTerm;
-import org.ndexbio.common.models.object.network.Citation;
-import org.ndexbio.common.models.object.network.Edge;
-import org.ndexbio.common.models.object.network.Namespace;
-import org.ndexbio.common.models.object.network.Network;
+import org.ndexbio.model.object.network.BaseTerm;
+import org.ndexbio.model.object.network.Citation;
+import org.ndexbio.model.object.network.Edge;
+import org.ndexbio.model.object.network.Namespace;
+import org.ndexbio.model.object.network.Network;
 
 /*
  * Represents a set of service operations to interact with NDEx model objects.

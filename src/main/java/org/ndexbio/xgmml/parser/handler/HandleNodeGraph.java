@@ -40,7 +40,7 @@ public class HandleNodeGraph extends HandleGraph {
     public ParseState handle(final String namespace, final String tag, final String qName,  Attributes atts, ParseState current) throws SAXException, NdexException {
 		manager.graphCount++;
 		
-		final Node node = manager.getCurrentNode();
+		final Long nodeId = manager.getCurrentNodeId();
 		throw new NdexException("nested node graph elements not yet handled");
 		
 		/*

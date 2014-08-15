@@ -24,6 +24,8 @@ package org.ndexbio.xgmml.parser.handler;
  * #L%
  */
 
+import java.util.concurrent.ExecutionException;
+
 import org.ndexbio.xgmml.parser.ParseState;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -35,7 +37,7 @@ public class HandleEdgeAttribute extends AbstractHandler {
 
 	@Override
 	public ParseState handle(String namespace, String tag, String qName,  Attributes atts, ParseState current)
-			throws SAXException {
+			throws SAXException, ExecutionException {
 		if (atts == null)
 			return current;
 
@@ -55,7 +57,7 @@ public class HandleEdgeAttribute extends AbstractHandler {
 			if (name.startsWith("edge.")) {
 				// It is a bypass attribute...
 				name = name.replace(".", "").toLowerCase();
-				manager.addGraphicsAttribute(manager.getCurrentEdge(), name,
+				manager.addGraphicsAttribute(manager.getCurrentEdgeId(), name,
 						value);
 			}
 		}

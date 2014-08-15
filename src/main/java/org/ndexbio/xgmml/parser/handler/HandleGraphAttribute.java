@@ -25,6 +25,8 @@ package org.ndexbio.xgmml.parser.handler;
  */
 
 
+import java.util.concurrent.ExecutionException;
+
 import org.ndexbio.xgmml.parser.ParseState;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -32,7 +34,7 @@ import org.xml.sax.SAXException;
 public class HandleGraphAttribute extends AbstractHandler {
 
 	@Override
-	public ParseState handle(String namespace, String tag, String qName,  Attributes atts, ParseState current) throws SAXException {
+	public ParseState handle(String namespace, String tag, String qName,  Attributes atts, ParseState current) throws SAXException, ExecutionException {
 		if (atts == null)
 			return current;
 		
@@ -50,9 +52,10 @@ public class HandleGraphAttribute extends AbstractHandler {
 			manager.setDocumentVersion(attributeValueUtil.getAttributeValue(atts, attName));
 		} else if (attName.matches("backgroundColor|GRAPH_VIEW_ZOOM|GRAPH_VIEW_CENTER_[XY]|NODE_SIZE_LOCKED")) {
 			String attValue = attributeValueUtil.getAttributeValue(atts, attName);
-			manager.addGraphicsAttribute(manager.getCurrentNetwork(), attName, attValue);
+			manager.addNetworkGraphicsAttribute( attName, attValue);
 		} else {
-			manager.setCurrentElement(manager.getCurrentNetwork());
+			//TODO: this line is removed by cj. need to review it.
+		//	manager.setCurrentElement(manager.getCurrentNetwork());
 			nextState = attributeValueUtil.handleAttribute(atts);
 		}
 

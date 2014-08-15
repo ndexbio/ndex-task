@@ -42,6 +42,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.ndexbio.common.exceptions.NdexException;
+import org.ndexbio.common.models.object.network.RawNamespace;
 import org.ndexbio.common.persistence.orientdb.NdexPersistenceService;
 import org.ndexbio.common.util.TermStringType;
 import org.ndexbio.common.util.TermUtilities;
@@ -113,8 +114,8 @@ public class ReadDataManager {
 	
 	
 	private List<NdexProperty> currentProperties;
-	private Long currentNode;
-	private Long currentEdge;
+	private Long currentNodeId;
+	private Long currentEdgeId;
 
 	
 //	private Network currentNetwork;
@@ -124,7 +125,7 @@ public class ReadDataManager {
 	private Object networkId;
 	private String visualStyleName;
 	private String rendererName;
-	private Object currentElementId; // node/edge/network old id
+	private Long currentElementId; // node/edge/network old id
 
 	
 	private static final Logger logger = LoggerFactory.getLogger(ReadDataManager.class);
@@ -144,8 +145,8 @@ public class ReadDataManager {
 		documentVersion = 0;
 
 		currentProperties = null;
-		currentNode = null;
-		currentEdge = null;
+		currentNodeId = null;
+		currentEdgeId = null;
 		//parentNetwork = null;
 		currentNetworkIsDirected = true;
 		//currentRow = null;
@@ -175,8 +176,8 @@ public class ReadDataManager {
 	
 	public void dispose() {
 
-		currentNode = null;
-		currentEdge = null;
+		currentNodeId = null;
+		currentEdgeId = null;
 		currentProperties = null;
 
 	}
@@ -253,27 +254,45 @@ public class ReadDataManager {
 	 * @param element an Node or Edge
 	 * @param attName The name of the attribute
 	 * @param attValue The value of the attribute
+	 * @throws ExecutionException 
 	 */
-	protected void addGraphicsAttribute(PropertiedObject element, String attName, String attValue) {
-		System.out.println("Adding graphics " + attName + " = " + attValue + " to " + element.toString());
-		AttributeValueUtil.setAttribute(element, attName, attValue);
+	protected void addGraphicsAttribute(Long elementId, String attName, String attValue) throws ExecutionException {
+		System.out.println("Adding graphics " + attName + " = " + attValue + " to " + elementId.toString());
+		this.networkService.setElementPresentationProperty(elementId, attName, attValue);
 	}
-	
-
 	
 	public List<NdexProperty> getGraphicsAttributes(PropertiedObject element) {
 		return element.getPresentationProperties();
 	}
 	
-	protected void addGraphicsAttributes(PropertiedObject element, Attributes atts) {
-		if (element != null) {
+	protected void addGraphicsAttributes(Long elementId, Attributes atts) throws ExecutionException {
+		if (elementId != null) {
 			final int attrLength = atts.getLength();
 
 			for (int i = 0; i < attrLength; i++) {
-				System.out.println("Adding graphics " + atts.getLocalName(i) + " = " + atts.getValue(i) + " to " + element.toString());
-				AttributeValueUtil.setAttribute(element, atts.getLocalName(i), atts.getValue(i));
+				System.out.println("Adding graphics " + atts.getLocalName(i) + " = " + atts.getValue(i) + " to " + elementId.toString());
+				this.setElementProperty(elementId, atts.getLocalName(i), atts.getValue(i));
 			}
 		}
+	}
+
+	protected void addNetworkGraphicsAttributes( Attributes atts) throws ExecutionException {
+		final int attrLength = atts.getLength();
+
+		ArrayList<NdexProperty> plist = new ArrayList<NdexProperty> ();
+		for (int i = 0; i < attrLength; i++) {
+			NdexProperty p = new NdexProperty( atts.getLocalName(i), atts.getValue(i));
+			plist.add(p);
+		}
+		this.networkService.setNetworkProperties(null, plist);
+	}
+	
+	protected void addNetworkGraphicsAttribute( String key, String value) throws ExecutionException {
+
+		ArrayList<NdexProperty> plist = new ArrayList<NdexProperty> ();
+		NdexProperty p = new NdexProperty( key, value);
+		plist.add(p);
+		this.networkService.setNetworkProperties(null, plist);
 	}
 	
 	// This is code from the original Cytoscape XGMML parser 
@@ -415,29 +434,30 @@ public class ReadDataManager {
 	}
 	*/
 	
-	public Node findOrCreateNode(String id, String name) throws ExecutionException {
-		BaseTerm term = null;
-		if (name != null){
-			term = findOrCreateBaseTerm(name);
-		} else {
-			term = findOrCreateBaseTerm(id);
-		}
-		if (null != term) {
-			Node node = this.networkService.findOrCreateNode(id, term);
-			return node;
-		}
+	public Long findOrCreateNodeId(String id, String name) throws ExecutionException, NdexException {
+		TermStringType stype = TermUtilities.getTermType(name);
+		if ( stype == TermStringType.NAME) {
+			return this.networkService.findOrCreateNodeIdByExternalId(id, name);
+		} 
+		
+		Long baseTermId = this.networkService.getBaseTermId(name);
+		
+		Long nodeId = this.networkService.findOrCreateNodeIdByExternalId(id, null);
+        
+		this.networkService.setNodeRepresentTerm(nodeId, baseTermId);
+		
 		return null;
 	}
 
-	public Edge addEdge(String subject, String predicate, String object)
+	public Long addEdge(String subjectId, String predicate, String objectId)
 			throws ExecutionException, NdexException {
-		Long subjectNodeId = addNode(subject);
-		Long objectNodeId  = addNode(object);
+		Long subjectNodeId = this.networkService.findOrCreateNodeIdByExternalId(subjectId, null);
+		Long objectNodeId  = this.networkService.findOrCreateNodeIdByExternalId(objectId, null);
 		Long predicateTermId = this.networkService.getBaseTermId(predicate);
-		Edge edge = this.networkService.createEdge(subjectNodeId, objectNodeId,
+		Long edgeId = this.networkService.createEdge(subjectNodeId, objectNodeId,
 				predicateTermId, null, null, null);
-		this.setCurrentEdge(edge);
-		return edge;
+		this.currentEdgeId = edgeId;
+		return edgeId;
 
 	}
 	
@@ -450,137 +470,33 @@ public class ReadDataManager {
 		
 	}
 	
-	public BaseTerm findOrCreateBaseTerm(String name, Namespace namespace) throws ExecutionException{
-		return this.networkService.findOrCreateBaseTerm(name, namespace);
+	public Long findOrCreateBaseTerm(String name, Namespace namespace) 
+			throws ExecutionException, NdexException{
+		return this.networkService.getBaseTermId(namespace,name );
 	}
 	
-	public Namespace findOrCreateNamespace(String uri, String prefix) throws ExecutionException{
-		return this.networkService.findOrCreateNamespace(uri, prefix);
+	public Namespace findOrCreateNamespace(String uri, String prefix) throws ExecutionException, NdexException{
+		RawNamespace rns = new RawNamespace (prefix, uri);
+		
+		return this.networkService.findOrCreateNamespace(rns);
 	}
 
-	private BaseTerm findBaseTerm(String termString) throws ExecutionException {
-		// case 1 : termString is a URI
-		// example: http://identifiers.org/uniprot/P19838
-		// treat the last element in the URI as the identifier and the rest as
-		// the namespace URI
-		// find or create the namespace based on the URI
-		// when creating, set the prefix based on the PREFIX-URI table for known
-		// namespaces, otherwise do not set.
-		//
-		BaseTerm baseTerm = null;
-		try {
-			URI termStringURI = new URI(termString);
-			String path = termStringURI.getPath();
-			if (path != null && path.indexOf("/") != -1) {
-				String identifier = path.substring(path.lastIndexOf('/') + 1);
-				String namespaceURI = termString.substring(0,
-						termString.lastIndexOf('/') + 1);
-				Namespace namespace = this.networkService.findNamespace(
-						namespaceURI, null);
-				baseTerm = this.networkService.findNodeBaseTerm(identifier,
-						namespace);
-				return baseTerm;
-			}
-
-		} catch (URISyntaxException e) {
-			// ignore and move on to next case
-		}
-
-		// case 2: termString is of the form NamespacePrefix:Identifier
-		// find or create the namespace based on the prefix
-		// when creating, set the URI based on the PREFIX-URI table for known
-		// namespaces, otherwise do not set.
-		//
-		String[] termStringComponents = termString.split(":");
-		if (termStringComponents != null && termStringComponents.length == 2) {
-			String identifier = termStringComponents[1];
-			String prefix = termStringComponents[0];
-			Namespace namespace = this.networkService.findNamespace(null,
-					prefix);
-			baseTerm = this.networkService.findNodeBaseTerm(identifier,
-					namespace);
-			return baseTerm;
-		}
-
-		// case 3: termString cannot be parsed, use it as the identifier.
-		// find or create the namespace for prefix "LOCAL" and use that as the
-		// namespace.
-
-		baseTerm = this.networkService.findNodeBaseTerm(termString,
-				this.networkService.findNamespace(null, "LOCAL"));
-
-		return baseTerm;
-
-	}
-
-	private BaseTerm findOrCreateBaseTerm(String termString)
-			throws ExecutionException {
-		// case 1 : termString is a URI
-		// example: http://identifiers.org/uniprot/P19838
-		// treat the last element in the URI as the identifier and the rest as
-		// the namespace URI
-		// find or create the namespace based on the URI
-		// when creating, set the prefix based on the PREFIX-URI table for known
-		// namespaces, otherwise do not set.
-		//
-		BaseTerm baseTerm = null;
-		try {
-			URI termStringURI = new URI(termString);
-			String path = termStringURI.getPath();
-			if (path != null && path.indexOf("/") != -1) {
-				String identifier = path.substring(path.lastIndexOf('/') + 1);
-				String namespaceURI = termString.substring(0,
-						termString.lastIndexOf('/') + 1);
-				Namespace namespace = this.networkService
-						.findOrCreateINamespace(namespaceURI, null);
-				baseTerm = this.networkService.findOrCreateNodeBaseTerm(
-						identifier, namespace);
-				return baseTerm;
-			}
-
-		} catch (URISyntaxException e) {
-			// ignore and move on to next case
-		}
-
-		// case 2: termString is of the form NamespacePrefix:Identifier
-		// find or create the namespace based on the prefix
-		// when creating, set the URI based on the PREFIX-URI table for known
-		// namespaces, otherwise do not set.
-		//
-		//String[] termStringComponents = termString.split(":");
-		int colonIndex = termString.indexOf(":");
+	private Long findOrCreateBaseTermId(String termString)
+			throws ExecutionException, NdexException {
 		// special case for HGNC prefix with colon
 		int hgncIdIndex = termString.indexOf("HGNC:HGNC:");
-		if (colonIndex != -1 && termString.length() > colonIndex + 2 || hgncIdIndex == 0) {
-			String identifier = null;
-			String prefix = null;
-			if (hgncIdIndex == 0){
-				prefix = "HGNC:HGNC";
-				identifier = termString.substring(10);
-			} else {
-				identifier = termString.substring(colonIndex + 1);
-				prefix = termString.substring(0, colonIndex);
-			}
-			
-			Namespace namespace = this.networkService.findOrCreateINamespace(
-					null, prefix);
-			baseTerm = this.networkService.findOrCreateNodeBaseTerm(
-					identifier, namespace);
-			return baseTerm;
+		if (hgncIdIndex == 0){
+				String prefix = "HGNC:HGNC";
+				String identifier = termString.substring(10);
+				RawNamespace rns = new RawNamespace(prefix, "http://identifiers.org/hgnc/");
+				Namespace ns = this.networkService.getNamespace(rns);
+				return this.networkService.getBaseTermId(prefix, identifier);
 		}
-
-		// case 3: termString cannot be parsed, use it as the identifier.
-		// find or create the namespace for prefix "LOCAL" and use that as the
-		// namespace.
-
-		baseTerm = this.networkService.findOrCreateNodeBaseTerm(termString,
-				this.networkService.findOrCreateNamespace(null, "LOCAL"));
-
-		return baseTerm;
+		
+		return this.networkService.getBaseTermId(termString);
 	}
 
 
-	
 	public Object getNetworkViewId() {
 		return networkViewId;
 	}
@@ -613,24 +529,24 @@ public class ReadDataManager {
 		this.rendererName = rendererName;
 	}
 	
-	protected Object getCurrentElementId() {
-		return currentElementId;
-	}
-
-	protected void setCurrentElementId(Object currentElementId) {
+	protected void setCurrentElementId(Long currentElementId) {
 		this.currentElementId = currentElementId;
 	}
 
-	public Node getCurrentNode() {
-		return this.currentNode;
+	public Long getCurrentNodeId() {
+		return this.currentNodeId;
 	}
 
-	public void setCurrentNode(Node currentNode) {
-		this.currentNode = currentNode;
+	public void setCurrentNodeId(Long currentNode) {
+		this.currentNodeId = currentNode;
 	}
 
-	public Edge getCurrentEdge() {
-		return this.currentEdge;
+	public Long getCurrentEdgeId() {
+		return this.currentEdgeId;
+	}
+	
+	protected void setElementProperty ( Long elementId, String key, String value) throws ExecutionException {
+		this.networkService.setElementProperty(elementId, key, value);
 	}
 
 /*
@@ -642,14 +558,10 @@ public class ReadDataManager {
 		this.currentRow = row;
 	}
 */	
-	protected PropertiedObject getCurrentElement() {
-		return this.currentElement;
+	protected Long getCurrentElementId() {
+		return this.currentElementId;
 	}
 	
-	public void setCurrentElement(PropertiedObject entry) {
-		this.currentElement = entry;
-	}
-
 	public List<String> getCurrentList() {
 		return currentList;
 	}

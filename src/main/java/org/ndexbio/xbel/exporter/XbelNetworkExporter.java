@@ -17,6 +17,13 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
+import org.ndexbio.model.object.network.Edge;
+import org.ndexbio.model.object.network.Namespace;
+import org.ndexbio.model.object.network.Network;
+import org.ndexbio.model.object.network.Node;
+import org.ndexbio.model.object.network.Support;
+import org.ndexbio.model.object.network.Term;
+import org.ndexbio.model.object.network.BaseTerm;
 import org.ndexbio.task.audit.NdexAuditService;
 import org.ndexbio.task.audit.NdexAuditServiceFactory;
 import org.ndexbio.task.audit.NdexAuditUtils;
@@ -130,21 +137,13 @@ public class XbelNetworkExporter {
 		this.auditService.increaseExpectedMetricValue("edge count",
 				(long) subNetwork.getEdgeCount());
 
-		for (Map.Entry<String, Term> entry : subNetwork.getTerms().entrySet()) {
-			if (entry.getValue() instanceof FunctionTerm) {
-				this.auditService
-						.incrementExpectedMetricValue("function term count");
-			} else if (entry.getValue() instanceof BaseTerm) {
-				this.auditService
-						.incrementExpectedMetricValue("base term count");
-			} else if (entry.getValue() instanceof ReifiedEdgeTerm) {
-				this.auditService
-						.incrementExpectedMetricValue("reified edge count");
-			} else {
-				logger.error("Unknown term class "
-						+ entry.getValue().getClass().getName());
-			}
-		}
+		this.auditService.increaseExpectedMetricValue(
+				"function term count", (long)subNetwork.getFunctionTerms().size());
+		this.auditService.increaseExpectedMetricValue(
+				"base term count", (long)subNetwork.getBaseTerms().size());
+		this.auditService.increaseExpectedMetricValue(
+				"reified edge count", (long)subNetwork.getReifiedEdgeTerms().size());
+
 		this.auditService.increaseExpectedMetricValue("citation count",
 				(long) subNetwork.getCitations().size());
 		this.auditService.increaseExpectedMetricValue("node count",
@@ -222,7 +221,7 @@ public class XbelNetworkExporter {
 		for (Namespace ns : this.modelService.getExternalAnnotationsByNetworkId(networkId)){
 			ExternalAnnotationDefinition ead = this.xbelFactory.createExternalAnnotationDefinition();
 			ead.setId(ns.getPrefix());
-			ead.setUrl(ns.getURI());
+			ead.setUrl(ns.getUri());
 			adg.getExternalAnnotationDefinition().add(ead);
 		}
 	}
@@ -250,9 +249,9 @@ public class XbelNetworkExporter {
 	 * for the NDEx objects that belong to that Citation
 	 */
 	private void processCitationSubnetworks() {
-		List<org.ndexbio.common.models.object.network.Citation> modelCitations = this
+		List<org.ndexbio.model.object.network.Citation> modelCitations = this
 				.getCitationsByNetworkId();
-		for (org.ndexbio.common.models.object.network.Citation citation : modelCitations) {
+		for (org.ndexbio.model.object.network.Citation citation : modelCitations) {
 			this.subNetwork = this.modelService.getSubnetworkByCitationId(this.userId,
 					this.networkId, citation.getId());
 			if (null == subNetwork) {
@@ -577,13 +576,13 @@ public class XbelNetworkExporter {
 
 	private String createXbelCitation(AnnotationGroup annotGroup) {
 		Citation xbelCitation = new Citation();
-		Map<String, org.ndexbio.common.models.object.network.Citation> networkCitations = this.subNetwork
-				.getCitations();
+		Map<String, org.ndexbio.model.object.network.Citation> networkCitations =
+				this.subNetwork.getCitations();
 		if (networkCitations.size() == 1) {
 
-			for (Map.Entry<String, org.ndexbio.common.models.object.network.Citation> entry : networkCitations
+			for (Map.Entry<String, org.ndexbio.model.object.network.Citation> entry : networkCitations
 					.entrySet()) {
-				org.ndexbio.common.models.object.network.Citation modelCitation = entry
+				org.ndexbio.model.object.network.Citation modelCitation = entry
 						.getValue();
 				xbelCitation.setName(modelCitation.getType());
 				xbelCitation.setReference(modelCitation.getIdentifier());
@@ -647,8 +646,8 @@ public class XbelNetworkExporter {
 		for (Namespace modelNamespace : namespaces) {
 			org.ndexbio.xbel.model.Namespace xbelNamespace = this.xbelFactory.createNamespace();
 			xbelNamespace.setPrefix(modelNamespace.getPrefix());
-			xbelNamespace.setResourceLocation(modelNamespace.getURI());
-			if (Strings.isNullOrEmpty(modelNamespace.getURI())) {
+			xbelNamespace.setResourceLocation(modelNamespace.getUri());
+			if (Strings.isNullOrEmpty(modelNamespace.getUri())) {
 				System.out.println("++++ empty namespace uri prefix = "
 						+ modelNamespace.getPrefix());
 			}
@@ -666,8 +665,8 @@ public class XbelNetworkExporter {
 
 	}
 
-	private List<org.ndexbio.common.models.object.network.Citation> getCitationsByNetworkId() {
-		List<org.ndexbio.common.models.object.network.Citation> modelCitations = this.modelService
+	private List<org.ndexbio.model.object.network.Citation> getCitationsByNetworkId() {
+		List<org.ndexbio.model.object.network.Citation> modelCitations = this.modelService
 						.getCitationsByNetworkId(networkId);
 		System.out.println("Network " + networkId + " has "
 				+ modelCitations.size() + " citations");

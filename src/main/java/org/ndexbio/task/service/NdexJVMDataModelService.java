@@ -7,13 +7,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.models.dao.CommonDAOValues;
-import org.ndexbio.common.models.dao.DAOFactorySupplier;
 import org.ndexbio.common.models.dao.NetworkDAO;
-import org.ndexbio.common.models.object.network.BaseTerm;
-import org.ndexbio.common.models.object.network.Citation;
-import org.ndexbio.common.models.object.network.Edge;
-import org.ndexbio.common.models.object.network.Namespace;
-import org.ndexbio.common.models.object.network.Network;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

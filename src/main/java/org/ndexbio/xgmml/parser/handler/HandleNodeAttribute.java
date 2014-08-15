@@ -24,6 +24,8 @@ package org.ndexbio.xgmml.parser.handler;
  * #L%
  */
 
+import java.util.concurrent.ExecutionException;
+
 import org.ndexbio.xgmml.parser.ParseState;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -32,7 +34,7 @@ public class HandleNodeAttribute extends AbstractHandler {
 
 	@Override
 	public ParseState handle(final String namespace, final String tag, final String qName,  Attributes atts, ParseState current)
-			throws SAXException {
+			throws SAXException, ExecutionException {
 		if (atts == null)
 			return current;
 		manager.attState = current;

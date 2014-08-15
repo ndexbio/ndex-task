@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -149,7 +150,7 @@ public class AttributeValueUtil {
             return atts.getValue(key);
     }
 
-    protected ParseState handleAttribute(Attributes atts) throws SAXParseException {
+    protected ParseState handleAttribute(Attributes atts) throws SAXParseException, ExecutionException {
     	ParseState parseState = ParseState.NONE;
     	
     	final String name = atts.getValue("name");
@@ -164,7 +165,7 @@ public class AttributeValueUtil {
     	//final boolean isEquation = ObjectTypeMap.fromXGMMLBoolean(atts.getValue("cy:equation"));
     	//final boolean isHidden = ObjectTypeMap.fromXGMMLBoolean(atts.getValue("cy:hidden"));
         
-		final PropertiedObject curElement = manager.getCurrentElement();
+		final Long curElementId = manager.getCurrentElementId();
 		
 		//INetwork network = manager.getCurrentNetwork();
 		ObjectType objType = typeMap.getType(type);
@@ -177,7 +178,7 @@ public class AttributeValueUtil {
 		//System.out.println("setting attribute name = " + name + " value = " + value );
 		
 		if (null != type){
-			setAttribute(curElement, name, value);
+			manager.setElementProperty(curElementId, name, value);
 		}
 		
 		

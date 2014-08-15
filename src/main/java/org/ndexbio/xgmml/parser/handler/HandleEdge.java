@@ -71,7 +71,7 @@ public class HandleEdge extends AbstractHandler {
 
 			//INetwork net = manager.getCurrentNetwork();
 			try {
-				Edge edge = manager.addEdge(sourceId.toString(), interaction, targetId.toString());
+				Long edgeId = manager.addEdge(sourceId.toString(), interaction, targetId.toString());
 			} catch (ExecutionException e) {
 				e.printStackTrace();
 				throw new NdexException("not yet handling XLINK in XGMML");

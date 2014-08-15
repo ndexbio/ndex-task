@@ -24,6 +24,8 @@ package org.ndexbio.xgmml.parser.handler;
  * #L%
  */
 
+import java.util.concurrent.ExecutionException;
+
 import org.ndexbio.xgmml.parser.ParseState;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -31,7 +33,8 @@ import org.xml.sax.SAXException;
 public class HandleGraphGraphics extends AbstractHandler {
 
 	@Override
-	public ParseState handle(String namespace, String tag, String qName,  Attributes atts, ParseState current) throws SAXException {
+	public ParseState handle(String namespace, String tag, String qName,  Attributes atts, ParseState current) 
+			throws SAXException, ExecutionException {
 		if (atts == null)
 			return current;
 		
@@ -39,13 +42,13 @@ public class HandleGraphGraphics extends AbstractHandler {
 		ParseState nextState = current;
 
 		if (tag.equals("graphics")) {
-        	manager.addGraphicsAttributes(manager.getCurrentNetwork(), atts);
+        	manager.addNetworkGraphicsAttributes( atts);
         } else if (tag.equals("att")) {
 			String name = atts.getValue(AttributeValueUtil.ATTR_NAME);
             String value = atts.getValue(AttributeValueUtil.ATTR_VALUE);
             
             if (name != null && value != null)
-            	manager.addGraphicsAttribute(manager.getCurrentNetwork(), name, value);
+            	manager.addNetworkGraphicsAttribute(name, value);
         }
 
 		if (nextState != ParseState.NONE)

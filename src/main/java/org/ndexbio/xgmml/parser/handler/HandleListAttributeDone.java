@@ -16,7 +16,7 @@ public class HandleListAttributeDone extends AbstractHandler {
             if (manager.getCurrentList() != null && manager.getCurrentList().size() > 0) {
             	String stringList = joinStringsToCsv(manager.getCurrentList());
             	//System.out.println("Setting " + manager.currentAttributeID + " = " + stringList + " for current element");
-            	AttributeValueUtil.setAttribute(manager.getCurrentElement(), manager.currentAttributeID, stringList);
+            	manager.setElementProperty(manager.getCurrentElementId(), manager.currentAttributeID, stringList);
                 manager.listAttrHolder = null;
             }
         } catch (Exception e) {

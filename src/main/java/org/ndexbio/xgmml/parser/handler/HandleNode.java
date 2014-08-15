@@ -42,7 +42,7 @@ public class HandleNode extends AbstractHandler {
 		Object id = null;
 		String label = null;
 		String nodeName = null;
-		Node node = null;
+		Long nodeId = null;
 		final Network curNet = manager.getCurrentNetwork();
 		//final CyNetwork rootNet = manager.getRootNetwork();
 		
@@ -56,18 +56,14 @@ public class HandleNode extends AbstractHandler {
 				nodeName = atts.getValue("name");
 			}
 			
-			node = manager.findOrCreateNode(id.toString(), nodeName);
-			
-			node.setName(nodeName);
-
-			
+			nodeId = manager.findOrCreateNodeId(id.toString(), nodeName);
 		} else {
 			throw new NdexException("Not yet handling XLINKs");
 		}
 		
-		if (node != null){
-			manager.setCurrentElement(node);
-			manager.setCurrentNode(node);
+		if (nodeId != null){
+			manager.setCurrentElementId(nodeId);
+			manager.setCurrentNodeId(nodeId);
 		}
 		
 		return current;

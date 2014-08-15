@@ -25,6 +25,8 @@ package org.ndexbio.xgmml.parser.handler;
  */
 
 
+import java.util.concurrent.ExecutionException;
+
 import org.ndexbio.xgmml.parser.ParseState;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -37,15 +39,15 @@ import org.xml.sax.SAXException;
 public class HandleNodeGraphics extends AbstractHandler {
 
 	@Override
-    public ParseState handle(final String namespace, final String tag, final String qName,  Attributes atts, ParseState current) throws SAXException {
+    public ParseState handle(final String namespace, final String tag, final String qName,  Attributes atts, ParseState current) throws SAXException, ExecutionException {
         if (tag.equals("graphics")) {
-        	manager.addGraphicsAttributes(manager.getCurrentNode(), atts);
+        	manager.addGraphicsAttributes(manager.getCurrentNodeId(), atts);
         } else if (tag.equals("att")) {
             // Handle special node graphics attributes
             String name = atts.getValue("name");
 
             if (name != null && !name.equals("cytoscapeNodeGraphicsAttributes")) {
-                manager.addGraphicsAttribute(manager.getCurrentNode(), name, atts.getValue("value"));
+                manager.addGraphicsAttribute(manager.getCurrentNodeId(), name, atts.getValue("value"));
             }
         }
         

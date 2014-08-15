@@ -25,6 +25,7 @@ package org.ndexbio.xgmml.parser.handler;
  */
 
 import java.util.ArrayList;
+import java.util.concurrent.ExecutionException;
 
 import org.ndexbio.xgmml.parser.ParseState;
 import org.xml.sax.Attributes;
@@ -34,9 +35,9 @@ public class HandleEdgeGraphics extends AbstractHandler {
 	private static final String EDGE_BEND = "edgeBend";
 
 	@Override
-	public ParseState handle(String namespace, String tag, String qName,  Attributes atts, ParseState current) throws SAXException {
+	public ParseState handle(String namespace, String tag, String qName,  Attributes atts, ParseState current) throws SAXException, ExecutionException {
 		if (tag.equals("graphics")) {
-			manager.addGraphicsAttributes(manager.getCurrentEdge(), atts);
+			manager.addGraphicsAttributes(manager.getCurrentEdgeId(), atts);
 		} else if (tag.equals("att")) {
 			// Handle special edge graphics attributes
 			final String name = atts.getValue("name");
@@ -45,7 +46,7 @@ public class HandleEdgeGraphics extends AbstractHandler {
 				manager.handleList = new ArrayList<String>();
 				return ParseState.EDGE_BEND;
 			} else if (name != null && !name.equals("cytoscapeEdgeGraphicsAttributes")) {
-				manager.addGraphicsAttribute(manager.getCurrentEdge(), name, atts.getValue("value"));
+				manager.addGraphicsAttribute(manager.getCurrentEdgeId(), name, atts.getValue("value"));
 			}
 		}
 
