@@ -31,6 +31,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.ndexbio.model.object.NdexProperty;
+import org.ndexbio.model.object.PropertiedObject;
 import org.ndexbio.xgmml.parser.MetadataEntries;
 import org.ndexbio.xgmml.parser.MetadataParser;
 import org.ndexbio.xgmml.parser.ObjectType;
@@ -162,7 +164,7 @@ public class AttributeValueUtil {
     	//final boolean isEquation = ObjectTypeMap.fromXGMMLBoolean(atts.getValue("cy:equation"));
     	//final boolean isHidden = ObjectTypeMap.fromXGMMLBoolean(atts.getValue("cy:hidden"));
         
-		final IMetadataObject curElement = manager.getCurrentElement();
+		final PropertiedObject curElement = manager.getCurrentElement();
 		
 		//INetwork network = manager.getCurrentNetwork();
 		ObjectType objType = typeMap.getType(type);
@@ -304,16 +306,32 @@ public class AttributeValueUtil {
         
     }
     
-    public static void setAttribute(final IMetadataObject element, final String key, final String value){
-    	if (null == element.getMetadata()){
-    		element.setMetadata(new HashMap<String, String>());
+    public static void setAttribute(final PropertiedObject element, final String key, final String value){
+    	if (null == element.getProperties()){
+    		element.setProperties(new ArrayList<NdexProperty>());
     	}
-    	element.getMetadata().put(key, value);
+    	setProperty(element.getProperties(), key, value);   	
     }
     
     // TODO - not used at the moment, determine role - are we going to support XLINKs?
     public static Long getIdFromXLink(String href) {
 		Matcher matcher = XLINK_PATTERN.matcher(href);
 		return matcher.matches() ? Long.valueOf(matcher.group(1)) : null;
+	}
+
+	public static void setProperty(List<NdexProperty> props, String key,
+			String value) {
+		for (NdexProperty prop : props){
+    		if (key.equalsIgnoreCase(prop.getPredicateString())){
+    			prop.setValue(value);
+    			return;
+    		}
+    	}
+    	NdexProperty prop = new NdexProperty();
+    	prop.setPredicateString(key);
+    	prop.setValue(value);
+    	prop.setDataType(NdexProperty.STRING);
+    	props.add(prop);
+		
 	}
 }

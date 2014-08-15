@@ -4,9 +4,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.regex.Pattern;
 
 import org.ndexbio.common.exceptions.NdexException;
-import org.ndexbio.common.models.data.IEdge;
-import org.ndexbio.common.models.data.INetwork;
-import org.ndexbio.common.models.data.INode;
+import org.ndexbio.model.object.network.Edge;
 import org.ndexbio.xgmml.parser.ObjectTypeMap;
 import org.ndexbio.xgmml.parser.ParseState;
 import org.xml.sax.Attributes;
@@ -73,7 +71,7 @@ public class HandleEdge extends AbstractHandler {
 
 			//INetwork net = manager.getCurrentNetwork();
 			try {
-				IEdge edge = manager.addEdge(sourceId.toString(), interaction, targetId.toString());
+				Edge edge = manager.addEdge(sourceId.toString(), interaction, targetId.toString());
 			} catch (ExecutionException e) {
 				e.printStackTrace();
 				throw new NdexException("not yet handling XLINK in XGMML");

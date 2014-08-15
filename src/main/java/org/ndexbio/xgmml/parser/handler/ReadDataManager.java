@@ -46,6 +46,11 @@ import org.ndexbio.common.persistence.orientdb.NdexPersistenceService;
 import org.ndexbio.common.util.TermStringType;
 import org.ndexbio.common.util.TermUtilities;
 import org.ndexbio.model.object.NdexProperty;
+import org.ndexbio.model.object.PropertiedObject;
+import org.ndexbio.model.object.network.BaseTerm;
+import org.ndexbio.model.object.network.Edge;
+import org.ndexbio.model.object.network.Node;
+import org.ndexbio.model.object.network.Namespace;
 import org.ndexbio.model.object.network.Network;
 import org.ndexbio.xgmml.parser.ParseState;
 import org.slf4j.Logger;
@@ -108,11 +113,11 @@ public class ReadDataManager {
 	
 	
 	private List<NdexProperty> currentProperties;
-	private Long currentNodeId;
-	private Long currentEdgeId;
+	private Long currentNode;
+	private Long currentEdge;
 
 	
-//	private INetwork currentNetwork;
+//	private Network currentNetwork;
 	
 	// Network view format properties
 	private Object networkViewId;
@@ -139,8 +144,8 @@ public class ReadDataManager {
 		documentVersion = 0;
 
 		currentProperties = null;
-		currentNodeId = null;
-		currentEdgeId = null;
+		currentNode = null;
+		currentEdge = null;
 		//parentNetwork = null;
 		currentNetworkIsDirected = true;
 		//currentRow = null;
@@ -170,38 +175,39 @@ public class ReadDataManager {
 	
 	public void dispose() {
 
-		currentNodeId = null;
-		currentEdgeId = null;
+		currentNode = null;
+		currentEdge = null;
 		currentProperties = null;
 
 	}
 	
 	public void handleSpecialNetworkAttributes() {
-		List<NdexProperty> metadata = getCurrentNetwork().getProperties();
-		// dc:description
-		if (null != metadata.get("dc:description")){
-			
-			getCurrentNetwork().setDescription(metadata.get("dc:description"));
+		List<NdexProperty> properties = getCurrentNetwork().getProperties();
+		String title = null;
+		String name = null;
+		String identifier = null;
+		String networkName = "unknown";
+		for (NdexProperty prop : properties){
+			if (prop.getPredicateString().equalsIgnoreCase("dc:description")){
+				getCurrentNetwork().setDescription(prop.getValue());
+			} else if (prop.getPredicateString().equalsIgnoreCase("dc:title")){
+				title = prop.getValue();
+			} else if (prop.getPredicateString().equalsIgnoreCase("name")){
+				name = prop.getValue();
+			} else if (prop.getPredicateString().equalsIgnoreCase("dc:identifier")){
+				identifier = prop.getValue();
+			}
+		}
+		if (title != null){
+			networkName = title;
+		} else if (name != null){
+			networkName = name;
+		} else if (identifier != null){
+			networkName = identifier;
 		}
 		
-		// dc:format
-		if (null != metadata.get("dc:format")){
-			AttributeValueUtil.setAttribute(getCurrentNetwork(), "Format", metadata.get("dc:format"));
-		}
-		
-		// network name from dc:title or name or dc:identifier
-		if (null != metadata.get("dc:title")){
-			getCurrentNetwork().setName(metadata.get("dc:title"));
-		} else if (null != metadata.get("name")){
-			getCurrentNetwork().setName(metadata.get("name"));
-		} else if (null != metadata.get("dc:identifier")){
-			getCurrentNetwork().setName(metadata.get("dc:identifier"));
-		} else {
-			getCurrentNetwork().setName("unknown");
-		}
-		
-		
-		
+		getCurrentNetwork().setName(networkName);	
+
 	}	
 	
 	public double getDocumentVersion() {
@@ -244,24 +250,22 @@ public class ReadDataManager {
 	}
 */
 	/**
-	 * @param element an INode or IEdge
+	 * @param element an Node or Edge
 	 * @param attName The name of the attribute
 	 * @param attValue The value of the attribute
 	 */
-	protected void addGraphicsAttribute(IMetadataObject element, String attName, String attValue) {
+	protected void addGraphicsAttribute(PropertiedObject element, String attName, String attValue) {
 		System.out.println("Adding graphics " + attName + " = " + attValue + " to " + element.toString());
 		AttributeValueUtil.setAttribute(element, attName, attValue);
 	}
 	
 
 	
-	public Map<String, String> getGraphicsAttributes(IMetadataObject element) {
-		return element.getMetadata();
+	public List<NdexProperty> getGraphicsAttributes(PropertiedObject element) {
+		return element.getPresentationProperties();
 	}
 	
-
-	
-	protected void addGraphicsAttributes(IMetadataObject element, Attributes atts) {
+	protected void addGraphicsAttributes(PropertiedObject element, Attributes atts) {
 		if (element != null) {
 			final int attrLength = atts.getLength();
 
@@ -411,29 +415,29 @@ public class ReadDataManager {
 	}
 	*/
 	
-	public INode findOrCreateNode(String id, String name) throws ExecutionException {
-		IBaseTerm term = null;
+	public Node findOrCreateNode(String id, String name) throws ExecutionException {
+		BaseTerm term = null;
 		if (name != null){
 			term = findOrCreateBaseTerm(name);
 		} else {
 			term = findOrCreateBaseTerm(id);
 		}
 		if (null != term) {
-			INode node = this.networkService.findOrCreateINode(id, term);
+			Node node = this.networkService.findOrCreateNode(id, term);
 			return node;
 		}
 		return null;
 	}
 
-	public Long addEdge(String subject, String predicate, String object)
+	public Edge addEdge(String subject, String predicate, String object)
 			throws ExecutionException, NdexException {
 		Long subjectNodeId = addNode(subject);
 		Long objectNodeId  = addNode(object);
 		Long predicateTermId = this.networkService.getBaseTermId(predicate);
-		Long edge = this.networkService.createEdge(subjectNodeId, objectNodeId,
+		Edge edge = this.networkService.createEdge(subjectNodeId, objectNodeId,
 				predicateTermId, null, null, null);
 		this.setCurrentEdge(edge);
-		return edgeId;
+		return edge;
 
 	}
 	
@@ -446,15 +450,15 @@ public class ReadDataManager {
 		
 	}
 	
-	public IBaseTerm findOrCreateBaseTerm(String name, INamespace namespace) throws ExecutionException{
+	public BaseTerm findOrCreateBaseTerm(String name, Namespace namespace) throws ExecutionException{
 		return this.networkService.findOrCreateBaseTerm(name, namespace);
 	}
 	
-	public INamespace findOrCreateNamespace(String uri, String prefix) throws ExecutionException{
-		return this.networkService.findOrCreateINamespace(uri, prefix);
+	public Namespace findOrCreateNamespace(String uri, String prefix) throws ExecutionException{
+		return this.networkService.findOrCreateNamespace(uri, prefix);
 	}
 
-	private IBaseTerm findBaseTerm(String termString) throws ExecutionException {
+	private BaseTerm findBaseTerm(String termString) throws ExecutionException {
 		// case 1 : termString is a URI
 		// example: http://identifiers.org/uniprot/P19838
 		// treat the last element in the URI as the identifier and the rest as
@@ -463,7 +467,7 @@ public class ReadDataManager {
 		// when creating, set the prefix based on the PREFIX-URI table for known
 		// namespaces, otherwise do not set.
 		//
-		IBaseTerm iBaseTerm = null;
+		BaseTerm baseTerm = null;
 		try {
 			URI termStringURI = new URI(termString);
 			String path = termStringURI.getPath();
@@ -471,11 +475,11 @@ public class ReadDataManager {
 				String identifier = path.substring(path.lastIndexOf('/') + 1);
 				String namespaceURI = termString.substring(0,
 						termString.lastIndexOf('/') + 1);
-				INamespace namespace = this.networkService.findINamespace(
+				Namespace namespace = this.networkService.findNamespace(
 						namespaceURI, null);
-				iBaseTerm = this.networkService.findNodeBaseTerm(identifier,
+				baseTerm = this.networkService.findNodeBaseTerm(identifier,
 						namespace);
-				return iBaseTerm;
+				return baseTerm;
 			}
 
 		} catch (URISyntaxException e) {
@@ -491,25 +495,25 @@ public class ReadDataManager {
 		if (termStringComponents != null && termStringComponents.length == 2) {
 			String identifier = termStringComponents[1];
 			String prefix = termStringComponents[0];
-			INamespace namespace = this.networkService.findINamespace(null,
+			Namespace namespace = this.networkService.findNamespace(null,
 					prefix);
-			iBaseTerm = this.networkService.findNodeBaseTerm(identifier,
+			baseTerm = this.networkService.findNodeBaseTerm(identifier,
 					namespace);
-			return iBaseTerm;
+			return baseTerm;
 		}
 
 		// case 3: termString cannot be parsed, use it as the identifier.
 		// find or create the namespace for prefix "LOCAL" and use that as the
 		// namespace.
 
-		iBaseTerm = this.networkService.findNodeBaseTerm(termString,
-				this.networkService.findINamespace(null, "LOCAL"));
+		baseTerm = this.networkService.findNodeBaseTerm(termString,
+				this.networkService.findNamespace(null, "LOCAL"));
 
-		return iBaseTerm;
+		return baseTerm;
 
 	}
 
-	private IBaseTerm findOrCreateBaseTerm(String termString)
+	private BaseTerm findOrCreateBaseTerm(String termString)
 			throws ExecutionException {
 		// case 1 : termString is a URI
 		// example: http://identifiers.org/uniprot/P19838
@@ -519,7 +523,7 @@ public class ReadDataManager {
 		// when creating, set the prefix based on the PREFIX-URI table for known
 		// namespaces, otherwise do not set.
 		//
-		IBaseTerm iBaseTerm = null;
+		BaseTerm baseTerm = null;
 		try {
 			URI termStringURI = new URI(termString);
 			String path = termStringURI.getPath();
@@ -527,11 +531,11 @@ public class ReadDataManager {
 				String identifier = path.substring(path.lastIndexOf('/') + 1);
 				String namespaceURI = termString.substring(0,
 						termString.lastIndexOf('/') + 1);
-				INamespace namespace = this.networkService
+				Namespace namespace = this.networkService
 						.findOrCreateINamespace(namespaceURI, null);
-				iBaseTerm = this.networkService.findOrCreateNodeBaseTerm(
+				baseTerm = this.networkService.findOrCreateNodeBaseTerm(
 						identifier, namespace);
-				return iBaseTerm;
+				return baseTerm;
 			}
 
 		} catch (URISyntaxException e) {
@@ -558,21 +562,21 @@ public class ReadDataManager {
 				prefix = termString.substring(0, colonIndex);
 			}
 			
-			INamespace namespace = this.networkService.findOrCreateINamespace(
+			Namespace namespace = this.networkService.findOrCreateINamespace(
 					null, prefix);
-			iBaseTerm = this.networkService.findOrCreateNodeBaseTerm(
+			baseTerm = this.networkService.findOrCreateNodeBaseTerm(
 					identifier, namespace);
-			return iBaseTerm;
+			return baseTerm;
 		}
 
 		// case 3: termString cannot be parsed, use it as the identifier.
 		// find or create the namespace for prefix "LOCAL" and use that as the
 		// namespace.
 
-		iBaseTerm = this.networkService.findOrCreateNodeBaseTerm(termString,
-				this.networkService.findOrCreateINamespace(null, "LOCAL"));
+		baseTerm = this.networkService.findOrCreateNodeBaseTerm(termString,
+				this.networkService.findOrCreateNamespace(null, "LOCAL"));
 
-		return iBaseTerm;
+		return baseTerm;
 	}
 
 
@@ -617,16 +621,16 @@ public class ReadDataManager {
 		this.currentElementId = currentElementId;
 	}
 
-	public INode getCurrentNode() {
-		return currentNode;
+	public Node getCurrentNode() {
+		return this.currentNode;
 	}
 
-	public void setCurrentNode(INode currentNode) {
+	public void setCurrentNode(Node currentNode) {
 		this.currentNode = currentNode;
 	}
 
-	public IEdge getCurrentEdge() {
-		return currentEdge;
+	public Edge getCurrentEdge() {
+		return this.currentEdge;
 	}
 
 /*
@@ -638,11 +642,11 @@ public class ReadDataManager {
 		this.currentRow = row;
 	}
 */	
-	protected IMetadataObject getCurrentElement() {
-		return currentElement;
+	protected PropertiedObject getCurrentElement() {
+		return this.currentElement;
 	}
 	
-	public void setCurrentElement(IMetadataObject entry) {
+	public void setCurrentElement(PropertiedObject entry) {
 		this.currentElement = entry;
 	}
 

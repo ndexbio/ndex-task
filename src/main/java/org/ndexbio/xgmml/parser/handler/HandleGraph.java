@@ -25,7 +25,7 @@ package org.ndexbio.xgmml.parser.handler;
  */
 
 
-import org.ndexbio.common.models.data.INetwork;
+import org.ndexbio.model.object.network.Network;
 import org.ndexbio.xgmml.parser.ObjectTypeMap;
 import org.ndexbio.xgmml.parser.ParseState;
 import org.xml.sax.Attributes;
@@ -141,7 +141,7 @@ public class HandleGraph extends AbstractHandler {
 	 * @throws Exception 
 	 */
 	private ParseState handleGenericXGMMLGraph(String tag, Attributes atts, ParseState current) throws Exception {
-		final INetwork currentNet;
+		final Network currentNet;
 		/*
 		if (manager.graphCount == 1) {
 			// Root (graph) element...

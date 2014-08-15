@@ -25,7 +25,8 @@ package org.ndexbio.xgmml.parser.handler;
  */
 
 
-import org.ndexbio.common.models.data.INamespace;
+
+import org.ndexbio.model.object.network.Namespace;
 import org.ndexbio.xgmml.parser.ParseState;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -46,7 +47,7 @@ public class HandleRDFNetworkAttribute extends AbstractHandler {
 		String prefix = qName.substring(0, colonIndex);
 		// Find or create the namespace
 		
-		INamespace ns = manager.findOrCreateNamespace(namespace, prefix);
+		Namespace ns = manager.findOrCreateNamespace(namespace, prefix);
 		
 		// Find or create the term for the attribute
 		// In the case of a typical XGMML network, this will result in a dublin core namespace

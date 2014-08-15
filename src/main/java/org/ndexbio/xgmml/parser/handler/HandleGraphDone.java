@@ -27,7 +27,7 @@ package org.ndexbio.xgmml.parser.handler;
 import java.util.Map;
 import java.util.Set;
 
-import org.ndexbio.common.models.data.INetwork;
+import org.ndexbio.model.object.network.Network;
 import org.ndexbio.xgmml.parser.ParseState;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -116,7 +116,7 @@ public class HandleGraphDone extends AbstractHandler {
 		if (!manager.getNetworkIDStack().isEmpty())
 			manager.getNetworkIDStack().pop();
 		
-		INetwork currentNet = null;
+		Network currentNet = null;
 		final Object netId = manager.getNetworkIDStack().isEmpty() ? null : manager.getNetworkIDStack().peek();
 		/*
 		if (netId != null)

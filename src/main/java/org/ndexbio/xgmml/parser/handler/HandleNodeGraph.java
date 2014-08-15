@@ -26,7 +26,7 @@ package org.ndexbio.xgmml.parser.handler;
 
 
 import org.ndexbio.common.exceptions.NdexException;
-import org.ndexbio.common.models.data.INode;
+import org.ndexbio.model.object.network.Node;
 import org.ndexbio.xgmml.parser.ParseState;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -40,7 +40,7 @@ public class HandleNodeGraph extends HandleGraph {
     public ParseState handle(final String namespace, final String tag, final String qName,  Attributes atts, ParseState current) throws SAXException, NdexException {
 		manager.graphCount++;
 		
-		final INode node = manager.getCurrentNode();
+		final Node node = manager.getCurrentNode();
 		throw new NdexException("nested node graph elements not yet handled");
 		
 		/*

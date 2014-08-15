@@ -28,8 +28,8 @@ package org.ndexbio.xgmml.parser.handler;
 import java.util.concurrent.ExecutionException;
 
 import org.ndexbio.common.exceptions.NdexException;
-import org.ndexbio.common.models.data.INetwork;
-import org.ndexbio.common.models.data.INode;
+import org.ndexbio.model.object.network.Network;
+import org.ndexbio.model.object.network.Node;
 import org.ndexbio.xgmml.parser.ParseState;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -42,8 +42,8 @@ public class HandleNode extends AbstractHandler {
 		Object id = null;
 		String label = null;
 		String nodeName = null;
-		INode node = null;
-		final INetwork curNet = manager.getCurrentNetwork();
+		Node node = null;
+		final Network curNet = manager.getCurrentNetwork();
 		//final CyNetwork rootNet = manager.getRootNetwork();
 		
 		if (href == null) {

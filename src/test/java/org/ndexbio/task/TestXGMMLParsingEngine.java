@@ -27,7 +27,7 @@ public class TestXGMMLParsingEngine {
 
 		try {
 
-			SearchResult<IUser> result = (new SIFNetworkService())
+			SearchResult<User> result = (new SIFNetworkService())
 					.findUsers(searchParameters);
 			_testUser = (IUser) result.getResults().iterator().next();
 		} catch (Exception e) {

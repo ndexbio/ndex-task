@@ -25,13 +25,17 @@ package org.ndexbio.xgmml.parser;
  */
 
 
-import org.ndexbio.common.models.data.INetwork;
+
+import org.ndexbio.model.object.NdexProperty;
+import org.ndexbio.model.object.network.Network;
 import org.ndexbio.xgmml.parser.handler.AttributeValueUtil;
 
 import java.net.URISyntaxException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -58,10 +62,10 @@ public class MetadataParser {
 	private static final String DEF_TYPE = "Protein-Protein Interaction";
 	private static final String DEF_FORMAT = "Cytoscape-XGMML";
 	private String metadataLabel;
-	private INetwork network;
+	private Network network;
 	//private CyRow networkAttributes;
 	private Properties props;
-	private Map rdfAsMap;
+	private List<NdexProperty> rdfAsNdexProperties;
 
 	/**
 	 * Constructor.
@@ -69,7 +73,7 @@ public class MetadataParser {
 	 * @param network
 	 *            Target network for editing metadata.
 	 */
-	public MetadataParser(INetwork network) {
+	public MetadataParser(Network network) {
 		this(network, DEFAULT_NETWORK_METADATA_LABEL);
 	}
 
@@ -81,11 +85,11 @@ public class MetadataParser {
 	 * @param metadataLabel
 	 *            Label used as a tag for this attribute.
 	 */
-	public MetadataParser(INetwork network, String metadataLabel) {
+	public MetadataParser(Network network, String metadataLabel) {
 		this.metadataLabel = metadataLabel;
 		this.network = network;
 
-		rdfAsMap = network.getMetadata();
+		rdfAsNdexProperties = network.getProperties();
 	}
 
 	// TODO to be injected
@@ -99,13 +103,17 @@ public class MetadataParser {
 	 * Data items in "defaultLabels" will be created and inserted into RDF
 	 * structure.
 	 */
-	public Map<String, String> makeNewMetadataMap() {
-		Map<String, String> dataMap = new HashMap<String, String>();
+	public List<NdexProperty> makeNewMetadataProperties() {
+		List<NdexProperty> props = new ArrayList<NdexProperty>();
 
+	    // TODO: determine where these defaults should be coming from
 		// Extract default values from property
-		String defSource = props.getProperty("defaultMetadata.source");
-		String defType = props.getProperty("defaultMetadata.type");
-		String defFormat = props.getProperty("defaultMetadata.format");
+		//String defSource = props.getProperty("defaultMetadata.source");
+		//String defType = props.getProperty("defaultMetadata.type");
+		//String defFormat = props.getProperty("defaultMetadata.format");
+		String defSource = null;
+	    String defType = null;
+	    String defFormat = null;
 
 		MetadataEntries[] entries = MetadataEntries.values();
 
@@ -115,7 +123,8 @@ public class MetadataParser {
 
 					java.util.Date now = new java.util.Date();
 					DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-					dataMap.put(entries[i].toString(), df.format(now));
+					AttributeValueUtil.setProperty(props, entries[i].toString(), df.format(now));
+					//dataMap.put(entries[i].toString(), df.format(now));
 
 					break;
 
@@ -127,9 +136,11 @@ public class MetadataParser {
 				case SOURCE:
 
 					if (defSource == null) {
-						dataMap.put(entries[i].toString(), DEF_URI);
+						AttributeValueUtil.setProperty(props, entries[i].toString(), DEF_URI);
+						//dataMap.put(entries[i].toString(), DEF_URI);
 					} else {
-						dataMap.put(entries[i].toString(), defSource);
+						AttributeValueUtil.setProperty(props, entries[i].toString(), defSource);
+						//dataMap.put(entries[i].toString(), defSource);
 					}
 
 					break;
@@ -137,9 +148,11 @@ public class MetadataParser {
 				case TYPE:
 
 					if (defType == null) {
-						dataMap.put(entries[i].toString(), DEF_TYPE);
+						AttributeValueUtil.setProperty(props, entries[i].toString(), DEF_TYPE);
+						//dataMap.put(entries[i].toString(), DEF_TYPE);
 					} else {
-						dataMap.put(entries[i].toString(), defType);
+						AttributeValueUtil.setProperty(props, entries[i].toString(), defType);
+						//dataMap.put(entries[i].toString(), defType);
 					}
 
 					break;
@@ -147,21 +160,24 @@ public class MetadataParser {
 				case FORMAT:
 
 					if (defFormat == null) {
-						dataMap.put(entries[i].toString(), DEF_FORMAT);
+						AttributeValueUtil.setProperty(props, entries[i].toString(), DEF_FORMAT);
+						//dataMap.put(entries[i].toString(), DEF_FORMAT);
 					} else {
-						dataMap.put(entries[i].toString(), defFormat);
+						AttributeValueUtil.setProperty(props, entries[i].toString(), defFormat);
+						// dataMap.put(entries[i].toString(), defFormat);
 					}
 
 					break;
 
 				default:
-					dataMap.put(entries[i].toString(), "N/A");
+					AttributeValueUtil.setProperty(props, entries[i].toString(), "N/A");
+					//dataMap.put(entries[i].toString(), "N/A");
 
 					break;
 			}
 		}
 
-		return dataMap;
+		return props;
 	}
 
 	/**
@@ -170,18 +186,18 @@ public class MetadataParser {
 	 * @return
 	 * @throws URISyntaxException
 	 */
-	public Map getMetadataMap() {
-		if ((rdfAsMap == null) || (rdfAsMap.keySet().size() == 0)) {
-			rdfAsMap = makeNewMetadataMap();
+	public List<NdexProperty> getMetadataProperties() {
+		if ((rdfAsNdexProperties == null) || (rdfAsNdexProperties.size() == 0)) {
+			rdfAsNdexProperties = makeNewMetadataProperties();
 		}
 
-		return rdfAsMap;
+		return rdfAsNdexProperties;
 	}
 
 	public void setMetadata(MetadataEntries entryName, String value) {
 
 		AttributeValueUtil.setAttribute(network, entryName.toString(), value);
 
-		rdfAsMap = network.getMetadata();
+		rdfAsNdexProperties = network.getProperties();
 	}
 }
