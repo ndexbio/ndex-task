@@ -8,33 +8,25 @@ import org.ndexbio.model.object.Task;
 import org.ndexbio.model.object.Status;
 import org.ndexbio.common.persistence.orientdb.NdexTaskService;
 
-import com.orientechnologies.orient.core.id.ORID;
 
 public abstract class NdexTask implements Callable<Task> {
 	
-	private final String taskId;
-	private final String userId;
 	private final NdexTaskService taskService;
 	private  Task task;
+	private String taskOwnerAccount;
 	
 	
 	public NdexTask(String aTaskId) throws IllegalArgumentException, SecurityException, NdexException{
-		this.taskId = aTaskId;
 		this.taskService = new NdexTaskService();
-		this.task = taskService.getTask(taskId);
-		this.userId = (String) this.task.getOwner().asVertex().getId();
+		this.task = taskService.getTask(aTaskId);
+		taskOwnerAccount = taskService.getTaskOwnerAccount(this.task);
 	}
 	
-	public NdexTask(Task itask) {
+	public NdexTask(Task itask) throws NdexException {
 		this.taskService = new NdexTaskService();
 		this.task = itask;
-		this.taskId = this.resolveVertexId(itask);
-		this.userId = this.resolveVertexId(this.task.getOwner());
 	}
-	protected String getUserId() { return this.userId;}
-	
-	protected String getTaskId() {return this.taskId; }
-	
+
 	protected Task getTask() { return this.task;}
 	
 	protected final void startTask() throws IllegalArgumentException, 
@@ -51,19 +43,12 @@ public abstract class NdexTask implements Callable<Task> {
 	 */
 	protected final void updateTaskStatus(Status status) throws IllegalArgumentException, 
 		ObjectNotFoundException, SecurityException, NdexException{
-		this.task = this.taskService.updateTaskStatus(status, this.getTaskId());
+		this.task = this.taskService.updateTaskStatus(status, this.task);
 	}
 
+	@Override
 	public abstract Task call() throws Exception;
 	
-	protected String resolveVertexId(VertexFrame vf)
-    {
-        if (null == vf)
-            return null;
-
-        return IdConverter.toJid((ORID)vf.asVertex().getId());
-    }
-	
-	
+	protected String getTaskOwnerAccount() {return this.taskOwnerAccount;}
 
 }

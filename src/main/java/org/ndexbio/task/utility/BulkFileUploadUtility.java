@@ -8,13 +8,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Date;
+import java.util.UUID;
 
 import org.ndexbio.common.exceptions.*;
-import org.ndexbio.common.helpers.IdConverter;
-import org.ndexbio.common.models.data.*;
-import org.ndexbio.common.models.object.*;
-import org.ndexbio.common.models.object.privilege.User;
+import org.ndexbio.common.models.dao.orientdb.TaskDAO;
 import org.ndexbio.common.persistence.orientdb.OrientDBNoTxConnectionService;
+import org.ndexbio.model.object.Status;
+import org.ndexbio.model.object.Task;
+import org.ndexbio.model.object.TaskType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +34,7 @@ public class BulkFileUploadUtility {
 	private final Path uploadDir;
 	private final LocalDataService ds;
 	
-	public BulkFileUploadUtility(String dir){
+	public BulkFileUploadUtility(String dir) throws NdexException{
 		this.uploadDir = Paths.get(dir);
 		this.ds = new LocalDataService();
 	}
@@ -42,7 +43,7 @@ public class BulkFileUploadUtility {
 	private static final Logger logger = LoggerFactory.getLogger(BulkFileUploadUtility.class);
 	private static final String NETWORK_UPLOAD_PATH = "/opt/ndex/uploaded-networks/";
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) throws NdexException {
 		String dir = DEFAULT_DIRECTORY;
 		if (args.length >0){
 			dir = args[0];
@@ -63,7 +64,7 @@ public class BulkFileUploadUtility {
               logger.info("Copied " +path.toString() +" to " +destPath.toString() );
               Task task = this.generateTask(destPath.toString());
   			  this.ds.createTask(task);
-  			  logger.info("file upload task " +task.getId() +" queued in database");
+  			  logger.info("file upload task " +task.getExternalId() +" queued in database");
             }
         } catch (IOException | IllegalArgumentException | NdexException e) {
         	logger.error(e.getMessage());
@@ -73,7 +74,6 @@ public class BulkFileUploadUtility {
 	private Task generateTask(String newFile) {
 		Task task = new Task();
 		task.setResource(newFile);
-		task.setCreatedDate(new Date());
 		task.setStatus(Status.QUEUED);
 		
 		return task;
@@ -88,7 +88,7 @@ public class BulkFileUploadUtility {
 	
 class LocalDataService extends OrientDBNoTxConnectionService {
 		
-		LocalDataService() {
+		LocalDataService() throws NdexException {
 			super();
 			
 		}
@@ -96,34 +96,30 @@ class LocalDataService extends OrientDBNoTxConnectionService {
 		public Task createTask(final Task newTask) throws IllegalArgumentException, NdexException
 	    {
 	        Preconditions.checkArgument(null!= newTask,"The task to create is empty.");
-			
-	        
-	        final ORID userRid = IdConverter.toRid(this.getLoggedInUser().getId());
 
 	        try
 	        {
 	            setupDatabase();
 	            
-	            final IUser taskOwner = _orientDbGraph.getVertex(userRid, IUser.class);
-	            
-	            final ITask task = _orientDbGraph.addVertex("class:task", ITask.class);
-	            task.setOwner(taskOwner);
+	            final Task task = new Task();
 	            task.setStatus(newTask.getStatus());
-	            task.setStartTime(newTask.getCreatedDate());
 	            task.setResource(newTask.getResource());
 	            task.setProgress(0);
-	            task.setType(TaskType.PROCESS_UPLOADED_NETWORK);
+	            task.setTaskType(TaskType.PROCESS_UPLOADED_NETWORK);
 
-	            _orientDbGraph.getBaseGraph().commit();
+	            TaskDAO dao = new TaskDAO(this._ndexDatabase);
+	            UUID taskId = dao.createTask(this.getLoggedInUser(), newTask);
+	            this._ndexDatabase.commit();
 	            logger.info("file upload task for " + task.getResource() +" created");
 
-	            newTask.setId(IdConverter.toJid((ORID) task.asVertex().getId()));
+	            newTask.setExternalId(taskId);
+	            
 	            return newTask;
 	        }
 	        catch (Exception e)
 	        {
 	            logger.error("Failed to create a task : " , e);
-	            _orientDbGraph.getBaseGraph().rollback(); 
+	            this._ndexDatabase.rollback(); 
 	            throw new NdexException("Failed to create a task.");
 	        }
 	        finally
@@ -132,12 +128,9 @@ class LocalDataService extends OrientDBNoTxConnectionService {
 	        }
 	    }
 
-		private User getLoggedInUser() {
-			User user = new User();
-			user.setId("C31R3");
-			user.setUsername("dbowner");
-			return user;
-			
+		//TODO: need to ensure this use exists. Maybe should added to schema creation.
+		private String getLoggedInUser() {
+			return "dbowner";
 		}
 		
 		

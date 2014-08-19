@@ -8,8 +8,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.ndexbio.common.exceptions.NdexException;
-import org.ndexbio.common.helpers.IdConverter;
-import org.ndexbio.common.models.data.ITask;
+import org.ndexbio.model.object.Task;
 import org.ndexbio.common.persistence.orientdb.NdexTaskService;
 import org.slf4j.*;
 
@@ -18,8 +17,6 @@ import com.orientechnologies.orient.core.id.ORID;
 import java.util.concurrent.Future;
 
 import org.ndexbio.common.exceptions.ObjectNotFoundException;
-
-import com.tinkerpop.frames.VertexFrame;
 
 /*
  * Represents a class responsible for pulling itasks off the task queue,
@@ -36,16 +33,16 @@ public class NdexTaskExecutor implements Callable<Integer> {
 	private Integer completionCount = 0;
 	private static final Logger logger = LoggerFactory
 			.getLogger(NdexTaskExecutor.class);
-	private  final CompletionService<ITask> taskCompletionService;
+	private  final CompletionService<Task> taskCompletionService;
 	private final Integer MAX_THREADS = 1;
 	private final NdexTaskService taskService;
 	private final Integer threadIdentifier;
 	private final ExecutorService taskExecutor;
 
-	public NdexTaskExecutor(Integer id) {
+	public NdexTaskExecutor(Integer id) throws NdexException {
 		 taskExecutor = Executors
 				.newFixedThreadPool(MAX_THREADS);
-		this.taskCompletionService = new ExecutorCompletionService<ITask>(
+		this.taskCompletionService = new ExecutorCompletionService<Task>(
 				taskExecutor);
 		this.taskService = new NdexTaskService();
 		this.threadIdentifier = id;
@@ -58,14 +55,14 @@ public class NdexTaskExecutor implements Callable<Integer> {
 		logger.info("Executor " + this.getThreadIdentifier() +" invoked");
 		while (!NdexTaskQueueService.INSTANCE.isTaskQueueEmpty()) {
 			try {
-				ITask itask = NdexTaskQueueService.INSTANCE.getNextITask();
+				Task itask = NdexTaskQueueService.INSTANCE.getNextTask();
 				NdexTask ndexTask = NdexTaskFactory.INSTANCE
-						.getNdexTaskByTaskType(this.resolveVertexId(itask));
+						.getNdexTaskByTaskType(itask.getExternalId().toString());
 				this.taskCompletionService.submit(ndexTask);
 				// now wait for completion of child task
 				logger.info("Invoking Ndextask type: " + ndexTask.getClass().getName()
-						+" for task id: " +ndexTask.getTaskId());
-				Future<ITask> result = taskCompletionService.take();
+						+" for task id: " +ndexTask.getTask().getExternalId());
+				Future<Task> result = taskCompletionService.take();
 				// post completion status
 				this.postTaskCompleteion(result.get());
 				this.incrementCompletionCount();
@@ -88,12 +85,11 @@ public class NdexTaskExecutor implements Callable<Integer> {
 		return this.getCompletionCount();
 	}
 
-	private void postTaskCompleteion(ITask completedTask) throws 
+	private void postTaskCompleteion(Task completedTask) throws 
 	IllegalArgumentException, ObjectNotFoundException, SecurityException, NdexException {
 	
-		taskService.updateTaskStatus( completedTask.getStatus(), 
-				this.resolveVertexId(completedTask));
-		logger.info("Completion status for task id: " +resolveVertexId(completedTask) +
+		taskService.updateTaskStatus( completedTask.getStatus(),completedTask);
+		logger.info("Completion status for task id: " +completedTask.getExternalId() +
 				"is " +completedTask.getStatus().toString());
 	
 }
@@ -106,11 +102,5 @@ public class NdexTaskExecutor implements Callable<Integer> {
 		this.completionCount++;
 	}
 
-	protected String resolveVertexId(VertexFrame vf) {
-		if (null == vf)
-			return null;
-
-		return IdConverter.toJid((ORID) vf.asVertex().getId());
-	}
 
 }

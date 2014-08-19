@@ -5,9 +5,12 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.junit.BeforeClass;
+import org.ndexbio.common.access.NdexAOrientDBConnectionPool;
 import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.models.dao.CommonDAOValues;
-import org.ndexbio.common.models.dao.NetworkDAO;
+import org.ndexbio.common.models.dao.orientdb.NetworkDAO;
+import org.ndexbio.model.object.network.Network;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,6 +19,7 @@ import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
 
 
 
@@ -24,19 +28,25 @@ public class NdexJVMDataModelService implements NdexTaskModelService {
 	/*
 	 * mod 16April2014 use new DAO objects from ndex-commons project
 	 */
-	final NetworkDAO dao = DAOFactorySupplier.INSTANCE
-			.resolveDAOFactoryByType(CommonDAOValues.ORIENTDB_DAO_TYPE).get().getNetworkDAO();
+	
+
+	 private NetworkDAO dao;
 	
 	 private static final Logger logger = LoggerFactory
 				.getLogger(NdexJVMDataModelService.class);
 	 private final int SKIP = 0;
 	 private final int TOP = Integer.MAX_VALUE;
+	 
+	 public NdexJVMDataModelService () {
+		 ODatabaseDocumentTx db = NdexAOrientDBConnectionPool.getInstance().acquire();
+		 dao= new NetworkDAO (db);
+	 }
 
 	@Override
-	public Network getNetworkById(String userId, String networkId) {
-		Preconditions.checkArgument(!Strings.isNullOrEmpty(networkId), 
+	public Network getNetworkById(String accountName, String networkUUID) {
+		Preconditions.checkArgument(!Strings.isNullOrEmpty(networkUUID), 
 				"A network id is required");
-		Preconditions.checkArgument(!Strings.isNullOrEmpty(userId), 
+		Preconditions.checkArgument(!Strings.isNullOrEmpty(accountName), 
 				"A user id is required");
 		try {
 			return dao.getNetwork(userId, networkId);

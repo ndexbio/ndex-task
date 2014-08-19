@@ -1,8 +1,10 @@
 package org.ndexbio.task;
 
+import java.util.logging.Logger;
+
 import org.ndexbio.common.exceptions.NdexException;
-import org.ndexbio.common.models.data.ITask;
-import org.ndexbio.common.models.object.TaskType;
+import org.ndexbio.model.object.Task;
+import org.ndexbio.model.object.TaskType;
 import org.ndexbio.common.persistence.orientdb.NdexTaskService;
 
 /*
@@ -12,16 +14,25 @@ import org.ndexbio.common.persistence.orientdb.NdexTaskService;
  enum NdexTaskFactory {
 	INSTANCE;
 	
-	private NdexTaskService taskService = new NdexTaskService();
+	private NdexTaskService taskService ;
+	
+	private NdexTaskFactory(){
+		try {
+			taskService = new NdexTaskService();
+		} catch (NdexException e ) {
+			Logger.getLogger(NdexTaskFactory.class.getName()).severe("Failed to create NdexTaskService. " 
+		      + e.getMessage());
+		}
+	}
 	
 	NdexTask getNdexTaskByTaskType(String taskId){
 		
 		try {
-			ITask task = taskService.getITask(taskId);
-			if( task.getType() == TaskType.PROCESS_UPLOADED_NETWORK) {
+			Task task = taskService.getTask(taskId);
+			if( task.getTaskType() == TaskType.PROCESS_UPLOADED_NETWORK) {
 				return new FileUploadTask(taskId);
 			}
-			if( task.getType() == TaskType.EXPORT_NETWORK_TO_FILE) {
+			if( task.getTaskType() == TaskType.EXPORT_NETWORK_TO_FILE) {
 				return new XbelExporterTask(taskId);
 			}
 			throw new IllegalArgumentException("Task type: " +task.getType() +" is not supported");
@@ -35,11 +46,11 @@ import org.ndexbio.common.persistence.orientdb.NdexTaskService;
 		
 	}
 	
-	NdexTask getNdexTaskByTaskType(ITask itask){
+	NdexTask getNdexTaskByTaskType(Task itask){
 		
 		try {
 			
-			if( itask.getType() == TaskType.PROCESS_UPLOADED_NETWORK) {
+			if( itask.getTaskType() == TaskType.PROCESS_UPLOADED_NETWORK) {
 				return new FileUploadTask(itask);
 			}
 			throw new IllegalArgumentException("Task type: " +itask.getType() +" is not supported");

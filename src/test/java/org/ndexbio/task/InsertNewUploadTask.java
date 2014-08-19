@@ -8,13 +8,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Date;
+import java.util.UUID;
 
 import org.ndexbio.common.exceptions.*;
 import org.ndexbio.common.helpers.Configuration;
-import org.ndexbio.common.helpers.IdConverter;
-import org.ndexbio.common.models.data.*;
-import org.ndexbio.common.models.object.*;
-import org.ndexbio.common.models.object.privilege.User;
+import org.ndexbio.model.object.*;
+import org.ndexbio.common.models.dao.orientdb.TaskDAO;
 import org.ndexbio.common.persistence.orientdb.OrientDBNoTxConnectionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +35,7 @@ public class InsertNewUploadTask {
 	
 	 private static final Logger logger = LoggerFactory.getLogger(InsertNewUploadTask.class);
 	
-	public InsertNewUploadTask (String fn){
+	public InsertNewUploadTask (String fn) throws NdexException{
 		this.sourceFile = new File(fn);
 		this.ds = new LocalDataService();		
 	}
@@ -62,13 +61,12 @@ public class InsertNewUploadTask {
 	private Task generateTask(String newFile) {
 		Task task = new Task();
 		task.setResource(newFile);
-		task.setCreatedDate(new Date());
 		task.setStatus(Status.QUEUED);
 		
 		return task;
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws NdexException {
 		String testFile = null;
 		if(args.length >0 ){
 			testFile = args[0];
@@ -101,7 +99,7 @@ public class InsertNewUploadTask {
 	
 	class LocalDataService extends OrientDBNoTxConnectionService {
 		
-		LocalDataService() {
+		LocalDataService() throws NdexException {
 			super();
 			
 		}
@@ -111,32 +109,31 @@ public class InsertNewUploadTask {
 	        Preconditions.checkArgument(null!= newTask,"The task to create is empty.");
 			
 	        
-	        final ORID userRid = IdConverter.toRid(this.getLoggedInUser().getId());
 
 	        try
 	        {
 	            setupDatabase();
 	            
-	            final IUser taskOwner = _orientDbGraph.getVertex(userRid, IUser.class);
 	            
-	            final ITask task = _orientDbGraph.addVertex("class:task", ITask.class);
-	            task.setOwner(taskOwner);
+	            final Task task = new Task();
 	            task.setStatus(newTask.getStatus());
-	            task.setStartTime(newTask.getCreatedDate());
 	            task.setResource(newTask.getResource());
 	            task.setProgress(0);
-	            task.setType(TaskType.PROCESS_UPLOADED_NETWORK);
+	            task.setTaskType(TaskType.PROCESS_UPLOADED_NETWORK);
 
-	            _orientDbGraph.getBaseGraph().commit();
+	            TaskDAO dao = new TaskDAO(this._ndexDatabase);
+	            UUID taskId = dao.createTask(this.getLoggedInUser(), task);
+	            this._ndexDatabase.commit();
 	            logger.info("file upload task for " + task.getResource() +" created");
 
-	            newTask.setId(IdConverter.toJid((ORID) task.asVertex().getId()));
-	            return newTask;
+	            task.setExternalId(taskId);
+	            
+	            return task;
 	        }
 	        catch (Exception e)
 	        {
 	            logger.error("Failed to create a task : " , e);
-	            _orientDbGraph.getBaseGraph().rollback(); 
+	            this._ndexDatabase.rollback(); 
 	            throw new NdexException("Failed to create a task.");
 	        }
 	        finally
@@ -145,11 +142,8 @@ public class InsertNewUploadTask {
 	        }
 	    }
 
-		private User getLoggedInUser() {
-			User user = new User();
-			user.setId("C30R2");
-			user.setUsername("fjcriscuolo");
-			return user;
+		private String getLoggedInUser() {
+			return "tester";
 			
 		}
 		

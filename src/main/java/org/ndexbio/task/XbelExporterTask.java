@@ -4,8 +4,8 @@ import java.io.File;
 import java.io.IOException;
 
 import org.ndexbio.common.exceptions.NdexException;
-import org.ndexbio.common.models.data.ITask;
-import org.ndexbio.common.models.object.Status;
+import org.ndexbio.model.object.Task;
+import org.ndexbio.model.object.Status;
 import org.ndexbio.task.event.NdexTaskEventHandler;
 import org.ndexbio.task.service.NdexJVMDataModelService;
 import org.ndexbio.task.service.NdexTaskModelService;
@@ -47,7 +47,7 @@ public class XbelExporterTask extends NdexTask {
 	}
 
 	@Override
-	public ITask call() throws Exception {
+	public Task call() throws Exception {
 		try {
 			String eventFilename = 
 					this.resolveFilename(this.NETWORK_EXPORT_EVENT_PATH, this.EVENT_FILE_EXTENSION);
@@ -89,7 +89,7 @@ public class XbelExporterTask extends NdexTask {
 	private String resolveFilename(String path, String extension) {
 		StringBuilder sb = new StringBuilder(path);
 		sb.append(File.separator);
-		sb.append(this.getTask().getOwner().getUsername());
+		sb.append(this.getTask().getExternalId());
 		if (! new File(sb.toString()).exists()) {
 			new File(sb.toString()).mkdir();
 		}

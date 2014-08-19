@@ -3,8 +3,8 @@ package org.ndexbio.task;
 import java.io.File;
 
 import org.ndexbio.common.exceptions.NdexException;
-import org.ndexbio.common.models.data.ITask;
-import org.ndexbio.common.models.object.Status;
+import org.ndexbio.model.object.Task;
+import org.ndexbio.model.object.Status;
 import org.ndexbio.task.parsingengines.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +37,7 @@ public class FileUploadTask extends NdexTask {
 		}
 	}
 
-	public FileUploadTask(ITask itask) throws IllegalArgumentException,
+	public FileUploadTask(Task itask) throws IllegalArgumentException,
 			SecurityException, NdexException {
 		super(itask);
 		this.filename = this.getTask().getResource();
@@ -48,7 +48,7 @@ public class FileUploadTask extends NdexTask {
 	}
 
 	@Override
-	public ITask call() throws Exception {
+	public Task call() throws Exception {
 		
 		try {
 			this.processFile();
@@ -76,8 +76,7 @@ public class FileUploadTask extends NdexTask {
 		case ("SIF"):
 			try {
 				final SifParser sifParser = new SifParser(
-						file.getAbsolutePath(), this.getTask().getOwner()
-								.getUsername());
+						file.getAbsolutePath(), this.getTaskOwnerAccount());
 				sifParser.parseFile();
 				this.taskStatus = Status.COMPLETED;
 			} catch (Exception e) {
@@ -88,8 +87,7 @@ public class FileUploadTask extends NdexTask {
 		case ("XGMML"):
 			try {
 				final XgmmlParser xgmmlParser = new XgmmlParser(
-						file.getAbsolutePath(), this.getTask().getOwner()
-								.getUsername());
+						file.getAbsolutePath(), this.getFilename());
 				xgmmlParser.parseFile();
 				this.taskStatus = Status.COMPLETED;
 			} catch (Exception e) {
@@ -100,10 +98,9 @@ public class FileUploadTask extends NdexTask {
 		case ("XBEL"):
 			try {
 				logger.info("Processing xbel file " + file.getAbsolutePath()
-						+ " for " + this.getTask().getOwner().getUsername());
+						+ " for " + this.getTaskOwnerAccount());
 				final XbelParser xbelParser = new XbelParser(
-						file.getAbsolutePath(), this.getTask().getOwner()
-								.getUsername());
+						file.getAbsolutePath(), this.getTaskOwnerAccount());
 
 				if (!xbelParser.getValidationState().isValid()) {
 					logger.info("XBel validation failed");
@@ -122,8 +119,7 @@ public class FileUploadTask extends NdexTask {
 		case ("XLS"):
 			try {
 				final ExcelParser excelParser = new ExcelParser(
-						file.getAbsolutePath(), this.getTask().getOwner()
-								.getUsername());
+						file.getAbsolutePath(), this.getTaskOwnerAccount());
 				excelParser.parseFile();
 				this.taskStatus = Status.COMPLETED;
 			} catch (Exception e) {

@@ -49,7 +49,7 @@ public class SifParser implements IParsingEngine {
 
 	private NdexPersistenceService persistenceService;
 	
-	private TreeSet<String> pubmedIdSet;
+//	private TreeSet<String> pubmedIdSet;
 
 	public SifParser(String fn, String ownerName) throws Exception {
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(fn),
@@ -71,7 +71,7 @@ public class SifParser implements IParsingEngine {
 		addSystemDefaultNamespaces();
 		
 		
-		pubmedIdSet = new TreeSet<String> ();
+//		pubmedIdSet = new TreeSet<String> ();
 	}
 
 	public List<String> getMsgBuffer() {
@@ -121,7 +121,7 @@ public class SifParser implements IParsingEngine {
 
 			// close database connection
 			this.persistenceService.persistNetwork();
-			logger.info("finished loading. Total Pubmed Ids: " + this.pubmedIdSet.size());
+//			logger.info("finished loading. Total Pubmed Ids: " + this.pubmedIdSet.size());
 		} catch (Exception e) {
 			// delete network and close the database connection
 			//this.persistenceService.abortTransaction();
@@ -248,7 +248,7 @@ public class SifParser implements IParsingEngine {
 
 					Long edgeId = addEdge(subject, predicate, object);
 					counter ++;
-					if ( counter % 1000 == 0 ) {
+					if ( counter % 2000 == 0 ) {
 						logger.info("processed " + counter + " lines so far. commit this batch.");
 						this.persistenceService.commit();
 					}
@@ -257,14 +257,19 @@ public class SifParser implements IParsingEngine {
 						for (String pubMedId : pubMedIds) {
 							String[] pubmedIdTokens = pubMedId.split(":");
 							if ( pubmedIdTokens.length ==2 ) {
-								//TODO: need to handle ISBN etc. Example in Reactome sif file.
 								if ( pubmedIdTokens[0].equals("Pubmed")) {
 									Long citationId = this.persistenceService.getCitationId(
-										"", pubmedIdTokens[0], pubmedIdTokens[1], null);
-									this.pubmedIdSet.add(pubmedIdTokens[1]);
+										"", NdexPersistenceService.defaultCitationType,
+										NdexPersistenceService.pmidPrefix + pubmedIdTokens[1], null);
+								//	this.pubmedIdSet.add(pubmedIdTokens[1]);
 									this.persistenceService.addCitationToElement(edgeId, citationId, NdexClasses.Edge);
 								
-								} else {
+								} else if ( pubmedIdTokens[0].equals("ISBN")){
+									Long citationId = this.persistenceService.getCitationId(
+											"", NdexPersistenceService.defaultCitationType, pubMedId, null);
+//										this.pubmedIdSet.add(pubmedIdTokens[1]);
+										this.persistenceService.addCitationToElement(edgeId, citationId, NdexClasses.Edge);
+								} else {	
 								  logger.warning("Unsupported Pubmed id format: " + 
 							       pubMedId + " found in file.\n line:\n " + line +"\n Ignore this pubmedId.\n" );
 								}
@@ -307,7 +312,7 @@ public class SifParser implements IParsingEngine {
 				String[] tokens = null;
 				tokens = line.split("\t");
 				counter ++;
-				if ( counter % 1000 == 0 ) {
+				if ( counter % 2000 == 0 ) {
 					logger.info("Aliases processed " + counter + " lines. commit batch.");
 					this.persistenceService.commit();
 				}
@@ -405,23 +410,23 @@ public class SifParser implements IParsingEngine {
 	}
 	
 	private void addSystemDefaultNamespaces() throws NdexException {
-		this.persistenceService.createNamespace("UniProt", 	"http://identifiers.org/uniprot/");
-		this.persistenceService.createNamespace("Ensembl", 	"http://ndex.org/Ensembl/");
-		this.persistenceService.createNamespace("Pubmed",	"http://www.ncbi.nlm.nih.gov/pubmed/");
+		this.persistenceService.createNamespace2("UniProt", 	"http://identifiers.org/uniprot/");
+		this.persistenceService.createNamespace2("Ensembl", 	"http://ndex.org/Ensembl/");
+		this.persistenceService.createNamespace2("Pubmed",	"http://www.ncbi.nlm.nih.gov/pubmed/");
 
-		this.persistenceService.createNamespace("CHEBI",	"http://identifiers.org/chebi/");
-		this.persistenceService.createNamespace("Reactome",	"http://identifiers.org/reactome/");
-		this.persistenceService.createNamespace("RefSeq",	"http://identifiers.org/refseq/");
-		this.persistenceService.createNamespace("HGNC Symbol","http://identifiers.org/hgnc.symbol/");
-		this.persistenceService.createNamespace("HGNC",		"http://identifiers.org/hgnc/");
-		this.persistenceService.createNamespace("NCBI Gene","http://identifiers.org/ncbigene/");
-		this.persistenceService.createNamespace("InChIKey",	"http://identifiers.org/inchikey/");
-		this.persistenceService.createNamespace("pubchem-substance","http://identifiers.org/pubchem.substance/");
-		this.persistenceService.createNamespace("pubchem",	"http://identifiers.org/pubchem.compound/");
-		this.persistenceService.createNamespace("omim",		"http://identifiers.org/omim/");
-		this.persistenceService.createNamespace("PROTEIN DATA BANK","http://identifiers.org/pdb/");
-		this.persistenceService.createNamespace("Panther Family","http://identifiers.org/panther.family/");
-		this.persistenceService.createNamespace("CAS",		"http://identifiers.org/cas/");
+		this.persistenceService.createNamespace2("CHEBI",	"http://identifiers.org/chebi/");
+		this.persistenceService.createNamespace2("Reactome",	"http://identifiers.org/reactome/");
+		this.persistenceService.createNamespace2("RefSeq",	"http://identifiers.org/refseq/");
+		this.persistenceService.createNamespace2("HGNC Symbol","http://identifiers.org/hgnc.symbol/");
+		this.persistenceService.createNamespace2("HGNC",		"http://identifiers.org/hgnc/");
+		this.persistenceService.createNamespace2("NCBI Gene","http://identifiers.org/ncbigene/");
+		this.persistenceService.createNamespace2("InChIKey",	"http://identifiers.org/inchikey/");
+		this.persistenceService.createNamespace2("pubchem-substance","http://identifiers.org/pubchem.substance/");
+		this.persistenceService.createNamespace2("pubchem",	"http://identifiers.org/pubchem.compound/");
+		this.persistenceService.createNamespace2("omim",		"http://identifiers.org/omim/");
+		this.persistenceService.createNamespace2("PROTEIN DATA BANK","http://identifiers.org/pdb/");
+		this.persistenceService.createNamespace2("Panther Family","http://identifiers.org/panther.family/");
+		this.persistenceService.createNamespace2("CAS",		"http://identifiers.org/cas/");
 
 		
 		

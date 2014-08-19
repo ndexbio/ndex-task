@@ -304,7 +304,7 @@ public class XbelNetworkExporter {
 	 * inner level statement group and contains a collection of edges
 	 */
 	private void processCitationSupports(
-			org.ndexbio.common.models.object.network.Citation modelCitation) {
+			org.ndexbio.model.object.network.Citation modelCitation) {
 		for (String supportId : modelCitation.getSupports()) {
 
 			Support support = this.subNetwork.getSupports().get(supportId);

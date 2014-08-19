@@ -8,16 +8,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import org.ndexbio.common.exceptions.NdexException;
-import org.ndexbio.common.helpers.IdConverter;
-import org.ndexbio.common.models.data.ITask;
+import org.ndexbio.model.object.Task;
 import org.ndexbio.common.persistence.orientdb.NdexTaskService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
-
-import com.orientechnologies.orient.core.id.ORID;
-import com.tinkerpop.frames.VertexFrame;
 
 public class NdexQueuedTaskProcessor {
 	
@@ -44,15 +40,17 @@ public class NdexQueuedTaskProcessor {
 	 */
 	private static final Logger logger = LoggerFactory.getLogger(NdexQueuedTaskProcessor.class);
 	private static final Integer MAX_THREADS = 1;
-	private final NdexTaskService taskService = new NdexTaskService();
+	private final NdexTaskService taskService ;
 	private   final CompletionService<Integer> taskCompletionService;
 	private final ExecutorService taskExecutor;
 	
 	
-	public NdexQueuedTaskProcessor() {
+	public NdexQueuedTaskProcessor() throws NdexException {
+		 this.taskService = new NdexTaskService();
 		 taskExecutor = Executors.newFixedThreadPool(MAX_THREADS);
 	       this.taskCompletionService =
-	           new ExecutorCompletionService<Integer>(taskExecutor);       
+	           new ExecutorCompletionService<Integer>(taskExecutor);  
+	        
 	}
 	
 	
@@ -61,12 +59,12 @@ public class NdexQueuedTaskProcessor {
 	 * private method to process all the tasks current persisted with a 
 	 * QUEUED status
 	 */
-	private void processQueuedITasks() {
+	private void processQueuedTasks() {
 		try {
 			/*
 			 * obtain a List of queued tasks and update their status to staged
 			 */
-			List<ITask> stagedTasks = taskService.stageQueuedITasks();
+			List<Task> stagedTasks = taskService.stageQueuedTasks();
 			if(!stagedTasks.isEmpty()){
 				NdexTaskQueueService.INSTANCE.addCollection(stagedTasks);		
 				logger.info("The task queue contains" +NdexTaskQueueService.INSTANCE.getTaskQueueSize()
@@ -125,13 +123,13 @@ public class NdexQueuedTaskProcessor {
 	 * invocation of this application is still running
 	 */
 	private  Integer determineActiveTasks() throws NdexException {
-		List<ITask> taskList = taskService.getActiveITasks();
+		List<Task> taskList = taskService.getActiveTasks();
 		Integer activeTasks = taskList.size();
 		// for now just print out the in progress tasks
-		for ( ITask task : taskList){
+		for ( Task task : taskList){
 			//TODO check running time and terminate job if necessary
 			// decrement activeTasks 
-			logger.info("Task id " +resolveVertexId(task) +" has an active status of " 
+			logger.info("Task id " + task.getExternalId() +" has an active status of " 
 					+task.getStatus());
 		}
 		return activeTasks;
@@ -140,30 +138,26 @@ public class NdexQueuedTaskProcessor {
 
 	public static void main(String[] args) {
 		
-		NdexQueuedTaskProcessor taskProcessor = new NdexQueuedTaskProcessor();
-		logger.info(taskProcessor.getClass().getSimpleName() +" invoked");
+		NdexQueuedTaskProcessor taskProcessor = null;
 		try {
+			taskProcessor = new NdexQueuedTaskProcessor();
+			logger.info(taskProcessor.getClass().getSimpleName() +" invoked");
+
 			if (taskProcessor.determineActiveTasks() < 1){
-				taskProcessor.processQueuedITasks();
+				taskProcessor.processQueuedTasks();
 			}
 			
 		} catch (NdexException e) {
 			logger.error(e.getMessage());
 			e.printStackTrace();
 		} finally {
-			taskProcessor.shutdown();
+			if ( taskProcessor != null ) 
+				taskProcessor.shutdown();
 		}
 		
 		logger.info(taskProcessor.getClass().getSimpleName() + " completed.");
 	}
 	
 
-	protected String resolveVertexId(VertexFrame vf)
-    {
-        if (null == vf)
-            return null;
-
-        return IdConverter.toJid((ORID)vf.asVertex().getId());
-    }
 
 }

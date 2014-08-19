@@ -11,7 +11,6 @@ import javax.xml.bind.JAXBException;
 
 import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.persistence.orientdb.NdexPersistenceService;
-import org.ndexbio.model.object.network.Support;
 import org.ndexbio.task.parsingengines.XbelParser;
 import org.ndexbio.xbel.model.Annotation;
 import org.ndexbio.xbel.model.AnnotationGroup;
@@ -165,8 +164,17 @@ public class StatementGroupSplitter extends XBelSplitter {
 				
 				Citation c = (Citation)object;
 				
+				String idType = c.getType().toString();
+				if ( idType.equals("PUB_MED")) {
+					return this.networkService.getCitationId
+							(c.getName(), NdexPersistenceService.defaultCitationType, 
+									NdexPersistenceService.pmidPrefix+c.getReference(), 
+								(c.getAuthorGroup() == null ? null : c.getAuthorGroup().getAuthor())	
+						        );
+				}
+				
 				return this.networkService.getCitationId
-						(c.getName(), c.getType().toString(), c.getReference(), 
+						(c.getName(), idType, c.getReference(), 
 							(c.getAuthorGroup() == null ? null : c.getAuthorGroup().getAuthor())	
 					        );
 			}

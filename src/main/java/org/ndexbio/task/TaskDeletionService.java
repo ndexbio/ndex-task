@@ -2,6 +2,7 @@ package org.ndexbio.task;
 
 import java.util.concurrent.TimeUnit;
 
+import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.persistence.orientdb.NdexTaskService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,10 +20,11 @@ import com.google.common.util.concurrent.AbstractScheduledService;
 public class TaskDeletionService extends AbstractScheduledService {
 	
 	private static final Logger logger = LoggerFactory.getLogger(TaskDeletionService.class);
-	private final NdexTaskService ndexService = new NdexTaskService();
+	private  NdexTaskService ndexService; 
 	
-	protected void startup() {
+	protected void startup() throws NdexException {
 		logger.info("TaskDeletionService started");
+		ndexService = new NdexTaskService();
 	}
 	
 	/*

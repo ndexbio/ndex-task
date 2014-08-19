@@ -3,7 +3,7 @@ package org.ndexbio.task;
 import java.util.Collection;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import org.ndexbio.common.models.data.ITask;
+import org.ndexbio.model.object.Task;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Queues;
@@ -17,10 +17,10 @@ import com.google.common.collect.Queues;
 enum NdexTaskQueueService {
 	INSTANCE;
 	
-	private final ConcurrentLinkedQueue<ITask> taskQueue =
+	private final ConcurrentLinkedQueue<Task> taskQueue =
 			Queues.newConcurrentLinkedQueue();
 	
-	void addCollection(Collection<ITask> iTasks){
+	void addCollection(Collection<Task> iTasks){
 		Preconditions.checkArgument(null != iTasks,
 				"a collection if ITasks is required");
 		this.taskQueue.addAll(iTasks);
@@ -29,7 +29,7 @@ enum NdexTaskQueueService {
 	/*
 	 * encapsulate direct access to queue
 	 */
-	ITask getNextITask() {
+	Task getNextTask() {
 		return this.taskQueue.poll();
 	}
 	

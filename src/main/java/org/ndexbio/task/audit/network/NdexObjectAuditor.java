@@ -6,14 +6,12 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.ndexbio.model.object.NdexObject;
-import org.ndexbio.model.object.network.Edge;
-import org.ndexbio.model.object.network.Network;
+import org.ndexbio.model.object.network.NetworkElement;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+
 
 
 /*
@@ -25,7 +23,7 @@ import com.google.common.collect.Sets;
  */
 public class NdexObjectAuditor<T> {
 
-	private Set<String> jdexIdSet;
+	private Set<Long> jdexIdSet;
 	private final Class<T> ndexClass;
 
 	public NdexObjectAuditor(Class<T> aClass) {
@@ -39,8 +37,8 @@ public class NdexObjectAuditor<T> {
 
 		for (Entry<String, T> entry : ndexMap.entrySet()) {
 			T obj = entry.getValue();
-			if ( null!= ((NdexObject) obj).getId()){
-				this.jdexIdSet.add(((NdexObject) obj).getId());
+			if ( -1 != ((NetworkElement) obj).getId()){
+				this.jdexIdSet.add(((NetworkElement) obj).getId());
 				
 			} else {
 				//System.out.println("Attempt to register " +this.ndexClass.getSimpleName() +" with null id");
@@ -52,8 +50,8 @@ public class NdexObjectAuditor<T> {
 	public void removeProcessedNdexObject(T obj) {
 		Preconditions.checkArgument(null != obj, "An NdexObject  is required");
 
-		if ( null!= ((NdexObject) obj).getId() && this.jdexIdSet.contains(((NdexObject) obj).getId())) {
-			this.jdexIdSet.remove(((NdexObject) obj).getId());
+		if ( -1 != ((NetworkElement) obj).getId() && this.jdexIdSet.contains(((NetworkElement) obj).getId())) {
+			this.jdexIdSet.remove(((NetworkElement) obj).getId());
 			
 		}
 	}
@@ -65,7 +63,7 @@ public class NdexObjectAuditor<T> {
 		}
 		StringBuffer sb = new StringBuffer("\nUnprocessed "
 				+ this.ndexClass.getSimpleName() + " objects\n");
-		for (String id : Lists.newArrayList(this.jdexIdSet)) {
+		for (Long id : Lists.newArrayList(this.jdexIdSet)) {
 			sb.append(id + " ");
 		}
 		return sb.toString();
