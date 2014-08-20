@@ -53,12 +53,14 @@ public class SifParserTest {
 */
 	@Test
 	public void test() throws Exception {
-		SifParser parser = new SifParser("ca-calmodulin-dependent_protein_kinase_activation.SIF", "Support");
+		
+		String userAccount = "NdexAdministrator";
+		SifParser parser = new SifParser("ca-calmodulin-dependent_protein_kinase_activation.SIF", userAccount);
 		parser.parseFile();
-		parser = new SifParser("gal-filtered.sif", "Support");
+		parser = new SifParser("gal-filtered.sif", userAccount);
 		parser.parseFile();
 		
-		parser = new SifParser("Calcineurin-regulated_NFAT-dependent_transcription_in_lymphocytes.SIF","Support");
+		parser = new SifParser("Calcineurin-regulated_NFAT-dependent_transcription_in_lymphocytes.SIF",userAccount);
 		parser.parseFile();
 
 //		SifParser parser = new SifParser("/home/chenjing/working/ndex/networks/reactome46_human/Meiosis.SIF","Support");
@@ -74,7 +76,7 @@ public class SifParserTest {
 		{
             for (Path path : directoryStream) {
               logger.info("Processing file " +path.toString());
-              SifParser parser2 = new SifParser(path.toString(),"Support");
+              SifParser parser2 = new SifParser(path.toString(),userAccount);
          		parser2.parseFile();
       		
   			 logger.info("file upload for  " + path.toString() +" finished.");

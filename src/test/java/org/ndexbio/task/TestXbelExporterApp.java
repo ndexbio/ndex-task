@@ -3,7 +3,6 @@ package org.ndexbio.task;
 import java.io.File;
 import java.io.IOException;
 
-import org.ndexbio.common.models.object.NdexDataModelService;
 import org.ndexbio.task.event.NdexNetworkState;
 import org.ndexbio.task.event.NdexTaskEventHandler;
 import org.ndexbio.task.service.NdexJVMDataModelService;
@@ -48,7 +47,7 @@ public class TestXbelExporterApp {
 			new File(sb.toString()).mkdir();
 		}
 		sb.append(File.separator);
-		sb.append(modelService.getNetworkById(userId,networkId).getName());
+		sb.append(modelService.getNetworkById(networkId).getName());
 		sb.append(XBEL_FILE_EXTENSION);
 		System.out.println("Export file: " +sb.toString());
 		return sb.toString();
@@ -59,7 +58,7 @@ public class TestXbelExporterApp {
 			String userId,
 			String networkId) {
 		NdexNetworkState.INSTANCE.setNetworkId(networkId);
-		NdexNetworkState.INSTANCE.setNetworkName(modelService.getNetworkById(userId, networkId).getName());
+		NdexNetworkState.INSTANCE.setNetworkName(modelService.getNetworkById( networkId).getName());
 		
 		
 	}

@@ -5,10 +5,9 @@ import java.util.Date;
 
 import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.models.dao.CommonDAOValues;
-import org.ndexbio.common.models.dao.DAOFactorySupplier;
-import org.ndexbio.common.models.dao.TaskDAO;
-import org.ndexbio.common.models.object.Status;
-import org.ndexbio.common.models.object.Task;
+import org.ndexbio.common.models.dao.orientdb.TaskDAO;
+import org.ndexbio.model.object.Status;
+import org.ndexbio.model.object.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,10 +27,10 @@ public class TestXbelExportTask {
 	
 	public TestXbelExportTask (String[] ids){
 		this.networkIds = ids;
-		this.dao =
-				DAOFactorySupplier.INSTANCE.resolveDAOFactoryByType(CommonDAOValues.ORIENTDB_DAO_TYPE)
+		this.dao = null;
+	/*			DAOFactorySupplier.INSTANCE.resolveDAOFactoryByType(CommonDAOValues.ORIENTDB_DAO_TYPE)
 				.get().getTaskDAO();
-		this.insertExportTasks();
+		this.insertExportTasks(); */
 		
 	}
 	
@@ -40,7 +39,7 @@ public class TestXbelExportTask {
 		//String networkId = "C25R732"; // is for large corpus
 //		String[] ids = new String[]{"C25R1308"}; // is for small corpus
 		String[] ids = new String[]{"C2R2"}; // is for small corpus
-		TestXbelExportTask test = new TestXbelExportTask(ids);
+//		TestXbelExportTask test = new TestXbelExportTask(ids);
 		//add shutdown hook
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			public void run() {
@@ -54,9 +53,9 @@ public class TestXbelExportTask {
 			
 			try {
 				Task task = this.generateTask(id);
-				task = this.dao.createXBELExportNetworkTask(id, testUserId);
-				logger.info("netwok upload task " +task.getId() +" queued in database");
-			} catch (IllegalArgumentException | NdexException e) {
+	//			task = this.dao.createXBELExportNetworkTask(id, testUserId);
+				logger.info("netwok upload task " +task.getExternalId() +" queued in database");
+			} catch (IllegalArgumentException  e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
@@ -67,7 +66,7 @@ public class TestXbelExportTask {
 	private Task generateTask(String networkId) {
 		Task task = new Task();
 		task.setResource(networkId);
-		task.setCreatedDate(new Date());
+//		task.setCreatedDate(new Date());
 		task.setStatus(Status.QUEUED);
 		
 		return task;

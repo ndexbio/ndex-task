@@ -1,7 +1,9 @@
 package org.ndexbio.task.service;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -10,6 +12,10 @@ import org.ndexbio.common.access.NdexAOrientDBConnectionPool;
 import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.models.dao.CommonDAOValues;
 import org.ndexbio.common.models.dao.orientdb.NetworkDAO;
+import org.ndexbio.model.object.network.BaseTerm;
+import org.ndexbio.model.object.network.Citation;
+import org.ndexbio.model.object.network.Edge;
+import org.ndexbio.model.object.network.Namespace;
 import org.ndexbio.model.object.network.Network;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,13 +49,12 @@ public class NdexJVMDataModelService implements NdexTaskModelService {
 	 }
 
 	@Override
-	public Network getNetworkById(String accountName, String networkUUID) {
+	public Network getNetworkById(String networkUUID) {
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(networkUUID), 
 				"A network id is required");
-		Preconditions.checkArgument(!Strings.isNullOrEmpty(accountName), 
-				"A user id is required");
+	
 		try {
-			return dao.getNetwork(userId, networkId);
+			return dao.getNetworkById(UUID.fromString(networkUUID));
 		} catch (IllegalArgumentException | SecurityException | NdexException e) {
 			logger.error(e.getMessage());
 			e.printStackTrace();
@@ -58,12 +63,12 @@ public class NdexJVMDataModelService implements NdexTaskModelService {
 	}
 	
 	@Override
-	public List<Citation> getCitationsByNetworkId(String networkId) {
+	public Collection<Citation> getCitationsByNetworkId(String networkId) {
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(networkId), 
 				"A network id is required");
 		try {
-			return dao.getCitations(networkId, SKIP, TOP);
-		} catch (IllegalArgumentException | NdexException e) {
+			return dao.getNetworkCitations(networkId);
+		} catch (IllegalArgumentException e) {
 			logger.error(e.getMessage());
 			e.printStackTrace();
 		}
@@ -82,7 +87,7 @@ public class NdexJVMDataModelService implements NdexTaskModelService {
 	Predicate<Namespace> namespacePredicate = new Predicate<Namespace>(){
 		@Override
 		public boolean apply(Namespace ns) {
-			return !Strings.isNullOrEmpty(ns.getURI()) && ns.getURI().contains("namespace");
+			return !Strings.isNullOrEmpty(ns.getUri()) && ns.getUri().contains("namespace");
 		}
 		
 	};
@@ -93,7 +98,7 @@ public class NdexJVMDataModelService implements NdexTaskModelService {
 	Predicate<Namespace> internalAnnotationPredicate = new Predicate<Namespace>() {
 		@Override
 		public boolean apply(Namespace ns) {
-			return Strings.isNullOrEmpty(ns.getURI());
+			return Strings.isNullOrEmpty(ns.getUri());
 		}
 		
 	};
@@ -104,7 +109,7 @@ public class NdexJVMDataModelService implements NdexTaskModelService {
 	Predicate<Namespace> externalAnnotationPredicate = new Predicate<Namespace>() {
 
 		public boolean apply(Namespace ns) {
-			return !Strings.isNullOrEmpty(ns.getURI()) && ns.getURI().contains("annotation");
+			return !Strings.isNullOrEmpty(ns.getUri()) && ns.getUri().contains("annotation");
 		}
 		
 	};
@@ -122,9 +127,9 @@ public class NdexJVMDataModelService implements NdexTaskModelService {
 				"A network id is required");
 		
 		try {
-			return  Iterables.filter(dao.getNamespaces(networkId, 0, 1000), namespacePredicate);
+			return  Iterables.filter(dao.getNetworkNamespaces(networkId), namespacePredicate);
 			
-		} catch (IllegalArgumentException | NdexException e) {
+		} catch (IllegalArgumentException e) {
 			logger.error(e.getMessage());
 			e.printStackTrace();
 		}
@@ -133,16 +138,11 @@ public class NdexJVMDataModelService implements NdexTaskModelService {
 
 
 	@Override
-	public Network getSubnetworkByCitationId(String userId,
-			String networkId,String citationId) {
+	public Network getSubnetworkByCitationId(String networkId,Long citationId) {
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(networkId), 
 				"A network id is required");
-		Preconditions.checkArgument(!Strings.isNullOrEmpty(citationId), 
-				"A citation id is required");
-		Preconditions.checkArgument(!Strings.isNullOrEmpty(userId), 
-				"A user id is required");
 		try {
-			return dao.getEdgesByCitations(userId, networkId, SKIP, TOP, new String[] {citationId});
+			return dao.getSubnetworkByCitation( networkId, citationId);
 		} catch (IllegalArgumentException | NdexException e) {
 			logger.error(e.getMessage());
 			e.printStackTrace();
@@ -164,10 +164,10 @@ public class NdexJVMDataModelService implements NdexTaskModelService {
 				"A network id is required");
 		List<Namespace> internalAnnotationList = Lists.newArrayList();
 		try {
-			return  Iterables.filter(dao.getNamespaces(networkId, 0, 1000), internalAnnotationPredicate);
+			return  Iterables.filter(dao.getNetworkNamespaces(networkId), internalAnnotationPredicate);
 			
 			
-		} catch (IllegalArgumentException | NdexException e) {
+		} catch (IllegalArgumentException e) {
 			logger.error(e.getMessage());
 			e.printStackTrace();
 		}
@@ -186,10 +186,10 @@ public class NdexJVMDataModelService implements NdexTaskModelService {
 				"A network id is required");
 		List<Namespace> externalAnnotationList = Lists.newArrayList();
 		try {
-			return  Iterables.filter(dao.getNamespaces(networkId, 0, 1000), externalAnnotationPredicate);
+			return  Iterables.filter(dao.getNetworkNamespaces(networkId), externalAnnotationPredicate);
 			
 			
-		} catch (IllegalArgumentException | NdexException e) {
+		} catch (IllegalArgumentException  e) {
 			logger.error(e.getMessage());
 			e.printStackTrace();
 		}
@@ -200,14 +200,14 @@ public class NdexJVMDataModelService implements NdexTaskModelService {
      * needed to resolve internal annotations
      */
 	@Override
-	public List<BaseTerm> getBaseTermsByNamespace(String userId, String namespace,String networkId) {
+	public Collection<BaseTerm> getBaseTermsByNamespace(String userId, String namespacePrefix,String networkId) {
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(userId), "A userId is required");
-		Preconditions.checkArgument(!Strings.isNullOrEmpty(namespace), "A namespace is required");
+		Preconditions.checkArgument(!Strings.isNullOrEmpty(namespacePrefix), "A namespace is required");
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(networkId), "A network id is required");
 		
 		try {
-			return dao.getTermsInNamespaces(userId, networkId, new String[] {namespace});
-		} catch (IllegalArgumentException | NdexException e) {
+			return dao.getBaseTermsByPrefix( networkId, namespacePrefix);
+		} catch (IllegalArgumentException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -215,6 +215,7 @@ public class NdexJVMDataModelService implements NdexTaskModelService {
 		List<BaseTerm> btList = Lists.newArrayList();
 		return btList;
 	}
+
 	
 	
 }

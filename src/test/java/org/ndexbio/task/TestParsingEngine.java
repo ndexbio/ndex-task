@@ -7,15 +7,14 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.ndexbio.common.models.data.IUser;
-import org.ndexbio.common.models.object.SearchParameters;
-import org.ndexbio.common.models.object.SearchResult;
+import org.ndexbio.model.object.User;
+import org.ndexbio.model.object.SearchParameters;
+import org.ndexbio.model.object.SearchResult;
 import org.ndexbio.task.parsingengines.*;
-import org.ndexbio.task.service.network.SIFNetworkService;
 
 public class TestParsingEngine {
 	private static String _testUserName = "dexterpratt";
-	private static IUser _testUser = null;
+	private static User _testUser = null;
 	private static final String NETWORK_UPLOAD_PATH = "/opt/ndex/uploaded-networks/";
 
 	@BeforeClass
@@ -27,9 +26,9 @@ public class TestParsingEngine {
 
 		try {
 
-			SearchResult<IUser> result = (new SIFNetworkService())
+/*			SearchResult<User> result = (new SIFNetworkService())
 					.findUsers(searchParameters);
-			_testUser = (IUser) result.getResults().iterator().next();
+			_testUser = (User) result.getResults().iterator().next(); */
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

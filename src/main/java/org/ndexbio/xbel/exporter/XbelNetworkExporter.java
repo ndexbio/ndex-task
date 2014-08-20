@@ -2,6 +2,7 @@ package org.ndexbio.xbel.exporter;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
@@ -18,9 +19,11 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 import org.ndexbio.model.object.network.Edge;
+import org.ndexbio.model.object.network.FunctionTerm;
 import org.ndexbio.model.object.network.Namespace;
 import org.ndexbio.model.object.network.Network;
 import org.ndexbio.model.object.network.Node;
+import org.ndexbio.model.object.network.ReifiedEdgeTerm;
 import org.ndexbio.model.object.network.Support;
 import org.ndexbio.model.object.network.Term;
 import org.ndexbio.model.object.network.BaseTerm;
@@ -55,6 +58,7 @@ import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.google.common.primitives.Longs;
 import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
 
 public class XbelNetworkExporter {
@@ -81,8 +85,12 @@ public class XbelNetworkExporter {
 			Edge.class);
 	private final NdexObjectAuditor<Node> nodeAuditor = new NdexObjectAuditor<Node>(
 			Node.class);
-	private final NdexObjectAuditor<Term> termAuditor = new NdexObjectAuditor<Term>(
-			Term.class);
+	private final NdexObjectAuditor<BaseTerm> termAuditor = new NdexObjectAuditor<BaseTerm>(
+			BaseTerm.class);
+	private final NdexObjectAuditor<ReifiedEdgeTerm> reifiedTermAuditor = new NdexObjectAuditor<ReifiedEdgeTerm>(
+			ReifiedEdgeTerm.class);
+	private final NdexObjectAuditor<FunctionTerm> functionTermAuditor = new NdexObjectAuditor<FunctionTerm>(
+			FunctionTerm.class);
 	private final NdexObjectAuditor<Support> supportAuditor = new NdexObjectAuditor<Support>(
 			Support.class);
 
@@ -102,7 +110,7 @@ public class XbelNetworkExporter {
 		this.networkId = networkId;
 		this.modelService = service;
 		xm = new XbelMarshaller(exportFilename);
-		this.network = this.modelService.getNetworkById(this.userId, this.networkId);
+		this.network = this.modelService.getNetworkById(this.networkId);
 		this.sgStack = new XbelStack<StatementGroup>("StatementGroup",
 				Boolean.FALSE);
 		this.stmtStack = new XbelStack<Statement>("Statement", Boolean.FALSE);
@@ -234,8 +242,8 @@ public class XbelNetworkExporter {
 			InternalAnnotationDefinition iad = this.xbelFactory.createInternalAnnotationDefinition();
 			adg.getInternalAnnotationDefinition().add(iad);
 			iad.setId(ns.getPrefix());
-			iad.setDescription(ns.getMetadata().get("description"));
-			iad.setUsage(ns.getMetadata().get("description"));
+//			iad.setDescription(ns.getMetadata().get("description"));
+//			iad.setUsage(ns.getMetadata().get("description"));
 			iad.setListAnnotation(this.xbelFactory.createListAnnotation());
 			for (BaseTerm bt : this.modelService.getBaseTermsByNamespace(this.userId, ns.getPrefix(), this.networkId)){
 				iad.getListAnnotation().getListValue().add(bt.getName());
@@ -249,10 +257,10 @@ public class XbelNetworkExporter {
 	 * for the NDEx objects that belong to that Citation
 	 */
 	private void processCitationSubnetworks() {
-		List<org.ndexbio.model.object.network.Citation> modelCitations = this
+		Collection<org.ndexbio.model.object.network.Citation> modelCitations = this
 				.getCitationsByNetworkId();
 		for (org.ndexbio.model.object.network.Citation citation : modelCitations) {
-			this.subNetwork = this.modelService.getSubnetworkByCitationId(this.userId,
+			this.subNetwork = this.modelService.getSubnetworkByCitationId(
 					this.networkId, citation.getId());
 			if (null == subNetwork) {
 				continue;
@@ -266,7 +274,7 @@ public class XbelNetworkExporter {
 			// add the edges to an audited Set
 			this.edgeAuditor.registerJdexIds(subNetwork.getEdges());
 			this.nodeAuditor.registerJdexIds(subNetwork.getNodes());
-			this.termAuditor.registerJdexIds(subNetwork.getTerms());
+			this.termAuditor.registerJdexIds(subNetwork.getBaseTerms());
 			this.supportAuditor.registerJdexIds(subNetwork.getSupports());
 			this.processCitationStatementGroup();
 			this.processCitationSupports(citation);
@@ -305,7 +313,8 @@ public class XbelNetworkExporter {
 	 */
 	private void processCitationSupports(
 			org.ndexbio.model.object.network.Citation modelCitation) {
-		for (String supportId : modelCitation.getSupports()) {
+		//TODO: need to reimplement this function, because the support info is not in Citation in 1.0.  -cj
+		/*		for (Long supportId : modelCitation.getSupports()) {
 
 			Support support = this.subNetwork.getSupports().get(supportId);
 			if (null != support) {
@@ -330,11 +339,12 @@ public class XbelNetworkExporter {
 			}
 
 		}
-
+*/
 	}
 
 	private void processSupportAnnotations(AnnotationGroup ag, Support support) {
-		if (null == support.getMetadata() || support.getMetadata().isEmpty()) {
+		//TODO: commented out by cj. need to review it.
+		/*		if (null == support.getMetadata() || support.getMetadata().isEmpty()) {
 			return;
 		}
 		for (Map.Entry<String, String> entry : support.getMetadata().entrySet()) {
@@ -343,7 +353,7 @@ public class XbelNetworkExporter {
 			annotation.setValue(entry.getValue());
 			System.out.println("Support Annotation " + entry.getValue());
 			ag.getAnnotationOrEvidenceOrCitation().add(annotation);
-		}
+		} */
 	}
 
 	/*
@@ -351,9 +361,9 @@ public class XbelNetworkExporter {
 	 * represent an inner level statement group wrt to the outer level citation
 	 * statement group
 	 */
-	private void processSupportStatementGroup(String supportId) {
+	private void processSupportStatementGroup(Long supportId) {
 
-		for (Map.Entry<String, Edge> entry : this.subNetwork.getEdges()
+		for (Map.Entry<Long, Edge> entry : this.subNetwork.getEdges()
 				.entrySet()) {
 			Edge edge = entry.getValue();
 			if (edge.getSupports().contains(supportId)) {
@@ -372,7 +382,7 @@ public class XbelNetworkExporter {
 	 * Since we are starting processing for a new Support we can clear the
 	 * Statement stack
 	 */
-	private void processSupportEdge(String edgeId, Edge edge) {
+	private void processSupportEdge(Long edgeId, Edge edge) {
 		// we're at the outer level so clear the Statement stack
 		this.stmtStack.clear();
 		Statement stmt = new Statement();
@@ -391,24 +401,10 @@ public class XbelNetworkExporter {
 	
 		this.processStatementAnnotations(edge);
 		
-		if (!Strings.isNullOrEmpty(edge.getP())) {
-			this.processTermPredicate(edge.getP());
-		} else {
-			System.out.println("Edge " + edge.getId()					
-					+ " does not have a predicate");
-		}
-		if (!Strings.isNullOrEmpty(edge.getS())) {
-			this.processTermSubject(edge.getS());
-		} else {
-			System.out.println("Edge " + edge.getId()					
-					+ " does not have a subject");
-		}
-		if (!Strings.isNullOrEmpty(edge.getO())) {
-			this.processTermObject(edge.getO());
-		} else {
-			System.out.println("Edge " + edge.getId()
-					+ " does not have a object");
-		}
+		this.processTermPredicate(edge.getPredicateId());
+
+		this.processTermSubject(edge.getSubjectId());
+		this.processTermObject(edge.getObjectId());
 		// we're done with the current Statement remove it from the stack
 		this.stmtStack.pop();
 	}
@@ -417,7 +413,8 @@ public class XbelNetworkExporter {
 	 * private method to map NDEx Edge metadata to an XBEL AnnotationGroup
 	 */
 	private void processStatementAnnotations(Edge edge) {
-		if (null == edge.getMetadata() || edge.getMetadata().isEmpty()) {
+    //TODO: commented out by CJ. Need to re view it.
+		/*		if (null == edge.getMetadata() || edge.getMetadata().isEmpty()) {
 			return;
 		}
 		AnnotationGroup ag = new AnnotationGroup();
@@ -430,7 +427,7 @@ public class XbelNetworkExporter {
 			annotation.setValue(value);
 			ag.getAnnotationOrEvidenceOrCitation().add(annotation);
 
-		}
+		} */
 	}
 
 	/*
@@ -438,15 +435,14 @@ public class XbelNetworkExporter {
 	 * terms. The terms may have nested terms as well as parameters. The input
 	 * parameter is the JdexId for the top level object for an edge
 	 */
-	private void processTermSubject(String edgeSubjectId) {
+	private void processTermSubject(Long edgeSubjectId) {
 		Node node = this.subNetwork.getNodes().get(edgeSubjectId);
 		Subject subject = new Subject();
-		org.ndexbio.xbel.model.Term xbelTerm = new org.ndexbio.xbel.model.Term();
-		if (null != node && !Strings.isNullOrEmpty(node.getRepresents())) {
+		if (null != node && node.getRepresents() != null) {
 			// increment audit node count
 			this.auditService.incrementObservedMetricValue("node count");
 			// get initial function term
-			Term term = this.subNetwork.getTerms().get(node.getRepresents());
+			Term term = this.getSubNetworkTerm(node.getRepresents());
 			if (null != term && term instanceof FunctionTerm) {
 				// clear the term statck
 				this.xbelTermStack.clear();
@@ -457,6 +453,15 @@ public class XbelNetworkExporter {
 		}
 	}
 
+	private Term getSubNetworkTerm(Long termId) {
+		Term t = this.subNetwork.getBaseTerms().get(termId); 
+		if (t != null ) return t;
+		t = this.subNetwork.getFunctionTerms().get(termId);
+		if ( t !=null ) return t;
+		t = this.subNetwork.getReifiedEdgeTerms().get(termId);
+		return t;
+	}
+	
 	/*
 	 * An NDEx Edge maps to an XBEL object element with 1 or more terms. These
 	 * terms may have nested terms as well as parameters The input parameter is
@@ -464,24 +469,23 @@ public class XbelNetworkExporter {
 	 * 
 	 * mod 14Mar2014 - add support for inner statements: ReifiedEdgeTerm
 	 */
-	private void processTermObject(String edgeObjectId) {
+	private void processTermObject(Long edgeObjectId) {
 		Node node = this.subNetwork.getNodes().get(edgeObjectId);
 		org.ndexbio.xbel.model.Object object = new org.ndexbio.xbel.model.Object();
-		org.ndexbio.xbel.model.Term xbelTerm = new org.ndexbio.xbel.model.Term();
-		if (null != node && !Strings.isNullOrEmpty(node.getRepresents())) {
+		if (null != node && node.getRepresents() != null) {
 			// get initial function term
-			Term term = this.subNetwork.getTerms().get(node.getRepresents());
+			Term term = this.getSubNetworkTerm(node.getRepresents());
 			if ( null != term && term instanceof ReifiedEdgeTerm){
 				// this represents an inner statement - add to Object
 				ReifiedEdgeTerm rt = (ReifiedEdgeTerm) term;
 				Edge innerEdge = this.subNetwork.getEdges().
-						get(rt.getTermEdge());
+						get(rt.getEdgeId());
 				if(null != innerEdge){
 					Statement stmt = new Statement();
 					object.setStatement(stmt);
 					this.processStatement(stmt, innerEdge);
 				} else {
-					System.out.println("ReifiedEdgeTerm edge " +rt.getTermEdge()
+					System.out.println("ReifiedEdgeTerm edge " +rt.getEdgeId()
 							+" not found in subnetwork edges");
 				}
 			}
@@ -506,8 +510,8 @@ public class XbelNetworkExporter {
 		// push new term onto the stack as the current term being constructed
 		this.xbelTermStack.push(xbelTerm);
 		// set the function attribute for the current term
-		BaseTerm bt = (BaseTerm) this.subNetwork.getTerms().get(
-				ft.getTermFunction());
+		BaseTerm bt = this.subNetwork.getBaseTerms().get(
+				ft.getFunctionTermId());
 		this.xbelTermStack.peek().setFunction(Function.valueOf(bt.getName()));
 		// increment audit base term count
 		this.auditService.incrementObservedMetricValue("base term count");
@@ -519,10 +523,9 @@ public class XbelNetworkExporter {
 		//
 		
 		// the parameter map key now represents an ordering value
-		Map<String,String> parameterTreeMap = new TreeMap<String,String>(ft.getParameters());
 		// process map sorted by keys
-		for (Map.Entry<String, String> entry : parameterTreeMap.entrySet()) {
-			Term parameter = this.subNetwork.getTerms().get(entry.getValue());
+		for (Long tId : ft.getParameters()) {
+			Term parameter = this.getSubNetworkTerm(tId);
 			if (parameter instanceof FunctionTerm) {
 				// register the generated XBEL term in the hierarchy
 				this.xbelTermStack
@@ -533,7 +536,7 @@ public class XbelNetworkExporter {
 				this.auditService
 						.incrementObservedMetricValue("function term count");
 				// remove function term from unprocessed Term collection
-				this.termAuditor.removeProcessedNdexObject(ft);
+				this.functionTermAuditor.removeProcessedNdexObject(ft);
 			} else if (parameter instanceof BaseTerm) {
 				BaseTerm parameterBt = (BaseTerm) parameter;
 				Namespace ns = this.subNetwork.getNamespaces().get(
@@ -542,7 +545,7 @@ public class XbelNetworkExporter {
 				/*
 				 * don't export the parameter namespace if it is BEL
 				 */
-				if (!Strings.isNullOrEmpty(ns.getId()) && !ns.getPrefix().equals("BEL")) {
+				if (ns.getId() >0 && !ns.getPrefix().equals("BEL")) {
 					// this.xbelTermStack.peek().getParameterOrTerm().add(xbelParameter);
 					xbelParameter.setNs(ns.getPrefix());
 				}
@@ -560,10 +563,9 @@ public class XbelNetworkExporter {
 	/*
 	 * An NDEx Edge predicate maps to an XBEL Statement relationship attribute
 	 */
-	private void processTermPredicate(String jdexId) {
-		Term term = this.subNetwork.getTerms().get(jdexId);
-		if (null != term && term instanceof BaseTerm) {
-			BaseTerm bt = (BaseTerm) term;
+	private void processTermPredicate(Long jdexId) {
+		BaseTerm bt = this.subNetwork.getBaseTerms().get(jdexId);
+		if (null != bt) {
 			// add the base term to the current Statement as a relationship
 			// attribute
 			this.stmtStack.peek().setRelationship(
@@ -576,11 +578,11 @@ public class XbelNetworkExporter {
 
 	private String createXbelCitation(AnnotationGroup annotGroup) {
 		Citation xbelCitation = new Citation();
-		Map<String, org.ndexbio.model.object.network.Citation> networkCitations =
+		Map<Long, org.ndexbio.model.object.network.Citation> networkCitations =
 				this.subNetwork.getCitations();
 		if (networkCitations.size() == 1) {
 
-			for (Map.Entry<String, org.ndexbio.model.object.network.Citation> entry : networkCitations
+			for (Map.Entry<Long, org.ndexbio.model.object.network.Citation> entry : networkCitations
 					.entrySet()) {
 				org.ndexbio.model.object.network.Citation modelCitation = entry
 						.getValue();
@@ -665,8 +667,8 @@ public class XbelNetworkExporter {
 
 	}
 
-	private List<org.ndexbio.model.object.network.Citation> getCitationsByNetworkId() {
-		List<org.ndexbio.model.object.network.Citation> modelCitations = this.modelService
+	private Collection<org.ndexbio.model.object.network.Citation> getCitationsByNetworkId() {
+		Collection<org.ndexbio.model.object.network.Citation> modelCitations = this.modelService
 						.getCitationsByNetworkId(networkId);
 		System.out.println("Network " + networkId + " has "
 				+ modelCitations.size() + " citations");

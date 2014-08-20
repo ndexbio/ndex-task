@@ -72,7 +72,7 @@ public class XbelExporterTask extends NdexTask {
 		this.startTask();
 		String exportFilename = this.resolveFilename(this.NETWORK_EXPORT_PATH, this.XBEL_FILE_EXTENSION);
 		
-		XbelNetworkExporter exporter = new XbelNetworkExporter(this.getUserId(),
+		XbelNetworkExporter exporter = new XbelNetworkExporter(this.getTask().getTaskOwnerId().toString(),
 				this.networkId,
 				 this.modelService, exportFilename);
 		exporter.exportNetwork();
@@ -94,7 +94,7 @@ public class XbelExporterTask extends NdexTask {
 			new File(sb.toString()).mkdir();
 		}
 		sb.append(File.separator);
-		sb.append(this.modelService.getNetworkById(this.getUserId(),networkId).getName());
+		sb.append(this.modelService.getNetworkById(networkId).getName());
 		sb.append(extension);
 		return sb.toString();		
 	}
