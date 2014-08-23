@@ -116,6 +116,7 @@ public class XbelParser implements IParsingEngine
         		this.getOwnerName(), 
         		networkTitle,
         		this.headerSplitter.getHeader().getVersion());
+        this.networkService.setNetworkTitleAndDescription(null, this.headerSplitter.getHeader().getDescription());
 //        this.networkService.setFormat("BEL_DOCUMENT");
 
     }

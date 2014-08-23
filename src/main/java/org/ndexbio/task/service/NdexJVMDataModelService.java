@@ -31,17 +31,10 @@ import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
 
 public class NdexJVMDataModelService implements NdexTaskModelService {
 	
-	/*
-	 * mod 16April2014 use new DAO objects from ndex-commons project
-	 */
-	
-
 	 private NetworkDAO dao;
 	
 	 private static final Logger logger = LoggerFactory
 				.getLogger(NdexJVMDataModelService.class);
-	 private final int SKIP = 0;
-	 private final int TOP = Integer.MAX_VALUE;
 	 
 	 public NdexJVMDataModelService () {
 		 ODatabaseDocumentTx db = NdexAOrientDBConnectionPool.getInstance().acquire();

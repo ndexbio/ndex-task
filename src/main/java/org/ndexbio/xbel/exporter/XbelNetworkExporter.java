@@ -71,16 +71,16 @@ public class XbelNetworkExporter {
 	private XbelStack<Statement> stmtStack;
 	private XbelStack<org.ndexbio.xbel.model.Term> xbelTermStack;
 	
-	private final String version = "1,2";
-	private final String copyright = "Copyright (c) 2011, Selventa. All Rights Reserved.";
-	private final String contactInfo = "support@belframework.org";
-	private final String author = "Selventa";
-	private final String license = "Creative Commons Attribution-Non-Commercial-ShareAlike 3.0 Unported License";
+	private final static String copyright = "Copyright (c) 2011, Selventa. All Rights Reserved.";
+	private final static String contactInfo = "support@belframework.org";
+	private final static String author = "Selventa";
+	private final static String license = "Creative Commons Attribution-Non-Commercial-ShareAlike 3.0 Unported License";
+	
 	private XbelMarshaller xm;
 	private final ObjectFactory xbelFactory = new ObjectFactory();
 	// incorporate operation auditing
 	private NdexAuditService auditService;
-	private final NdexAuditUtils.AuditOperation operation = NdexAuditUtils.AuditOperation.NETWORK_EXPORT;
+
 	private final NdexObjectAuditor<Edge> edgeAuditor = new NdexObjectAuditor<Edge>(
 			Edge.class);
 	private final NdexObjectAuditor<Node> nodeAuditor = new NdexObjectAuditor<Node>(
@@ -125,11 +125,10 @@ public class XbelNetworkExporter {
 
 	}
 	
-	
 
 	private void initiateAuditService(String networkName) {
 		Optional<NdexAuditService> optService = NdexAuditServiceFactory.INSTANCE
-				.getAuditServiceByOperation(networkName, this.operation);
+				.getAuditServiceByOperation(networkName, NdexAuditUtils.AuditOperation.NETWORK_EXPORT);
 		if (optService.isPresent()) {
 			this.auditService = optService.get();
 			logger.info("NdexAuditServiceFactory returned an instance of "
@@ -619,7 +618,7 @@ public class XbelNetworkExporter {
 		String description = Objects.firstNonNull(
 				this.network.getDescription(), "XBEL network");
 		header.setDescription(description);
-		header.setVersion(version);
+		header.setVersion(this.network.getVersion());
 		header.setCopyright(copyright);
 		header.setContactInfo(contactInfo);
 		AuthorGroup ag = new AuthorGroup();
@@ -639,8 +638,6 @@ public class XbelNetworkExporter {
 		}
 
 	}
-	
-	
 	
 
 	private void addNamespaceGroup(Iterable<Namespace> namespaces) {

@@ -65,7 +65,7 @@ public class AnnotationDefinitionGroupSplitter extends XBelSplitter {
 	 * 
 	 * @see org.ndexbio.xbel.splitter.XBelSplitter#process()
 	 */
-	protected void process() throws JAXBException {
+	protected void process() throws JAXBException, ExecutionException {
 		AnnotationDefinitionGroup annotationDefinitionGroup = (AnnotationDefinitionGroup) unmarshallerHandler
 				.getResult();
 		logger.info("The XBEL document has "
@@ -78,22 +78,23 @@ public class AnnotationDefinitionGroupSplitter extends XBelSplitter {
 				Namespace internalAnnotationNamespace = this.networkService.getNamespace(
 						new RawNamespace(internalAnnotationDefinition.getId(),null));
 			
-				//TODO: review code to decide if we need to put the following section back.
-		/*		internalAnnotationNamespace.setMetadata(new HashMap<String, String>());
-				internalAnnotationNamespace.getMetadata().put("type", "InternalAnnotationDefinition");
+				this.networkService.setElementProperty(internalAnnotationNamespace.getId(), "type", "InternalAnnotationDefinition");
+				
 				if (null != internalAnnotationDefinition.getDescription()){
-					internalAnnotationNamespace.getMetadata().put("description", internalAnnotationDefinition.getDescription());
+					this.networkService.setElementProperty(internalAnnotationNamespace.getId(),"description", 
+										internalAnnotationDefinition.getDescription());
 				}
 				if (null != internalAnnotationDefinition.getPatternAnnotation()){
-					internalAnnotationNamespace.getMetadata().put("patternAnnotation", internalAnnotationDefinition.getPatternAnnotation());
+					this.networkService.setElementProperty(internalAnnotationNamespace.getId(),"patternAnnotation", internalAnnotationDefinition.getPatternAnnotation());
 				}
 				if (null != internalAnnotationDefinition.getListAnnotation()){
 					for (String annotation : internalAnnotationDefinition.getListAnnotation().getListValue()){
+						this.networkService.setElementProperty(internalAnnotationNamespace.getId(),"listAnnotation", annotation); 
 						// Create a term in the namespace
-						this.networkService.findOrCreateAnnotation(internalAnnotationNamespace, annotation);
+						this.networkService.getBaseTermId(internalAnnotationNamespace.getPrefix()+":"+ annotation);
 					}
 				}
-         */
+         
 
 			} catch (NdexException e) {
 				logger.error(e.getMessage());
@@ -113,9 +114,7 @@ public class AnnotationDefinitionGroupSplitter extends XBelSplitter {
 				Namespace externalAnnotationNamespace = this.networkService.getNamespace(
 						new RawNamespace(externalAnnotationDefinition.getId(), 
 						externalAnnotationDefinition.getUrl()));
-		//TODO: review if we need to put these 2 lines back;
-		//		externalAnnotationNamespace.setMetadata(new HashMap<String, String>());
-		//		externalAnnotationNamespace.getMetadata().put("type", "ExternalAnnotationDefinition");
+				this.networkService.setElementProperty(externalAnnotationNamespace.getId(), "type", "ExternalAnnotationDefinition");
 
 			} catch (NdexException e) {
 				logger.error(e.getMessage());
