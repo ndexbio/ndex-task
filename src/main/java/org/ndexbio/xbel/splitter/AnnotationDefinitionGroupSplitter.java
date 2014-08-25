@@ -19,6 +19,13 @@ import org.slf4j.LoggerFactory;
 public class AnnotationDefinitionGroupSplitter extends XBelSplitter {
 
 	private static final String xmlElement = "annotationDefinitionGroup";
+	
+	public static final String property_Type = "type";
+	public static final String internal_annotation_def = "InternalAnnotationDefinition"; 
+	public static final String external_annotation_def = "ExternalAnnotationDefinition";
+	public static final String desc = "description";
+	public static final String list_annotation = "listAnnotation";
+	
 	private static final Logger logger = LoggerFactory
 			.getLogger(AnnotationDefinitionGroupSplitter.class);
 
@@ -78,10 +85,10 @@ public class AnnotationDefinitionGroupSplitter extends XBelSplitter {
 				Namespace internalAnnotationNamespace = this.networkService.getNamespace(
 						new RawNamespace(internalAnnotationDefinition.getId(),null));
 			
-				this.networkService.setElementProperty(internalAnnotationNamespace.getId(), "type", "InternalAnnotationDefinition");
+				this.networkService.setElementProperty(internalAnnotationNamespace.getId(), property_Type, internal_annotation_def);
 				
 				if (null != internalAnnotationDefinition.getDescription()){
-					this.networkService.setElementProperty(internalAnnotationNamespace.getId(),"description", 
+					this.networkService.setElementProperty(internalAnnotationNamespace.getId(),desc, 
 										internalAnnotationDefinition.getDescription());
 				}
 				if (null != internalAnnotationDefinition.getPatternAnnotation()){

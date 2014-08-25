@@ -64,7 +64,7 @@ public class NdexTaskExecutor implements Callable<Integer> {
 						+" for task id: " +ndexTask.getTask().getExternalId());
 				Future<Task> result = taskCompletionService.take();
 				// post completion status
-				this.postTaskCompleteion(result.get());
+				this.postTaskCompletion(result.get());
 				this.incrementCompletionCount();
 				result.cancel(true);
 
@@ -85,7 +85,7 @@ public class NdexTaskExecutor implements Callable<Integer> {
 		return this.getCompletionCount();
 	}
 
-	private void postTaskCompleteion(Task completedTask) throws 
+	private void postTaskCompletion(Task completedTask) throws 
 	IllegalArgumentException, ObjectNotFoundException, SecurityException, NdexException {
 	
 		taskService.updateTaskStatus( completedTask.getStatus(),completedTask);

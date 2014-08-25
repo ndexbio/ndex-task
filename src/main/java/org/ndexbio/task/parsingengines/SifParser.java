@@ -57,7 +57,7 @@ public class SifParser implements IParsingEngine {
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(ownerName),
 				"A network owner name is required");
 		this.msgBuffer = Lists.newArrayList();
-		if ( fn.startsWith("/")) 
+		if ( fn.startsWith("/") || fn.matches("^[a-zA-Z]:.*")) 
 			this.sifFile = new File(fn);
 		else
 		    this.sifFile = new File(getClass().getClassLoader().getResource(fn).toURI());

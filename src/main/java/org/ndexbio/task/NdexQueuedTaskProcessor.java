@@ -59,6 +59,7 @@ public class NdexQueuedTaskProcessor {
 	 * private method to process all the tasks current persisted with a 
 	 * QUEUED status
 	 */
+	//TODO: need to handle stale tasks 
 	private void processQueuedTasks() {
 		try {
 			/*

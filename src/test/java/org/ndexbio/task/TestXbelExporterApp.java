@@ -12,12 +12,12 @@ import org.ndexbio.xbel.exporter.XbelNetworkExporter.XbelMarshaller;
 
 public class TestXbelExporterApp {
 
-	private static final String NETWORK_EXPORT_PATH = "/opt/ndex/exported-networks/";
+	private static final String NETWORK_EXPORT_PATH = "C:/tmp/ndex/exported-networks/";
 	private static final String XBEL_FILE_EXTENSION = ".xbel";
 	public static void main(String[] args) throws IOException {
 		//String networkId = "C25R732"; // is for large corpus
-		String networkId = "C25R1308"; // is for small corpus
-		String userId = "C31R3"; // dbowner
+		String networkId = "3eda7195-2bac-11e4-9f09-001f3bca188f"; // is for small corpus
+		String userId = "7ce190f0-27ec-11e4-a273-90b11c72aefa"; // dbowner
 		//add shutdown hook
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			public void run() {
@@ -28,7 +28,7 @@ public class TestXbelExporterApp {
 		NdexTaskModelService  modelService = new NdexJVMDataModelService();
 		// initiate the network state
 		initiateStateForMonitoring(modelService, userId, networkId);
-		NdexTaskEventHandler eventHandler = new NdexTaskEventHandler("/tmp/ndextaskevents.csv");
+		NdexTaskEventHandler eventHandler = new NdexTaskEventHandler("C:/tmp/ndextaskevents.csv");
 		XbelNetworkExporter exporter = new XbelNetworkExporter(userId, networkId, 
 				modelService,
 				resolveExportFile(modelService, userId, networkId));
@@ -43,9 +43,9 @@ public class TestXbelExporterApp {
 		StringBuilder sb = new StringBuilder(NETWORK_EXPORT_PATH);
 		
 		sb.append(userId);
-		if (! new File(sb.toString()).exists()) {
-			new File(sb.toString()).mkdir();
-		}
+//		if (! new File(sb.toString()).exists()) {
+			new File(sb.toString()).mkdirs();
+//		}
 		sb.append(File.separator);
 		sb.append(modelService.getNetworkById(networkId).getName());
 		sb.append(XBEL_FILE_EXTENSION);

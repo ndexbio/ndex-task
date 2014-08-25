@@ -12,11 +12,13 @@ import org.ndexbio.common.access.NdexAOrientDBConnectionPool;
 import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.models.dao.CommonDAOValues;
 import org.ndexbio.common.models.dao.orientdb.NetworkDAO;
+import org.ndexbio.model.object.NdexProperty;
 import org.ndexbio.model.object.network.BaseTerm;
 import org.ndexbio.model.object.network.Citation;
 import org.ndexbio.model.object.network.Edge;
 import org.ndexbio.model.object.network.Namespace;
 import org.ndexbio.model.object.network.Network;
+import org.ndexbio.xbel.splitter.AnnotationDefinitionGroupSplitter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,7 +82,7 @@ public class NdexJVMDataModelService implements NdexTaskModelService {
 	Predicate<Namespace> namespacePredicate = new Predicate<Namespace>(){
 		@Override
 		public boolean apply(Namespace ns) {
-			return !Strings.isNullOrEmpty(ns.getUri()) && ns.getUri().contains("namespace");
+			return ns.getProperties().isEmpty();
 		}
 		
 	};
@@ -91,7 +93,12 @@ public class NdexJVMDataModelService implements NdexTaskModelService {
 	Predicate<Namespace> internalAnnotationPredicate = new Predicate<Namespace>() {
 		@Override
 		public boolean apply(Namespace ns) {
-			return Strings.isNullOrEmpty(ns.getUri());
+			for ( NdexProperty p : ns.getProperties() ) {
+				if ( p.getPredicateString().equals(AnnotationDefinitionGroupSplitter.property_Type)
+						&& p.getValue().equals(AnnotationDefinitionGroupSplitter.internal_annotation_def))
+              return true;
+			}
+			return false;
 		}
 		
 	};
@@ -102,7 +109,13 @@ public class NdexJVMDataModelService implements NdexTaskModelService {
 	Predicate<Namespace> externalAnnotationPredicate = new Predicate<Namespace>() {
 
 		public boolean apply(Namespace ns) {
-			return !Strings.isNullOrEmpty(ns.getUri()) && ns.getUri().contains("annotation");
+			for ( NdexProperty p : ns.getProperties()) {
+				if ( p.getPredicateString().equals(AnnotationDefinitionGroupSplitter.property_Type)
+						&& p.getValue().equals(AnnotationDefinitionGroupSplitter.external_annotation_def))
+					return true;
+			}
+	
+			return false;
 		}
 		
 	};

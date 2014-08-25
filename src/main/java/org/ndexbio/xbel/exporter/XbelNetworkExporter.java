@@ -18,6 +18,7 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
+import org.ndexbio.model.object.NdexProperty;
 import org.ndexbio.model.object.network.Edge;
 import org.ndexbio.model.object.network.FunctionTerm;
 import org.ndexbio.model.object.network.Namespace;
@@ -51,6 +52,7 @@ import org.ndexbio.xbel.model.Subject;
 import org.ndexbio.xbel.model.Function;
 import org.ndexbio.xbel.model.Parameter;
 import org.ndexbio.xbel.model.CitationType;
+import org.ndexbio.xbel.splitter.AnnotationDefinitionGroupSplitter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -185,7 +187,7 @@ public class XbelNetworkExporter {
 		 * citation within the network is treated as a subnetwork and represnts
 		 * an outer level statement group
 		 */
-		this.processCitationSubnetworks();
+	//	this.processCitationSubnetworks();
 		
 		// output the observed metrics
 		this.auditService.registerComment(this.edgeAuditor
@@ -241,11 +243,16 @@ public class XbelNetworkExporter {
 			InternalAnnotationDefinition iad = this.xbelFactory.createInternalAnnotationDefinition();
 			adg.getInternalAnnotationDefinition().add(iad);
 			iad.setId(ns.getPrefix());
-//			iad.setDescription(ns.getMetadata().get("description"));
-//			iad.setUsage(ns.getMetadata().get("description"));
+			String desc = ns.getPropertyAsString(AnnotationDefinitionGroupSplitter.desc);
+			if ( desc != null ) { 
+  			    iad.setDescription(desc);
+			    iad.setUsage(desc);
+			}
 			iad.setListAnnotation(this.xbelFactory.createListAnnotation());
-			for (BaseTerm bt : this.modelService.getBaseTermsByNamespace(this.userId, ns.getPrefix(), this.networkId)){
-				iad.getListAnnotation().getListValue().add(bt.getName());
+			for ( NdexProperty p : ns.getProperties()) {
+				if (p.getPredicateString().equals(AnnotationDefinitionGroupSplitter.list_annotation)) {
+					iad.getListAnnotation().getListValue().add(p.getValue());
+				}
 			}
 		}
 	}
