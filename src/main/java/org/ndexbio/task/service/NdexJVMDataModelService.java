@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.junit.BeforeClass;
 import org.ndexbio.common.access.NdexAOrientDBConnectionPool;
 import org.ndexbio.common.exceptions.NdexException;
+import org.ndexbio.common.exceptions.ObjectNotFoundException;
 import org.ndexbio.common.models.dao.CommonDAOValues;
 import org.ndexbio.common.models.dao.orientdb.NetworkDAO;
 import org.ndexbio.model.object.NdexProperty;
@@ -66,7 +67,7 @@ public class NdexJVMDataModelService implements NdexTaskModelService {
 		} catch (IllegalArgumentException e) {
 			logger.error(e.getMessage());
 			e.printStackTrace();
-		}
+		} 
 		return new ArrayList<Citation>();
 	}
 

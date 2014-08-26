@@ -18,6 +18,7 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
+import org.ndexbio.common.persistence.orientdb.NdexPersistenceService;
 import org.ndexbio.model.object.NdexProperty;
 import org.ndexbio.model.object.network.Edge;
 import org.ndexbio.model.object.network.FunctionTerm;
@@ -187,7 +188,7 @@ public class XbelNetworkExporter {
 		 * citation within the network is treated as a subnetwork and represnts
 		 * an outer level statement group
 		 */
-	//	this.processCitationSubnetworks();
+		this.processCitationSubnetworks();
 		
 		// output the observed metrics
 		this.auditService.registerComment(this.edgeAuditor
@@ -281,9 +282,11 @@ public class XbelNetworkExporter {
 			this.edgeAuditor.registerJdexIds(subNetwork.getEdges());
 			this.nodeAuditor.registerJdexIds(subNetwork.getNodes());
 			this.termAuditor.registerJdexIds(subNetwork.getBaseTerms());
+			this.functionTermAuditor.registerJdexIds(subNetwork.getFunctionTerms());
+			this.reifiedTermAuditor.registerJdexIds(subNetwork.getReifiedEdgeTerms());
 			this.supportAuditor.registerJdexIds(subNetwork.getSupports());
-			this.processCitationStatementGroup();
-			this.processCitationSupports(citation);
+			this.processCitationStatementGroup(citation);
+	//		this.processCitationSupports(citation);
 			try {
 				xm.writeStatementGroup(sgStack.pop());
 
@@ -300,7 +303,7 @@ public class XbelNetworkExporter {
 	 * annotation group to hold the citation data
 	 */
 
-	private void processCitationStatementGroup() {
+	private void processCitationStatementGroup(org.ndexbio.model.object.network.Citation modelCitation) {
 		// clear the statement group stack
 		this.sgStack.clear();
 		StatementGroup sg = new StatementGroup();
@@ -308,6 +311,7 @@ public class XbelNetworkExporter {
 		sg.setName(this.createXbelCitation(ag));
 		sg.setAnnotationGroup(ag);
 		sgStack.push(sg);
+		processCitationSupports(modelCitation);
 		// increment the audit citation count
 		this.auditService.incrementObservedMetricValue("citation count");
 
@@ -320,10 +324,9 @@ public class XbelNetworkExporter {
 	private void processCitationSupports(
 			org.ndexbio.model.object.network.Citation modelCitation) {
 		//TODO: need to reimplement this function, because the support info is not in Citation in 1.0.  -cj
-		/*		for (Long supportId : modelCitation.getSupports()) {
-
-			Support support = this.subNetwork.getSupports().get(supportId);
-			if (null != support) {
+		
+		for ( Support support : this.subNetwork.getSupports().values()) {
+			if ( support.getCitation() == modelCitation.getId()) {
 				StatementGroup supportStatementGroup = new StatementGroup();
 				AnnotationGroup ag = new AnnotationGroup();
 				String evidence = Objects.firstNonNull(support.getText(), " ");
@@ -338,28 +341,22 @@ public class XbelNetworkExporter {
 				this.auditService.incrementObservedMetricValue("support count");
 				this.supportAuditor.removeProcessedNdexObject(support);
 
-				this.processSupportStatementGroup(supportId);
-			} else {
-				System.out.println("Support id " + supportId
-						+ " not found in newtork map");
+				this.processSupportStatementGroup(support.getId());
 			}
-
 		}
-*/
+
 	}
 
 	private void processSupportAnnotations(AnnotationGroup ag, Support support) {
 		//TODO: commented out by cj. need to review it.
-		/*		if (null == support.getMetadata() || support.getMetadata().isEmpty()) {
-			return;
-		}
-		for (Map.Entry<String, String> entry : support.getMetadata().entrySet()) {
-			Annotation annotation = new Annotation();
-			annotation.setRefID(entry.getKey());
-			annotation.setValue(entry.getValue());
-			System.out.println("Support Annotation " + entry.getValue());
-			ag.getAnnotationOrEvidenceOrCitation().add(annotation);
-		} */
+		// because we dont have annotations on support now. so we commented this function out. --cj
+		/*
+		Annotation annotation = new Annotation();
+		annotation.setRefID("evidence");
+		annotation.setValue(support.getText());
+		System.out.println("Support Annotation " + support.getText());
+		ag.getAnnotationOrEvidenceOrCitation().add(annotation);
+		 */
 	}
 
 	/*
@@ -374,7 +371,7 @@ public class XbelNetworkExporter {
 			Edge edge = entry.getValue();
 			if (edge.getSupports().contains(supportId)) {
 				// we've identified an Edge that belongs to this support
-				this.processSupportEdge(entry.getKey(), edge);
+				this.processSupportEdge( edge);
 				this.edgeAuditor.removeProcessedNdexObject(edge);
 			}
 		}
@@ -388,7 +385,7 @@ public class XbelNetworkExporter {
 	 * Since we are starting processing for a new Support we can clear the
 	 * Statement stack
 	 */
-	private void processSupportEdge(Long edgeId, Edge edge) {
+	private void processSupportEdge(Edge edge) {
 		// we're at the outer level so clear the Statement stack
 		this.stmtStack.clear();
 		Statement stmt = new Statement();
@@ -419,21 +416,20 @@ public class XbelNetworkExporter {
 	 * private method to map NDEx Edge metadata to an XBEL AnnotationGroup
 	 */
 	private void processStatementAnnotations(Edge edge) {
-    //TODO: commented out by CJ. Need to re view it.
-		/*		if (null == edge.getMetadata() || edge.getMetadata().isEmpty()) {
+    
+		if (null == edge.getProperties() || edge.getProperties().isEmpty()) {
 			return;
 		}
 		AnnotationGroup ag = new AnnotationGroup();
 		this.stmtStack.peek().setAnnotationGroup(ag);
-		for (Map.Entry<String, String> entry : edge.getMetadata().entrySet()) {
-			String refid = entry.getKey();
+		for (NdexProperty entry : edge.getProperties()) {
+			String refid = entry.getPredicateString();
 			String value = entry.getValue();
 			Annotation annotation = new Annotation();
 			annotation.setRefID(refid);
 			annotation.setValue(value);
 			ag.getAnnotationOrEvidenceOrCitation().add(annotation);
-
-		} */
+		} 
 	}
 
 	/*
@@ -588,16 +584,17 @@ public class XbelNetworkExporter {
 				this.subNetwork.getCitations();
 		if (networkCitations.size() == 1) {
 
-			for (Map.Entry<Long, org.ndexbio.model.object.network.Citation> entry : networkCitations
-					.entrySet()) {
-				org.ndexbio.model.object.network.Citation modelCitation = entry
-						.getValue();
+			for (org.ndexbio.model.object.network.Citation modelCitation : networkCitations.values()) {
 				xbelCitation.setName(modelCitation.getType());
 				xbelCitation.setReference(modelCitation.getIdentifier());
 				xbelCitation.setName(modelCitation.getTitle());
 
-				xbelCitation.setType(CitationType.fromValue(modelCitation
-						.getType()));
+				if ( modelCitation.getIdType().equals("URI") && 
+						modelCitation.getIdentifier().startsWith(NdexPersistenceService.pmidPrefix)) {
+					xbelCitation.setType(CitationType.PUB_MED);
+				} else {
+					xbelCitation.setType(CitationType.fromValue(modelCitation.getIdType()));
+				}
 				if (null != modelCitation.getContributors()) {
 					org.ndexbio.xbel.model.Citation.AuthorGroup authors = new org.ndexbio.xbel.model.Citation.AuthorGroup();
 					for (String contributor : modelCitation.getContributors()) {
