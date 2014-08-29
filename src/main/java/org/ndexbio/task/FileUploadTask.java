@@ -27,16 +27,18 @@ public class FileUploadTask extends NdexTask {
 	private Status taskStatus;
 	private static final String NETWORK_UPLOAD_PATH = "/opt/ndex/uploaded-networks/";
 
-	public FileUploadTask(String taskId) throws IllegalArgumentException,
+/*	
+	public FileUploadTask(Task task) throws IllegalArgumentException,
 			SecurityException, NdexException {
-		super(taskId);
+		super(task);
 		this.filename = this.getTask().getResource();
 		// this.filename = this.getTask().getResource();
 		if (!(new File(this.filename).isFile())) {
 			throw new NdexException("File " + this.filename + " does not exist");
 		}
 	}
-
+*/
+	
 	public FileUploadTask(Task itask) throws IllegalArgumentException,
 			SecurityException, NdexException {
 		super(itask);

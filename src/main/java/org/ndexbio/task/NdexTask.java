@@ -16,11 +16,11 @@ public abstract class NdexTask implements Callable<Task> {
 	private String taskOwnerAccount;
 	
 	
-	public NdexTask(String aTaskId) throws IllegalArgumentException, SecurityException, NdexException{
+/*	public NdexTask(String aTaskId) throws IllegalArgumentException, SecurityException, NdexException{
 		this.taskService = new NdexTaskService();
 		this.task = taskService.getTask(aTaskId);
 		taskOwnerAccount = taskService.getTaskOwnerAccount(this.task);
-	}
+	} */
 	
 	public NdexTask(Task itask) throws NdexException {
 		this.taskService = new NdexTaskService();

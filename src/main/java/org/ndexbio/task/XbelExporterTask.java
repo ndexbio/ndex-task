@@ -37,10 +37,10 @@ public class XbelExporterTask extends NdexTask {
 	private static final Logger logger = LoggerFactory
 			.getLogger(XbelExporterTask.class);
 	
-	public XbelExporterTask(String taskId) throws
+	public XbelExporterTask(Task task) throws
 		IllegalArgumentException, SecurityException, NdexException{
 		
-			super(taskId);
+			super(task);
 			this.networkId = this.getTask().getResource();
 			this.modelService = new NdexJVMDataModelService();
 			
@@ -49,9 +49,10 @@ public class XbelExporterTask extends NdexTask {
 	@Override
 	public Task call() throws Exception {
 		try {
-			String eventFilename = 
+			//TODO: Event stuff was commented out bj CJ. need to review later.
+	/*		String eventFilename = 
 					this.resolveFilename(this.NETWORK_EXPORT_EVENT_PATH, this.EVENT_FILE_EXTENSION);
-			this.eventHandler = new NdexTaskEventHandler(eventFilename);
+			this.eventHandler = new NdexTaskEventHandler(eventFilename); */
 			this.exportNetwork();
 			return this.getTask();
 		} catch (InterruptedException e) {
@@ -87,14 +88,14 @@ public class XbelExporterTask extends NdexTask {
 	 * xbel extension as a filename
 	 */
 	private String resolveFilename(String path, String extension) {
+		// create the directory if not exists
+		if (! new File(path).exists()) {
+			new File(path).mkdir();
+		}
+		
 		StringBuilder sb = new StringBuilder(path);
 		sb.append(File.separator);
 		sb.append(this.getTask().getExternalId());
-		if (! new File(sb.toString()).exists()) {
-			new File(sb.toString()).mkdir();
-		}
-		sb.append(File.separator);
-		sb.append(this.modelService.getNetworkById(networkId).getName());
 		sb.append(extension);
 		return sb.toString();		
 	}

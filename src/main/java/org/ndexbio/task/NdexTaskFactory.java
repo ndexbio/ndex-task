@@ -14,26 +14,25 @@ import org.ndexbio.common.persistence.orientdb.NdexTaskService;
  enum NdexTaskFactory {
 	INSTANCE;
 	
-	private NdexTaskService taskService ;
+//	private NdexTaskService taskService ;
 	
 	private NdexTaskFactory(){
-		try {
+/*		try {
 			taskService = new NdexTaskService();
 		} catch (NdexException e ) {
 			Logger.getLogger(NdexTaskFactory.class.getName()).severe("Failed to create NdexTaskService. " 
 		      + e.getMessage());
-		}
+		} */
 	}
 	
-	NdexTask getNdexTaskByTaskType(String taskId){
+	NdexTask getNdexTaskByTaskType(Task task){
 		
 		try {
-			Task task = taskService.getTask(taskId);
 			if( task.getTaskType() == TaskType.PROCESS_UPLOADED_NETWORK) {
-				return new FileUploadTask(taskId);
+				return new FileUploadTask(task);
 			}
 			if( task.getTaskType() == TaskType.EXPORT_NETWORK_TO_FILE) {
-				return new XbelExporterTask(taskId);
+				return new XbelExporterTask(task);
 			}
 			throw new IllegalArgumentException("Task type: " +task.getType() +" is not supported");
 		} catch (IllegalArgumentException | SecurityException | NdexException e) {
@@ -46,6 +45,7 @@ import org.ndexbio.common.persistence.orientdb.NdexTaskService;
 		
 	}
 	
+/*	
 	NdexTask getNdexTaskByTaskType(Task itask){
 		
 		try {
@@ -60,5 +60,5 @@ import org.ndexbio.common.persistence.orientdb.NdexTaskService;
 		}
 		return null;
 		
-	}
+	} */
 }
