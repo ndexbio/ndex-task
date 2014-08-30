@@ -5,6 +5,7 @@ import java.util.logging.Logger;
 import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.model.object.Task;
 import org.ndexbio.model.object.TaskType;
+import org.ndexbio.model.object.network.FileFormat;
 import org.ndexbio.common.persistence.orientdb.NdexTaskService;
 
 /*
@@ -14,15 +15,7 @@ import org.ndexbio.common.persistence.orientdb.NdexTaskService;
  enum NdexTaskFactory {
 	INSTANCE;
 	
-//	private NdexTaskService taskService ;
-	
 	private NdexTaskFactory(){
-/*		try {
-			taskService = new NdexTaskService();
-		} catch (NdexException e ) {
-			Logger.getLogger(NdexTaskFactory.class.getName()).severe("Failed to create NdexTaskService. " 
-		      + e.getMessage());
-		} */
 	}
 	
 	NdexTask getNdexTaskByTaskType(Task task){
@@ -32,7 +25,10 @@ import org.ndexbio.common.persistence.orientdb.NdexTaskService;
 				return new FileUploadTask(task);
 			}
 			if( task.getTaskType() == TaskType.EXPORT_NETWORK_TO_FILE) {
-				return new XbelExporterTask(task);
+				if ( task.getFormat() == FileFormat.XBEL)
+					return new XbelExporterTask(task);
+				
+				throw new NdexException ("Only XBEL exporter is implemented.");
 			}
 			throw new IllegalArgumentException("Task type: " +task.getType() +" is not supported");
 		} catch (IllegalArgumentException | SecurityException | NdexException e) {
@@ -42,23 +38,6 @@ import org.ndexbio.common.persistence.orientdb.NdexTaskService;
 			
 		}
 		return null;
-		
 	}
 	
-/*	
-	NdexTask getNdexTaskByTaskType(Task itask){
-		
-		try {
-			
-			if( itask.getTaskType() == TaskType.PROCESS_UPLOADED_NETWORK) {
-				return new FileUploadTask(itask);
-			}
-			throw new IllegalArgumentException("Task type: " +itask.getType() +" is not supported");
-		} catch (IllegalArgumentException | SecurityException | NdexException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return null;
-		
-	} */
 }
