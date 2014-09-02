@@ -28,13 +28,8 @@ import com.google.common.io.Files;
 
 public class XgmmlParser implements IParsingEngine {
     private final File xgmmlFile;
-    private final String xgmmlURI;
     private String ownerName;
     private NdexPersistenceService networkService;
-    private XGMMLParser parser;
-    private ReadDataManager readDataManager;
-    private HandlerFactory handlerFactory;
-    private FileInputStream xgmmlFileStream;
     private static final Logger logger = LoggerFactory.getLogger(XgmmlParser.class);
 
 	public XgmmlParser(String fn, String ownerName) throws Exception {
@@ -42,14 +37,9 @@ public class XgmmlParser implements IParsingEngine {
 				"A filename is required");
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(fn),
 				"A network owner name is required");
-		this.setOwnerName(ownerName);
+		this.ownerName = ownerName;
 		this.xgmmlFile = new File(fn);
-		this.xgmmlURI = xgmmlFile.toURI().toString();
 		this.networkService = new NdexPersistenceService(new NdexDatabase());
-		this.readDataManager = new ReadDataManager(networkService);
-		this.handlerFactory = new HandlerFactory(readDataManager);
-		this.parser = new XGMMLParser(this.handlerFactory, this.readDataManager);
-		this.xgmmlFileStream = null;
 	}  
 	
 	private void log (String string){
@@ -65,6 +55,7 @@ public class XgmmlParser implements IParsingEngine {
 	@Override
 	public void parseFile() {
         
+		FileInputStream xgmmlFileStream = null;
         try
         {
             xgmmlFileStream = new FileInputStream(this.getXgmmlFile());
@@ -81,7 +72,7 @@ public class XgmmlParser implements IParsingEngine {
         {
         	
             setNetwork();
-            readXGMML();
+            readXGMML(xgmmlFileStream);
             
             // close database connection
          	this.networkService.persistNetwork();
@@ -102,7 +93,7 @@ public class XgmmlParser implements IParsingEngine {
 	 * @throws SAXException
 	 * @throws ParserConfigurationException
 	 */
-	protected void readXGMML() throws SAXException, IOException {
+	private void readXGMML(FileInputStream xgmmlFileStream) throws SAXException, IOException {
 		final SAXParserFactory spf = SAXParserFactory.newInstance();
 
 		try {
@@ -114,6 +105,9 @@ public class XgmmlParser implements IParsingEngine {
 			reader.setFeature("http://xml.org/sax/features/validation", false);
 			// Make the SAX1 Parser act as a SAX2 XMLReader
 			final ParserAdapter pa = new ParserAdapter(sp.getParser());
+			ReadDataManager readDataManager = new ReadDataManager(networkService);
+			HandlerFactory handlerFactory = new HandlerFactory(readDataManager);
+			XGMMLParser parser = new XGMMLParser(handlerFactory, readDataManager);
 			pa.setContentHandler(parser);
 			pa.setErrorHandler(parser);
 			// Parse the XGMML input
@@ -145,18 +139,9 @@ public class XgmmlParser implements IParsingEngine {
 		return ownerName;
 	}
 
-	public void setOwnerName(String ownerName) {
-		this.ownerName = ownerName;
-	}
 
 	public File getXgmmlFile() {
 		return xgmmlFile;
 	}
-
-	public String getXgmmlURI() {
-		return xgmmlURI;
-	}
-	
-	
 
 }
