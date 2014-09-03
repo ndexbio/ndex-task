@@ -2,7 +2,6 @@ package org.ndexbio.task.parsingengines;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
 
 import com.google.common.base.Strings;
 
@@ -19,7 +18,7 @@ public class XbelFileValidator {
 	private XBELValidator xv;
 	private final ValidationState validationState;
 
-	public XbelFileValidator(String fileName) throws URISyntaxException {
+	public XbelFileValidator(String fileName) {
 		if (Strings.isNullOrEmpty(fileName)) {
 			this.validationState = new ValidationState(false,
 					"Null or empty filename parameter");

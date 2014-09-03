@@ -130,7 +130,7 @@ public class SifParser implements IParsingEngine {
 			}
 
 			ProvenanceEntity provEntity = ProvenanceHelpers.createProvenanceHistory(currentNetwork,
-					uri, "FILE_UPLOAD", currentNetwork.getCreationDate(), (ProvenanceEntity)null);
+					uri, "FILE_UPLOAD", currentNetwork.getCreationTime(), (ProvenanceEntity)null);
 			provEntity.getCreationEvent().setEndDate(new Date());
 			
 			List<NdexProperty> l = provEntity.getCreationEvent().getProperties();
