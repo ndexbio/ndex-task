@@ -5,23 +5,24 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-import java.util.TreeSet;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;
 
 import org.ndexbio.common.NdexClasses;
 import org.ndexbio.common.access.NdexDatabase;
 import org.ndexbio.common.exceptions.NdexException;
+import org.ndexbio.common.helpers.Configuration;
 import org.ndexbio.model.object.NdexProperty;
-import org.ndexbio.model.object.network.BaseTerm;
+import org.ndexbio.model.object.ProvenanceEntity;
 import org.ndexbio.common.persistence.orientdb.NdexPersistenceService;
 import org.ndexbio.common.util.TermStringType;
 import org.ndexbio.common.util.TermUtilities;
-import org.ndexbio.model.object.network.Citation;
-import org.ndexbio.model.object.network.Edge;
-import org.ndexbio.model.object.network.Node;
+import org.ndexbio.model.object.network.NetworkSummary;
+import org.ndexbio.model.tools.ProvenanceHelpers;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
@@ -95,6 +96,7 @@ public class SifParser implements IParsingEngine {
 	 * spaces are delimiters that separate names (and names cannot contain
 	 * spaces).
 	 **************************************************************************/
+	@Override
 	public void parseFile() {
 		try {
 
@@ -119,6 +121,23 @@ public class SifParser implements IParsingEngine {
 //				this.networkService.setFormat("BINARY_SIF");
 			}
 
+			//add provenance to network
+			NetworkSummary currentNetwork = this.persistenceService.getCurrentNetwork();
+			
+			String uri = Configuration.getInstance().getProperty("HostURI");
+			if ( uri == null) {
+				uri = "http://" + InetAddress.getLocalHost().getHostName() ;
+			}
+
+			ProvenanceEntity provEntity = ProvenanceHelpers.createProvenanceHistory(currentNetwork,
+					uri, "FILE_UPLOAD", currentNetwork.getCreationDate(), (ProvenanceEntity)null);
+			provEntity.getCreationEvent().setEndDate(new Date());
+			
+			List<NdexProperty> l = provEntity.getCreationEvent().getProperties();
+			l.add(	new NdexProperty ( "filename",this.sifFile.getName()) );
+			
+			this.persistenceService.setNetworkProvenance(provEntity);
+			
 			// close database connection
 			this.persistenceService.persistNetwork();
 //			logger.info("finished loading. Total Pubmed Ids: " + this.pubmedIdSet.size());

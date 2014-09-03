@@ -2,7 +2,10 @@ package org.ndexbio.task.parsingengines;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.URISyntaxException;
+import java.util.Date;
+import java.util.List;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -11,7 +14,12 @@ import javax.xml.parsers.SAXParserFactory;
 
 import org.ndexbio.common.access.NdexDatabase;
 import org.ndexbio.common.exceptions.NdexException;
+import org.ndexbio.common.helpers.Configuration;
 import org.ndexbio.common.persistence.orientdb.NdexPersistenceService;
+import org.ndexbio.model.object.NdexProperty;
+import org.ndexbio.model.object.ProvenanceEntity;
+import org.ndexbio.model.object.network.NetworkSummary;
+import org.ndexbio.model.tools.ProvenanceHelpers;
 import org.ndexbio.task.parsingengines.XbelFileValidator.ValidationState;
 import org.ndexbio.xbel.splitter.AnnotationDefinitionGroupSplitter;
 import org.ndexbio.xbel.splitter.HeaderSplitter;
@@ -85,6 +93,23 @@ public class XbelParser implements IParsingEngine
             this.processAnnotationDefinitions();
             this.processStatementGroups();
             
+			//add provenance to network
+			NetworkSummary currentNetwork = this.networkService.getCurrentNetwork();
+			
+			String uri = Configuration.getInstance().getProperty("HostURI");
+			if ( uri == null) {
+				uri = "http://" + InetAddress.getLocalHost().getHostName() ;
+			}
+
+			ProvenanceEntity provEntity = ProvenanceHelpers.createProvenanceHistory(currentNetwork,
+					uri, "FILE_UPLOAD", currentNetwork.getCreationDate(), (ProvenanceEntity)null);
+			provEntity.getCreationEvent().setEndDate(new Date());
+			
+			File f = new File (this.xmlFile);
+			List<NdexProperty> l = provEntity.getCreationEvent().getProperties();
+			l.add(	new NdexProperty ( "filename",f.getName()) );
+			
+			this.networkService.setNetworkProvenance(provEntity);
             
             // set edge count and node count,
             // then close database connection

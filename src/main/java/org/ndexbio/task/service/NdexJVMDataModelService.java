@@ -39,9 +39,10 @@ public class NdexJVMDataModelService implements NdexTaskModelService {
 	 private static final Logger logger = LoggerFactory
 				.getLogger(NdexJVMDataModelService.class);
 	 
-	 public NdexJVMDataModelService () {
-		 ODatabaseDocumentTx db = NdexAOrientDBConnectionPool.getInstance().acquire();
+	 public NdexJVMDataModelService (ODatabaseDocumentTx db) {
+		// ODatabaseDocumentTx db = NdexAOrientDBConnectionPool.getInstance().acquire();
 		 dao= new NetworkDAO (db);
+
 	 }
 
 	@Override
@@ -109,6 +110,7 @@ public class NdexJVMDataModelService implements NdexTaskModelService {
 	 */
 	Predicate<Namespace> externalAnnotationPredicate = new Predicate<Namespace>() {
 
+		@Override
 		public boolean apply(Namespace ns) {
 			for ( NdexProperty p : ns.getProperties()) {
 				if ( p.getPredicateString().equals(AnnotationDefinitionGroupSplitter.property_Type)

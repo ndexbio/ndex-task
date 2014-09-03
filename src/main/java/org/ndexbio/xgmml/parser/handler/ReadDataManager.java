@@ -50,6 +50,7 @@ import org.ndexbio.model.object.NdexProperty;
 import org.ndexbio.model.object.PropertiedObject;
 import org.ndexbio.model.object.network.BaseTerm;
 import org.ndexbio.model.object.network.Edge;
+import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.model.object.network.Node;
 import org.ndexbio.model.object.network.Namespace;
 import org.ndexbio.model.object.network.Network;
@@ -399,7 +400,7 @@ public class ReadDataManager {
 	}
 	*/
 
-	protected Network getCurrentNetwork() {
+	protected NetworkSummary getCurrentNetwork() {
 		return this.networkService.getCurrentNetwork();
 	}
 	

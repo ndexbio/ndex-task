@@ -3,6 +3,7 @@ package org.ndexbio.task;
 import java.io.File;
 import java.io.IOException;
 
+import org.ndexbio.common.access.NdexAOrientDBConnectionPool;
 import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.model.object.Task;
 import org.ndexbio.model.object.Status;
@@ -12,6 +13,8 @@ import org.ndexbio.task.service.NdexTaskModelService;
 import org.ndexbio.xbel.exporter.XbelNetworkExporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
 
 /*
  * Represents an NdexTask subclass responsible for exporting an XBEL network
@@ -29,7 +32,7 @@ public class XbelExporterTask extends NdexTask {
 	private static final String NETWORK_EXPORT_EVENT_PATH = "/opt/ndex/exported-networks-events/";
 	private static final String XBEL_FILE_EXTENSION = ".xbel";
 	private static final String EVENT_FILE_EXTENSION = ".csv";
-	private final NdexTaskModelService modelService;
+//	private final NdexTaskModelService modelService;
 	private NdexTaskEventHandler eventHandler;
 	private Status taskStatus;
 	
@@ -42,7 +45,7 @@ public class XbelExporterTask extends NdexTask {
 		
 			super(task);
 			this.networkId = this.getTask().getResource();
-			this.modelService = new NdexJVMDataModelService();
+//			this.modelService = new NdexJVMDataModelService();
 			
 	}
 
@@ -72,13 +75,20 @@ public class XbelExporterTask extends NdexTask {
 		this.taskStatus = Status.PROCESSING;
 		this.startTask();
 		String exportFilename = this.resolveFilename(this.NETWORK_EXPORT_PATH, this.XBEL_FILE_EXTENSION);
-		
-		XbelNetworkExporter exporter = new XbelNetworkExporter(this.getTask().getTaskOwnerId().toString(),
+	
+		ODatabaseDocumentTx db = null; 
+		try {
+			db = NdexAOrientDBConnectionPool.getInstance().acquire();
+			NdexTaskModelService modelService = new NdexJVMDataModelService(db);
+			XbelNetworkExporter exporter = new XbelNetworkExporter(this.getTask().getTaskOwnerId().toString(),
 				this.networkId,
-				 this.modelService, exportFilename);
-		exporter.exportNetwork();
-		this.taskStatus = Status.COMPLETED;
-		this.updateTaskStatus(this.taskStatus);
+				 modelService, exportFilename);
+			exporter.exportNetwork();
+			this.taskStatus = Status.COMPLETED;
+			this.updateTaskStatus(this.taskStatus);
+		} finally { 
+			if ( db !=null ) db.close();
+		}
 	}
 	
 	/*

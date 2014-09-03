@@ -3,12 +3,15 @@ package org.ndexbio.task;
 import java.io.File;
 import java.io.IOException;
 
+import org.ndexbio.common.access.NdexAOrientDBConnectionPool;
 import org.ndexbio.task.event.NdexNetworkState;
 import org.ndexbio.task.event.NdexTaskEventHandler;
 import org.ndexbio.task.service.NdexJVMDataModelService;
 import org.ndexbio.task.service.NdexTaskModelService;
 import org.ndexbio.xbel.exporter.XbelNetworkExporter;
 import org.ndexbio.xbel.exporter.XbelNetworkExporter.XbelMarshaller;
+
+import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
 
 public class TestXbelExporterApp {
 
@@ -25,17 +28,24 @@ public class TestXbelExporterApp {
 			}
 		});
 		
-		NdexTaskModelService  modelService = new NdexJVMDataModelService();
-		// initiate the network state
-		initiateStateForMonitoring(modelService, userId, networkId);
-		NdexTaskEventHandler eventHandler = new NdexTaskEventHandler("/tmp/ndextaskevents.csv");
-		XbelNetworkExporter exporter = new XbelNetworkExporter(userId, networkId, 
+		ODatabaseDocumentTx db = null;
+		try {
+			
+			db = NdexAOrientDBConnectionPool.getInstance().acquire();
+			NdexTaskModelService  modelService = new NdexJVMDataModelService(db);
+			// initiate the network state
+			initiateStateForMonitoring(modelService, userId, networkId);
+			NdexTaskEventHandler eventHandler = new NdexTaskEventHandler("/tmp/ndextaskevents.csv");
+			XbelNetworkExporter exporter = new XbelNetworkExporter(userId, networkId, 
 				modelService,
 				resolveExportFile(modelService, userId, networkId));
 		//
-		exporter.exportNetwork();
-		eventHandler.shutdown();
-
+			exporter.exportNetwork();
+			eventHandler.shutdown();
+		} finally { 
+			if ( db != null) db.close();
+		}
+		
 	}
 
 	private static String resolveExportFile(NdexTaskModelService  modelService, 
