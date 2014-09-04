@@ -46,8 +46,9 @@ import org.ndexbio.common.models.object.network.RawNamespace;
 import org.ndexbio.common.persistence.orientdb.NdexPersistenceService;
 import org.ndexbio.common.util.TermStringType;
 import org.ndexbio.common.util.TermUtilities;
-import org.ndexbio.model.object.NdexProperty;
+import org.ndexbio.model.object.NdexPropertyValuePair;
 import org.ndexbio.model.object.PropertiedObject;
+import org.ndexbio.model.object.SimplePropertyValuePair;
 import org.ndexbio.model.object.network.BaseTerm;
 import org.ndexbio.model.object.network.Edge;
 import org.ndexbio.model.object.network.NetworkSummary;
@@ -114,7 +115,7 @@ public class ReadDataManager {
 	private List<String> currentList;
 	
 	
-	private List<NdexProperty> currentProperties;
+	private List<NdexPropertyValuePair> currentProperties;
 	private Long currentNodeId;
 	private Long currentEdgeId;
 
@@ -184,12 +185,12 @@ public class ReadDataManager {
 	}
 	
 	public void handleSpecialNetworkAttributes() {
-		List<NdexProperty> properties = getCurrentNetwork().getProperties();
+		List<NdexPropertyValuePair> properties = getCurrentNetwork().getProperties();
 		String title = null;
 		String name = null;
 		String identifier = null;
 		String networkName = "unknown";
-		for (NdexProperty prop : properties){
+		for (NdexPropertyValuePair prop : properties){
 			if (prop.getPredicateString().equalsIgnoreCase("dc:description")){
 				getCurrentNetwork().setDescription(prop.getValue());
 			} else if (prop.getPredicateString().equalsIgnoreCase("dc:title")){
@@ -262,7 +263,7 @@ public class ReadDataManager {
 		this.networkService.setElementPresentationProperty(elementId, attName, attValue);
 	}
 	
-	public List<NdexProperty> getGraphicsAttributes(PropertiedObject element) {
+	public List<SimplePropertyValuePair> getGraphicsAttributes(PropertiedObject element) {
 		return element.getPresentationProperties();
 	}
 	
@@ -277,21 +278,21 @@ public class ReadDataManager {
 		}
 	}
 
-	protected void addNetworkGraphicsAttributes( Attributes atts) throws ExecutionException {
+	protected void addNetworkGraphicsAttributes( Attributes atts) {
 		final int attrLength = atts.getLength();
 
-		ArrayList<NdexProperty> plist = new ArrayList<NdexProperty> ();
+		ArrayList<SimplePropertyValuePair> plist = new ArrayList<SimplePropertyValuePair> ();
 		for (int i = 0; i < attrLength; i++) {
-			NdexProperty p = new NdexProperty( atts.getLocalName(i), atts.getValue(i));
+			SimplePropertyValuePair p = new SimplePropertyValuePair( atts.getLocalName(i), atts.getValue(i));
 			plist.add(p);
 		}
 		this.networkService.setNetworkProperties(null, plist);
 	}
 	
-	protected void addNetworkGraphicsAttribute( String key, String value) throws ExecutionException {
+	protected void addNetworkGraphicsAttribute( String key, String value) {
 
-		ArrayList<NdexProperty> plist = new ArrayList<NdexProperty> ();
-		NdexProperty p = new NdexProperty( key, value);
+		ArrayList<SimplePropertyValuePair> plist = new ArrayList<SimplePropertyValuePair> ();
+		SimplePropertyValuePair p = new SimplePropertyValuePair( key, value);
 		plist.add(p);
 		this.networkService.setNetworkProperties(null, plist);
 	}

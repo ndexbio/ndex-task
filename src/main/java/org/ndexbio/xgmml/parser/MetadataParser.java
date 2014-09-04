@@ -26,7 +26,7 @@ package org.ndexbio.xgmml.parser;
 
 
 
-import org.ndexbio.model.object.NdexProperty;
+import org.ndexbio.model.object.NdexPropertyValuePair;
 import org.ndexbio.model.object.network.Network;
 import org.ndexbio.xgmml.parser.handler.AttributeValueUtil;
 
@@ -65,7 +65,7 @@ public class MetadataParser {
 	private Network network;
 	//private CyRow networkAttributes;
 	private Properties props;
-	private List<NdexProperty> rdfAsNdexProperties;
+	private List<NdexPropertyValuePair> rdfAsNdexProperties;
 
 	/**
 	 * Constructor.
@@ -103,8 +103,8 @@ public class MetadataParser {
 	 * Data items in "defaultLabels" will be created and inserted into RDF
 	 * structure.
 	 */
-	public List<NdexProperty> makeNewMetadataProperties() {
-		List<NdexProperty> props = new ArrayList<NdexProperty>();
+	public List<NdexPropertyValuePair> makeNewMetadataProperties() {
+		List<NdexPropertyValuePair> props = new ArrayList<NdexPropertyValuePair>();
 
 	    // TODO: determine where these defaults should be coming from
 		// Extract default values from property
@@ -186,7 +186,7 @@ public class MetadataParser {
 	 * @return
 	 * @throws URISyntaxException
 	 */
-	public List<NdexProperty> getMetadataProperties() {
+	public List<NdexPropertyValuePair> getMetadataProperties() {
 		if ((rdfAsNdexProperties == null) || (rdfAsNdexProperties.size() == 0)) {
 			rdfAsNdexProperties = makeNewMetadataProperties();
 		}

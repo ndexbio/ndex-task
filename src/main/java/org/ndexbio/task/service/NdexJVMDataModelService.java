@@ -13,7 +13,7 @@ import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.exceptions.ObjectNotFoundException;
 import org.ndexbio.common.models.dao.CommonDAOValues;
 import org.ndexbio.common.models.dao.orientdb.NetworkDAO;
-import org.ndexbio.model.object.NdexProperty;
+import org.ndexbio.model.object.NdexPropertyValuePair;
 import org.ndexbio.model.object.network.BaseTerm;
 import org.ndexbio.model.object.network.Citation;
 import org.ndexbio.model.object.network.Edge;
@@ -95,7 +95,7 @@ public class NdexJVMDataModelService implements NdexTaskModelService {
 	Predicate<Namespace> internalAnnotationPredicate = new Predicate<Namespace>() {
 		@Override
 		public boolean apply(Namespace ns) {
-			for ( NdexProperty p : ns.getProperties() ) {
+			for ( NdexPropertyValuePair p : ns.getProperties() ) {
 				if ( p.getPredicateString().equals(AnnotationDefinitionGroupSplitter.property_Type)
 						&& p.getValue().equals(AnnotationDefinitionGroupSplitter.internal_annotation_def))
               return true;
@@ -112,7 +112,7 @@ public class NdexJVMDataModelService implements NdexTaskModelService {
 
 		@Override
 		public boolean apply(Namespace ns) {
-			for ( NdexProperty p : ns.getProperties()) {
+			for ( NdexPropertyValuePair p : ns.getProperties()) {
 				if ( p.getPredicateString().equals(AnnotationDefinitionGroupSplitter.property_Type)
 						&& p.getValue().equals(AnnotationDefinitionGroupSplitter.external_annotation_def))
 					return true;

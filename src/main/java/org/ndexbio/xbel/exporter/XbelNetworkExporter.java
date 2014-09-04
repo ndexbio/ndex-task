@@ -17,7 +17,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 import org.ndexbio.common.persistence.orientdb.NdexPersistenceService;
-import org.ndexbio.model.object.NdexProperty;
+import org.ndexbio.model.object.NdexPropertyValuePair;
 import org.ndexbio.model.object.network.Edge;
 import org.ndexbio.model.object.network.FunctionTerm;
 import org.ndexbio.model.object.network.Namespace;
@@ -243,7 +243,7 @@ public class XbelNetworkExporter {
 			    iad.setUsage(desc);
 			}
 			iad.setListAnnotation(this.xbelFactory.createListAnnotation());
-			for ( NdexProperty p : ns.getProperties()) {
+			for ( NdexPropertyValuePair p : ns.getProperties()) {
 				if (p.getPredicateString().equals(AnnotationDefinitionGroupSplitter.list_annotation)) {
 					iad.getListAnnotation().getListValue().add(p.getValue());
 				}
@@ -418,7 +418,7 @@ public class XbelNetworkExporter {
 		}
 		AnnotationGroup ag = new AnnotationGroup();
 		stmt.setAnnotationGroup(ag);
-		for (NdexProperty entry : edge.getProperties()) {
+		for (NdexPropertyValuePair entry : edge.getProperties()) {
 			String refid = entry.getPredicateString();
 			String value = entry.getValue();
 			Annotation annotation = new Annotation();

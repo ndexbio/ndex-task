@@ -6,7 +6,9 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -16,8 +18,9 @@ import org.ndexbio.common.NdexClasses;
 import org.ndexbio.common.access.NdexDatabase;
 import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.helpers.Configuration;
-import org.ndexbio.model.object.NdexProperty;
+import org.ndexbio.model.object.NdexPropertyValuePair;
 import org.ndexbio.model.object.ProvenanceEntity;
+import org.ndexbio.model.object.SimplePropertyValuePair;
 import org.ndexbio.common.persistence.orientdb.NdexPersistenceService;
 import org.ndexbio.common.util.TermStringType;
 import org.ndexbio.common.util.TermUtilities;
@@ -131,10 +134,10 @@ public class SifParser implements IParsingEngine {
 
 			ProvenanceEntity provEntity = ProvenanceHelpers.createProvenanceHistory(currentNetwork,
 					uri, "FILE_UPLOAD", currentNetwork.getCreationTime(), (ProvenanceEntity)null);
-			provEntity.getCreationEvent().setEndDate(new Date());
+			provEntity.getCreationEvent().setEndedAtTime(new Timestamp(Calendar.getInstance().getTimeInMillis()));
 			
-			List<NdexProperty> l = provEntity.getCreationEvent().getProperties();
-			l.add(	new NdexProperty ( "filename",this.sifFile.getName()) );
+			List<SimplePropertyValuePair> l = provEntity.getCreationEvent().getProperties();
+			l.add(	new SimplePropertyValuePair ( "filename",this.sifFile.getName()) );
 			
 			this.persistenceService.setNetworkProvenance(provEntity);
 			
@@ -382,15 +385,15 @@ public class SifParser implements IParsingEngine {
 						values[0], null);
 			}
 			
-			List<NdexProperty> props = new ArrayList<NdexProperty>();
+			List<NdexPropertyValuePair> props = new ArrayList<NdexPropertyValuePair>();
 			
 			if (values.length > 1 && values[1] != null) {
-                NdexProperty p = new NdexProperty ("ORGANISM", values[1]);
+                NdexPropertyValuePair p = new NdexPropertyValuePair ("ORGANISM", values[1]);
                 props.add(p);
 			}
 			
 			if (values.length > 2 && values[2] != null) {
-                NdexProperty p = new NdexProperty ("URI", values[2]);
+                NdexPropertyValuePair p = new NdexPropertyValuePair ("URI", values[2]);
                 props.add(p);
 			}
 
@@ -400,7 +403,7 @@ public class SifParser implements IParsingEngine {
 				if (source.equals("http://purl.org/pc2/4/pid")){
 					source = "PID";
 				}
-				props.add(new NdexProperty("Source" , source));
+				props.add(new NdexPropertyValuePair("Source" , source));
 			}
 			this.persistenceService.setNetworkProperties(props, null);
 		}

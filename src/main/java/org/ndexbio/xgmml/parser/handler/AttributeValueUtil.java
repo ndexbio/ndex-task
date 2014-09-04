@@ -32,7 +32,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.ndexbio.model.object.NdexProperty;
+import org.ndexbio.model.object.NdexPropertyValuePair;
 import org.ndexbio.model.object.PropertiedObject;
 import org.ndexbio.xgmml.parser.MetadataEntries;
 import org.ndexbio.xgmml.parser.MetadataParser;
@@ -309,7 +309,7 @@ public class AttributeValueUtil {
     
     public static void setAttribute(final PropertiedObject element, final String key, final String value){
     	if (null == element.getProperties()){
-    		element.setProperties(new ArrayList<NdexProperty>());
+    		element.setProperties(new ArrayList<NdexPropertyValuePair>());
     	}
     	setProperty(element.getProperties(), key, value);   	
     }
@@ -320,18 +320,18 @@ public class AttributeValueUtil {
 		return matcher.matches() ? Long.valueOf(matcher.group(1)) : null;
 	}
 
-	public static void setProperty(List<NdexProperty> props, String key,
+	public static void setProperty(List<NdexPropertyValuePair> props, String key,
 			String value) {
-		for (NdexProperty prop : props){
+		for (NdexPropertyValuePair prop : props){
     		if (key.equalsIgnoreCase(prop.getPredicateString())){
     			prop.setValue(value);
     			return;
     		}
     	}
-    	NdexProperty prop = new NdexProperty();
+    	NdexPropertyValuePair prop = new NdexPropertyValuePair();
     	prop.setPredicateString(key);
     	prop.setValue(value);
-    	prop.setDataType(NdexProperty.STRING);
+    	prop.setDataType(NdexPropertyValuePair.STRING);
     	props.add(prop);
 		
 	}
