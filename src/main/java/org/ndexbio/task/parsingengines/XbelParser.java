@@ -99,10 +99,7 @@ public class XbelParser implements IParsingEngine
 			//add provenance to network
 			NetworkSummary currentNetwork = this.networkService.getCurrentNetwork();
 			
-			String uri = Configuration.getInstance().getProperty("HostURI");
-			if ( uri == null) {
-				uri = "http://" + InetAddress.getLocalHost().getHostName() ;
-			}
+			String uri = NdexDatabase.getURIPrefix();
 
 			ProvenanceEntity provEntity = ProvenanceHelpers.createProvenanceHistory(currentNetwork,
 					uri, "FILE_UPLOAD", currentNetwork.getCreationTime(), (ProvenanceEntity)null);
