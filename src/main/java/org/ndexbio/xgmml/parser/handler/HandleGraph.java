@@ -142,28 +142,20 @@ public class HandleGraph extends AbstractHandler {
 	 */
 	private ParseState handleGenericXGMMLGraph(String tag, Attributes atts, ParseState current) throws Exception {
 		final Network currentNet;
-		/*
-		if (manager.graphCount == 1) {
-			// Root (graph) element...
-			final CyRootNetwork parentNet = manager.getParentNetwork();
+
+		for (int i = 0 ; i < atts.getLength() ; i++ ) {
+	//		String name = atts.getLocalName(i);
+			String qname = atts.getQName(i);
+/*			String type = atts.getType(i);
+			String uri = atts.getURI(i); */
+			String v = atts.getValue(i);
 			
-			if (parentNet == null) {
-				final CyRootNetwork rootNet = manager.createRootNetwork();
-				currentNet = rootNet.getBaseNetwork();
-			} else {
-				currentNet = parentNet.addSubNetwork();
-			}
-		} else {
-			// Nested graph tag...
-			final CyRootNetwork rootNet = manager.getRootNetwork();
-			currentNet = rootNet.addSubNetwork();
+		//	System.out.println(name + ","+qname+","+type+","+uri+","+v);
+
+			AttributeValueUtil.setAttribute(manager.getCurrentNetwork(), qname, v);
+	
 		}
-		*/
-		//currentNet = manager.createNetwork();
-
-		//final Object id = getId(atts);
-		//addCurrentNetwork(id, currentNet, atts, true);
-
+		
 		return current;
 	}
 	

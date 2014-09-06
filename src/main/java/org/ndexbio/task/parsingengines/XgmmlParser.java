@@ -14,6 +14,7 @@ import org.ndexbio.common.persistence.orientdb.NdexPersistenceService;
 import org.ndexbio.xgmml.parser.HandlerFactory;
 import org.ndexbio.xgmml.parser.XGMMLParser;
 import org.ndexbio.xgmml.parser.handler.ReadDataManager;
+import org.ndexbio.xgmml.parser.RecordingInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.InputSource;
@@ -105,11 +106,13 @@ public class XgmmlParser implements IParsingEngine {
 			reader.setFeature("http://xml.org/sax/features/validation", false);
 			// Make the SAX1 Parser act as a SAX2 XMLReader
 			final ParserAdapter pa = new ParserAdapter(sp.getParser());
+		//	RecordingInputStream ris=new RecordingInputStream(xgmmlFileStream);
 			ReadDataManager readDataManager = new ReadDataManager(networkService);
 			HandlerFactory handlerFactory = new HandlerFactory(readDataManager);
 			XGMMLParser parser = new XGMMLParser(handlerFactory, readDataManager);
 			pa.setContentHandler(parser);
 			pa.setErrorHandler(parser);
+			
 			// Parse the XGMML input
 			pa.parse(new InputSource(xgmmlFileStream));
 		} catch (OutOfMemoryError oe) {

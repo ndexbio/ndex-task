@@ -34,6 +34,8 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import com.fasterxml.uuid.Logger;
+
 public class XGMMLParser extends DefaultHandler {
 
 	private Locator locator;
@@ -103,6 +105,9 @@ public class XGMMLParser extends DefaultHandler {
 		ParseState nextState;
 		try {
 			//System.out.println("starting state = [" + parseState.toString() + "] tag = " + localName );
+/*			  byte[] bs=readDataManager.getRis().getBytes();
+	          System.out.print(new String(bs));
+	          readDataManager.getRis().resetSink(); */
 			nextState = handleStartState(parseState, namespace, localName, qName, atts);
 			stateStack.push(parseState);
 			parseState = nextState;
@@ -141,7 +146,29 @@ public class XGMMLParser extends DefaultHandler {
 		}
 		parseState = stateStack.pop();
 	}
+	
+	@Override
+	public void startPrefixMapping(String prefix, String uri)         throws SAXException  {
+		
+		System.out.println("Parsing namespace -- " + prefix + " : = " + uri);
+		try {
+			if ( prefix == null || prefix.equals(""))
+				prefix = "xmlns";
+			this.readDataManager.findOrCreateNamespace(uri, prefix);
+		} catch (NdexException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			
+			throw new SAXException ("Failed to create namespces. Error from Ndex: " + e.getMessage());
+		}
+	}
 
+/*	@Override
+	public void endPrefixMapping(String prefix)         throws SAXException  {
+		
+		System.out.println("end: " + prefix );
+	} */
+	
 	/**
 	 * characters is called to handle CData
 	 * 
@@ -234,10 +261,8 @@ public class XGMMLParser extends DefaultHandler {
 				//System.out.println("sax state = " + state.getTag() + "  handler = " + handler.toString());
 				return handler.handle(namespace, tag, qName, atts, state.getEndState());
 			}
-			else
-				return state.getEndState();
-		} else {
-			return currentState;
+			return state.getEndState();
 		}
+		return currentState;
 	}
 }

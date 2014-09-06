@@ -25,20 +25,13 @@ package org.ndexbio.xgmml.parser.handler;
  */
 
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Stack;
+import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.ndexbio.common.exceptions.NdexException;
@@ -49,12 +42,8 @@ import org.ndexbio.common.util.TermUtilities;
 import org.ndexbio.model.object.NdexPropertyValuePair;
 import org.ndexbio.model.object.PropertiedObject;
 import org.ndexbio.model.object.SimplePropertyValuePair;
-import org.ndexbio.model.object.network.BaseTerm;
-import org.ndexbio.model.object.network.Edge;
 import org.ndexbio.model.object.network.NetworkSummary;
-import org.ndexbio.model.object.network.Node;
 import org.ndexbio.model.object.network.Namespace;
-import org.ndexbio.model.object.network.Network;
 import org.ndexbio.xgmml.parser.ParseState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,8 +52,12 @@ import org.xml.sax.Attributes;
 public class ReadDataManager {
 	
 	private NdexPersistenceService networkService;
+	
+	// table that stores all the prefixes defined in the current network.
+	private Map<String, Namespace> prefixMap;
 	private String ownerName;
 	private String networkTitle;
+	private String networkDesc;
 
 	protected final static String XLINK = "http://www.w3.org/1999/xlink";
 	
@@ -128,6 +121,8 @@ public class ReadDataManager {
 	private String visualStyleName;
 	private String rendererName;
 	private Long currentElementId; // node/edge/network old id
+	
+	//private RecordingInputStream ris;
 
 	
 	private static final Logger logger = LoggerFactory.getLogger(ReadDataManager.class);
@@ -135,6 +130,7 @@ public class ReadDataManager {
 	public ReadDataManager(NdexPersistenceService networkService) {
 
 		this.networkService = networkService;
+	//	this.ris = ris;
 		
 		init();
 	}
@@ -169,10 +165,14 @@ public class ReadDataManager {
 		nodeGraphics = new LinkedHashMap<Long, Map<String, String>>();
 		edgeGraphics = new LinkedHashMap<Long, Map<String, String>>();
 		
+		prefixMap = new TreeMap<String,Namespace> ();
+		
 		networkViewId = null;
 		networkId = null;
 		visualStyleName = null;
 		rendererName = null;
+		this.networkTitle = null;
+		this.networkDesc = null;
 
 	}
 	
@@ -221,12 +221,6 @@ public class ReadDataManager {
 		this.documentVersion = XGMMLParseUtil.parseDocumentVersion(documentVersion);
 	}
 
-	/*
-	 * not supporting import of cytoscape session files...
-	public boolean isSessionFormat() {
-		return SessionUtil.isReadingSessionFile();
-	}
-	*/
 	
 	public boolean isViewFormat() {
 		return viewFormat;
@@ -236,22 +230,6 @@ public class ReadDataManager {
 		this.viewFormat = viewFormat;
 	}
 
-	// This is code from the original Cytoscape XGMML parser 
-	// Not clear which feature this is related to.
-	/*
-	public Set<CyNetwork> getPublicNetworks() {
-		return publicNetworks;
-	}
-
-	
-	public ReadCache getCache() {
-		return cache;
-	}
-	
-	public SUIDUpdater getSUIDUpdater() {
-		return suidUpdater;
-	}
-*/
 	/**
 	 * @param element an Node or Edge
 	 * @param attName The name of the attribute
@@ -297,109 +275,6 @@ public class ReadDataManager {
 		this.networkService.setNetworkProperties(null, plist);
 	}
 	
-	// This is code from the original Cytoscape XGMML parser 
-	// It handles the case of Cy3 view formats
-	// Not supported at this time for NDEx parsing of XGMML
-	 	/**
-	 * Used only when reading Cy3 view format XGMML. Because there is no network yet, we use the old model Id as
-	 * mapping key.
-	 * @param oldModelId The original ID of the CyNode, CyEdge or CyNetwork.
-	 * @param attName
-	 * @param attValue
-	 * @param locked
-	 */
-	 /*
-	protected void addViewGraphicsAttribute(Object oldModelId, String attName, String attValue, boolean locked) {
-		Map<Object, Map<String, String>> graphics = locked ? viewLockedGraphics : viewGraphics;
-		Map<String, String> attributes = graphics.get(oldModelId);
-
-		if (attributes == null) {
-			attributes = new HashMap<String, String>();
-			graphics.put(oldModelId, attributes);
-		}
-
-		attributes.put(attName, attValue);
-	}
-	
-	protected void addViewGraphicsAttributes(Object oldModelId, Attributes atts, boolean locked) {
-		if (oldModelId != null) {
-			final int attrLength = atts.getLength();
-			
-			for (int i = 0; i < attrLength; i++)
-				addViewGraphicsAttribute(oldModelId, atts.getLocalName(i), atts.getValue(i), locked);
-		}
-	}
-	*/
-
-
-	/*
-	public <T extends CyIdentifiable> Map<String, String> getViewGraphicsAttributes(final Object oldId, final boolean locked) {
-		return locked ? viewLockedGraphics.get(oldId) : viewGraphics.get(oldId);
-	}
-
-	public void setParentNetwork(CyRootNetwork parent) {
-		this.parentNetwork = parent;
-	}
-	
-	public CyRootNetwork getParentNetwork() {
-		return this.parentNetwork;
-	}
-	*/
-
-	// This is code from the original Cytoscape XGMML parser 
-	// It handles the case of equations as element properties
-	// Not supported at this time for NDEx parsing of XGMML
-	/**
-	 * Just stores all the equation strings per CyIdentifiable and column name.
-	 * It does not create the real Equation objects yet.
-	 * @param row The network/node/edge row
-	 * @param columnName The name of the column
-	 * @param formula The equation formula
-	 */
-	/*
-	public void addEquationString(CyRow row, String columnName, String formula) {
-		Map<String, String> colEquationMap = equations.get(row);
-		
-		if (colEquationMap == null) {
-			colEquationMap = new HashMap<String, String>();
-			equations.put(row, colEquationMap);
-		}
-		
-		colEquationMap.put(columnName, formula);
-	}
-	
-	
-	*/
-	/**
-	 * Should be called only after all XGMML attributes have been read.
-	 */
-	/*
-	protected void parseAllEquations() {
-		for (Map.Entry<CyRow, Map<String, String>> entry : equations.entrySet()) {
-			CyRow row = entry.getKey();
-			Map<String, String> colEquationMap = entry.getValue();
-			
-			Map<String, Class<?>> colNameTypeMap = new Hashtable<String, Class<?>>();
-			Collection<CyColumn> columns = row.getTable().getColumns();
-			
-			for (CyColumn col : columns) {
-				colNameTypeMap.put(col.getName(), col.getType());
-			}
-			
-			for (Map.Entry<String, String> colEqEntry : colEquationMap.entrySet()) {
-				String columnName = colEqEntry.getKey();
-				String formula = colEqEntry.getValue();
-
-				if (equationCompiler.compile(formula, colNameTypeMap)) {
-					Equation equation = equationCompiler.getEquation();
-					row.set(columnName, equation);
-				} else {
-					logger.error("Error parsing equation \"" + formula + "\": " + equationCompiler.getLastErrorMsg());
-				}
-			}
-		}
-	}
-	*/
 
 	protected NetworkSummary getCurrentNetwork() {
 		return this.networkService.getCurrentNetwork();
@@ -463,42 +338,24 @@ public class ReadDataManager {
 
 	}
 	
-	private Long addNode(String name) throws ExecutionException, NdexException {
-		TermStringType stype = TermUtilities.getTermType(name);
-		if ( stype == TermStringType.NAME) {
-			return this.networkService.getNodeIdByName(name);
-		} 
-		return this.networkService.getNodeIdByBaseTerm(name);
-		
-	}
-	
+
 	public Long findOrCreateBaseTerm(String name, Namespace namespace) 
 			throws ExecutionException, NdexException{
 		return this.networkService.getBaseTermId(namespace,name );
 	}
 	
-	public Namespace findOrCreateNamespace(String uri, String prefix) throws ExecutionException, NdexException{
+	public Namespace findOrCreateNamespace(String uri, String prefix) throws NdexException{
+		Namespace ns = this.prefixMap.get(prefix);
+		if ( ns !=null) return ns;
+		
 		RawNamespace rns = new RawNamespace (prefix, uri);
 		
-		return this.networkService.findOrCreateNamespace(rns);
+		ns = this.networkService.findOrCreateNamespace(rns);
+		this.prefixMap.put(prefix, ns);
+		return ns;
 	}
 
-	private Long findOrCreateBaseTermId(String termString)
-			throws ExecutionException, NdexException {
-		// special case for HGNC prefix with colon
-		int hgncIdIndex = termString.indexOf("HGNC:HGNC:");
-		if (hgncIdIndex == 0){
-				String prefix = "HGNC:HGNC";
-				String identifier = termString.substring(10);
-				RawNamespace rns = new RawNamespace(prefix, "http://identifiers.org/hgnc/");
-				Namespace ns = this.networkService.getNamespace(rns);
-				return this.networkService.getBaseTermId(prefix, identifier);
-		}
-		
-		return this.networkService.getBaseTermId(termString);
-	}
-
-
+	
 	public Object getNetworkViewId() {
 		return networkViewId;
 	}
@@ -551,15 +408,6 @@ public class ReadDataManager {
 		this.networkService.setElementProperty(elementId, key, value);
 	}
 
-/*
-	public IRow getCurrentRow() {
-		return currentRow;
-	}
-	
-	public void setCurrentRow(CyRow row) {
-		this.currentRow = row;
-	}
-*/	
 	protected Long getCurrentElementId() {
 		return this.currentElementId;
 	}
@@ -579,62 +427,20 @@ public class ReadDataManager {
 	public void setCurrentCData(String currentCData) {
 		this.currentCData = currentCData;
 	}
-
-
-
- 	/**
- 	 * Adds old->new SUID references to the SUID Updater 
- 	 * @throws Exception 
- 	 */
-	/*
-	private void mapSUIDs(final Object oldId, final Long newSUID) {
-        if (oldId instanceof Long) // if String (probably Cy2), it has to be handled differently
-        	suidUpdater.addSUIDMapping((Long)oldId, newSUID);
+	
+	public void setNetworkTitle (String title) {
+		this.networkTitle = title;
 	}
 	
-	*/
-
-
-	/**
-	 * It controls which graphics attributes should be parsed.
-	 * @param element The network, node or edge
-	 * @param attName The name of the XGMML attribute
-	 * @return
-	 */
-	/*
-	private final boolean ignoreGraphicsAttribute(final CyIdentifiable element, final String attName) {
-		boolean b = false;
-		
-		// When reading XGMML as part of a CYS file, these graphics attributes should not be parsed.
-		if (isSessionFormat() && element != null && attName != null) {
-			// Network
-			b = b || (element instanceof CyNetwork && matchesBg(attName));
-			// Nodes or Edges (these are standard XGMML and 2.x <graphics> attributes, not 3.0 bypass properties)
-			b = b ||
-				((element instanceof CyNode || element instanceof CyEdge) && matches2x(attName));
-		}
-
-		return b;
+	public void setNetworkDesc (String description) {
+		this.networkDesc = description;
 	}
-	
-	private final boolean matches2x(final String text) {
-		final Matcher matcher = P2X.matcher(text);
-		return matcher.matches();
+/*
+	public RecordingInputStream getRis() {
+		return ris;
 	}
-	
-	private final boolean matchesBg(final String text) {
-		final Matcher matcher = PBG_COLOR.matcher(text);
-		return matcher.matches();
-	}
-	*/
+*/
 
-	/*
-	// The following is added to support the user option to import network into different collection
-	private  Map<Object, CyNode> nMap;
-	private CyRootNetwork rootNetwork = null;
 
-	public void setNodeMap(Map<Object, CyNode> nMap){
-		this.nMap = nMap;
-	}
-	*/
+
 }

@@ -29,9 +29,12 @@ package org.ndexbio.xgmml.parser.handler;
 import org.ndexbio.model.object.network.Namespace;
 import org.ndexbio.xgmml.parser.ParseState;
 import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
 
 public class HandleRDFNetworkAttribute extends AbstractHandler {
+	
+	private final static String title = "dc:title";
+	private final static String description  = "dc:description";
+
 	
 	@Override
 	public ParseState handle(String namespace, String tag, String qName,  Attributes atts, ParseState current)
@@ -40,25 +43,32 @@ public class HandleRDFNetworkAttribute extends AbstractHandler {
 		// check that the currentCData is not null and not empty.
 		if (null == manager.getCurrentCData()) return current;
 		if ("" == manager.getCurrentCData()) return current;
+
+		if ( qName.equals(title)) {
+			manager.setNetworkTitle(qName);
+		} else if ( qName.equals(description)) {
+			manager.setNetworkDesc(manager.getCurrentCData());
+		} else {
 		
-		// check that the qName has a prefix, otherwise error
-		int colonIndex = qName.indexOf(':');
-		if (colonIndex < 1) throw new Exception("no namespace prefix in network attribute qName");
-		String prefix = qName.substring(0, colonIndex);
-		// Find or create the namespace
+			// check that the qName has a prefix, otherwise error
+			int colonIndex = qName.indexOf(':');
+			if (colonIndex < 1) throw new Exception("no namespace prefix in network attribute qName");
+			String prefix = qName.substring(0, colonIndex);
+			// 	Find or create the namespace
 		
-		Namespace ns = manager.findOrCreateNamespace(namespace, prefix);
+			Namespace ns = manager.findOrCreateNamespace(namespace, prefix);
+			System.out.println(namespace+":"+prefix);
 		
-		// Find or create the term for the attribute
-		// In the case of a typical XGMML network, this will result in a dublin core namespace
-		// with terms for the typical metadata employed by XGMML
+			// Find or create the term for the attribute
+			// In the case of a typical XGMML network, this will result in a dublin core namespace
+			// with terms for the typical metadata employed by XGMML
 				
-		manager.findOrCreateBaseTerm(tag, ns);
+			manager.findOrCreateBaseTerm(tag, ns);
 		
-		// set the network metadata with the qName as the property and the currentCData as the value
+			// set the network metadata with the qName as the property and the currentCData as the value
 		
-		AttributeValueUtil.setAttribute(manager.getCurrentNetwork(), qName, manager.getCurrentCData());
-		
+			AttributeValueUtil.setAttribute(manager.getCurrentNetwork(), qName, manager.getCurrentCData());
+		}
 
 		return current;
 	}
