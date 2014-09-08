@@ -368,7 +368,7 @@ public class SifParser implements IParsingEngine {
 	}
 
 	private void processExtendedBinarySIFProperties(
-			BufferedReader bufferedReader) throws IOException {
+			BufferedReader bufferedReader) throws IOException, NdexException, ExecutionException {
 
 		// NAME\tORGANISM\tURI\tDATASOURCE";
 		// this is currently one line of properties, but perhaps it would be

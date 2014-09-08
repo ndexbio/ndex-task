@@ -33,6 +33,7 @@ public class HandleRDFType extends AbstractHandler {
 	@Override
 	public ParseState handle(final String namespace, final String tag, final String qName,  Attributes atts, ParseState current)
 			throws SAXException {
+		
 		return current;
 	}
 }

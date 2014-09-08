@@ -155,7 +155,7 @@ public class StatementGroupSplitter extends XBelSplitter {
 	}
 
 	private Long citationFromAnnotationGroup(
-			AnnotationGroup annotationGroup) throws NdexException {
+			AnnotationGroup annotationGroup) throws NdexException, ExecutionException {
 		if (null == annotationGroup)
 			return null;
 		for (Object object : annotationGroup

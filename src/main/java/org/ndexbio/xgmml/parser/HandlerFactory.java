@@ -135,7 +135,7 @@ public class HandlerFactory {
 		} else {
 			// Cy3 network, Cy2 network+view or regular XGMML formats
 			final Object[][] tbl = {
-					{ RDF_DESC, "type", RDF_DESC, new HandleRDFType() },
+					{ RDF_DESC, "type", RDF_DESC, new HandleRDFNetworkAttribute() },
 					{ RDF_DESC, "description", RDF_DESC, new HandleRDFNetworkAttribute()},
 					{ RDF_DESC, "identifier", RDF_DESC, new HandleRDFNetworkAttribute() },
 					{ RDF_DESC, "date", RDF_DESC, new HandleRDFNetworkAttribute() },

@@ -14,7 +14,6 @@ import org.ndexbio.common.persistence.orientdb.NdexPersistenceService;
 import org.ndexbio.xgmml.parser.HandlerFactory;
 import org.ndexbio.xgmml.parser.XGMMLParser;
 import org.ndexbio.xgmml.parser.handler.ReadDataManager;
-import org.ndexbio.xgmml.parser.RecordingInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.InputSource;

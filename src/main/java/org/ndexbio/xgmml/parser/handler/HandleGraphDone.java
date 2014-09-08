@@ -27,6 +27,8 @@ package org.ndexbio.xgmml.parser.handler;
 import java.util.Map;
 import java.util.Set;
 
+import org.ndexbio.common.exceptions.NdexException;
+import org.ndexbio.common.exceptions.ObjectNotFoundException;
 import org.ndexbio.model.object.network.Network;
 import org.ndexbio.xgmml.parser.ParseState;
 import org.xml.sax.Attributes;
@@ -41,6 +43,13 @@ public class HandleGraphDone extends AbstractHandler {
 	@Override
 	public ParseState handle(String namespace, String tag, String qName,  Attributes atts, ParseState current) throws SAXException {
 		graphDone();
+		try {
+			manager.saveNetworkSummary();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			throw new SAXException("Error occurs when saving network summary. " + e.getMessage());
+		}
 		
 		// End of document?
 		if (manager.graphDoneCount != manager.graphCount)
@@ -118,6 +127,7 @@ public class HandleGraphDone extends AbstractHandler {
 		
 		Network currentNet = null;
 		final Object netId = manager.getNetworkIDStack().isEmpty() ? null : manager.getNetworkIDStack().peek();
+		
 		/*
 		if (netId != null)
 			currentNet = manager.getCache().getNetwork(netId);

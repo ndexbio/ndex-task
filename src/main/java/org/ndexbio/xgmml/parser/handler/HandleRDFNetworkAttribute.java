@@ -45,9 +45,9 @@ public class HandleRDFNetworkAttribute extends AbstractHandler {
 		if ("" == manager.getCurrentCData()) return current;
 
 		if ( qName.equals(title)) {
-			manager.setNetworkTitle(qName);
+			manager.setNetworkTitle(manager.getCurrentCData().trim());
 		} else if ( qName.equals(description)) {
-			manager.setNetworkDesc(manager.getCurrentCData());
+			manager.setNetworkDesc(manager.getCurrentCData().trim());
 		} else {
 		
 			// check that the qName has a prefix, otherwise error
@@ -67,9 +67,10 @@ public class HandleRDFNetworkAttribute extends AbstractHandler {
 		
 			// set the network metadata with the qName as the property and the currentCData as the value
 		
-			AttributeValueUtil.setAttribute(manager.getCurrentNetwork(), qName, manager.getCurrentCData());
+			AttributeValueUtil.setAttribute(manager.getCurrentNetwork(), qName, manager.getCurrentCData().trim());
 		}
 
+		manager.resetCurrentCData();
 		return current;
 	}
 }

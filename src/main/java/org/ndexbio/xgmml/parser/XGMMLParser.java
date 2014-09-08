@@ -181,7 +181,7 @@ public class XGMMLParser extends DefaultHandler {
 	 */
 	@Override
 	public void characters(char[] ch, int start, int length) {
-		readDataManager.setCurrentCData(new String(ch, start, length));
+		readDataManager.addCurrentCData(ch,start,length);
 		// set a var in readDataManager so this can be found by handlers...
 	}
 

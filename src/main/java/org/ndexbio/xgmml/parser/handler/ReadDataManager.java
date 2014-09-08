@@ -35,6 +35,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.regex.Pattern;
 
 import org.ndexbio.common.exceptions.NdexException;
+import org.ndexbio.common.exceptions.ObjectNotFoundException;
 import org.ndexbio.common.models.object.network.RawNamespace;
 import org.ndexbio.common.persistence.orientdb.NdexPersistenceService;
 import org.ndexbio.common.util.TermStringType;
@@ -48,6 +49,7 @@ import org.ndexbio.xgmml.parser.ParseState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
 
 public class ReadDataManager {
 	
@@ -69,8 +71,9 @@ public class ReadDataManager {
 	private static final Pattern P2X = Pattern.compile(PATTERN2X);
 	private static final Pattern PBG_COLOR = Pattern.compile(BG_COLOR_PATTERN);
 
-	private String currentCData; 
-	
+	private StringBuilder currentCData; 
+
+	private boolean saved;
 	/* Stack of original network IDs */
 	private Stack<Object> networkStack;
 
@@ -140,7 +143,7 @@ public class ReadDataManager {
 		viewFormat = false;
 		graphCount = 0;
 		graphDoneCount = 0;
-		documentVersion = 0;
+		documentVersion = 1;
 
 		currentProperties = null;
 		currentNodeId = null;
@@ -149,8 +152,9 @@ public class ReadDataManager {
 		currentNetworkIsDirected = true;
 		//currentRow = null;
 
-		ParseState attState = ParseState.NONE;
+	//	ParseState attState = ParseState.NONE;
 		currentAttributeID = null;
+		currentCData = new StringBuilder();
 
 		/* Edge handle list */
 		handleList = null;
@@ -158,6 +162,7 @@ public class ReadDataManager {
 		edgeBendX = null;
 		edgeBendY = null;
 		
+		saved = false;
 		networkStack = new Stack<Object>();
 		
 		// TODO: determine how these are used 
@@ -245,18 +250,22 @@ public class ReadDataManager {
 		return element.getPresentationProperties();
 	}
 	
-	protected void addGraphicsAttributes(Long elementId, Attributes atts) throws ExecutionException {
+	protected void addGraphicsAttributes(Long elementId, Attributes atts) throws ExecutionException, SAXException {
 		if (elementId != null) {
 			final int attrLength = atts.getLength();
 
 			for (int i = 0; i < attrLength; i++) {
 				System.out.println("Adding graphics " + atts.getLocalName(i) + " = " + atts.getValue(i) + " to " + elementId.toString());
-				this.setElementProperty(elementId, atts.getLocalName(i), atts.getValue(i));
+				try {
+					this.setElementProperty(elementId, atts.getLocalName(i), atts.getValue(i));
+				} catch ( NdexException e) {
+					throw new SAXException("Ndex error:" + e.getMessage());
+				}
 			}
 		}
 	}
 
-	protected void addNetworkGraphicsAttributes( Attributes atts) {
+	protected void addNetworkGraphicsAttributes( Attributes atts) throws ExecutionException, SAXException {
 		final int attrLength = atts.getLength();
 
 		ArrayList<SimplePropertyValuePair> plist = new ArrayList<SimplePropertyValuePair> ();
@@ -264,15 +273,27 @@ public class ReadDataManager {
 			SimplePropertyValuePair p = new SimplePropertyValuePair( atts.getLocalName(i), atts.getValue(i));
 			plist.add(p);
 		}
-		this.networkService.setNetworkProperties(null, plist);
+		try {
+			this.networkService.setNetworkProperties(null, plist);
+		}catch (NdexException e) {
+			throw new SAXException ("Ndex error: " + e.getMessage());
+		}
 	}
 	
-	protected void addNetworkGraphicsAttribute( String key, String value) {
+	protected void addNetworkGraphicsAttribute( String key, String value) throws SAXException {
 
 		ArrayList<SimplePropertyValuePair> plist = new ArrayList<SimplePropertyValuePair> ();
 		SimplePropertyValuePair p = new SimplePropertyValuePair( key, value);
 		plist.add(p);
-		this.networkService.setNetworkProperties(null, plist);
+		try {
+			this.networkService.setNetworkProperties(null, plist);
+		} catch ( Exception e) {
+			String message = "Error accours in adding graphic attribute in XGMML parser. " 
+					+e.getMessage(); 
+			logger.error(message);
+			throw new SAXException(message);
+			
+		}
 	}
 	
 
@@ -404,7 +425,7 @@ public class ReadDataManager {
 		return this.currentEdgeId;
 	}
 	
-	protected void setElementProperty ( Long elementId, String key, String value) throws ExecutionException {
+	protected void setElementProperty ( Long elementId, String key, String value) throws ExecutionException, NdexException {
 		this.networkService.setElementProperty(elementId, key, value);
 	}
 
@@ -421,11 +442,15 @@ public class ReadDataManager {
 	}
 	
 	public String getCurrentCData() {
-		return currentCData;
+		return currentCData.toString();
 	}
 
-	public void setCurrentCData(String currentCData) {
-		this.currentCData = currentCData;
+	public void addCurrentCData(char ch[], int start, int length) {
+		this.currentCData.append(ch,start, length);
+	}
+	
+	public void resetCurrentCData() {
+		this.currentCData.setLength(0);
 	}
 	
 	public void setNetworkTitle (String title) {
@@ -434,6 +459,15 @@ public class ReadDataManager {
 	
 	public void setNetworkDesc (String description) {
 		this.networkDesc = description;
+	}
+	
+	public void saveNetworkSummary() throws ObjectNotFoundException, NdexException, ExecutionException {
+	  if ( !saved) {
+		  this.networkService.getCurrentNetwork().setName(this.networkTitle);
+		this.networkService.getCurrentNetwork().setDescription(this.networkDesc);
+		this.networkService.updateNetworkSummary();
+		saved = true;
+	  }
 	}
 /*
 	public RecordingInputStream getRis() {
