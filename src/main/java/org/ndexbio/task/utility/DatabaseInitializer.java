@@ -27,12 +27,20 @@ public class DatabaseInitializer {
 	        newUser.setLastName("");
 	        dao.createNewUser(newUser);
 
-	        newUser.setEmailAddress("pidadmin@ndexbio.org");
-	        newUser.setPassword("pid-321");
-	        newUser.setAccountName("pidadmin");
+	        newUser.setEmailAddress("nciadmin@ndexbio.org");
+	        newUser.setPassword("nci-321");
+	        newUser.setAccountName("nciadmin");
 	        newUser.setFirstName("");
 	        newUser.setLastName("");
 	        dao.createNewUser(newUser);
+
+	        newUser.setEmailAddress("openbeladmin@ndexbio.org");
+	        newUser.setPassword("obenbel-321");
+	        newUser.setAccountName("openbeladmin");
+	        newUser.setFirstName("");
+	        newUser.setLastName("");
+	        dao.createNewUser(newUser);
+	        
 	        
 		} catch (NdexException e) {
 			System.err.println ("Error accurs when initializing Ndex database. " +  

@@ -32,14 +32,9 @@ public class NdexAuditUtils {
 	
 	public static List<String> getNetworkMetricsList = Arrays.asList(networkMetrics);
 	
-	public static UUID generateNetworkUUID(String networkName, URI networkURI) {
-		//return UUID.fromString(networkName +networkURI);
-		return UUID.randomUUID();
-	}
-	
 	public static NetworkIdentifier generateNetworkIdentifier( String networkName,  
 			URI networkURI){
-		UUID uuid = generateNetworkUUID(networkName, networkURI);
+		UUID uuid = UUID.randomUUID();
 		return new NetworkIdentifier(uuid, networkName, networkURI);
 	}
 	// use URI for localhost
@@ -48,7 +43,7 @@ public class NdexAuditUtils {
 		 NetworkIdentifier networkId = null;
 		try {
 			URI networkURI  = new URI("http://localhost:8080/ndexbio/");
-			UUID uuid = generateNetworkUUID(networkName, networkURI);
+			UUID uuid = UUID.randomUUID();
 			networkId=  new NetworkIdentifier(uuid, networkName, networkURI);
 		} catch (URISyntaxException e) {
 			logger.error(e.getMessage());

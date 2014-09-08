@@ -2,8 +2,6 @@ package org.ndexbio.task.audit.network;
 
 
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
@@ -13,13 +11,11 @@ import org.apache.commons.logging.LogFactory;
 import org.ndexbio.task.audit.NdexAuditService;
 import org.ndexbio.task.audit.NdexAuditUtils;
 import org.ndexbio.task.audit.NdexOperationMetrics;
-import org.ndexbio.task.audit.NdexAuditUtils.AuditOperation;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+//import com.google.common.collect.Sets;
 
 /*
  * Represents an NDEx service that an application performing a major operation on
@@ -37,7 +33,7 @@ public class NetworkOperationAuditService extends NdexAuditService{
 	private String networkFileName; // import or export file name
 	protected final NetworkIdentifier networkId;
 	
-	private Set<String> edgeIdSet = Sets.newConcurrentHashSet();
+//	private Set<String> edgeIdSet = Sets.newConcurrentHashSet();
 	
 	public NetworkOperationAuditService(String  networkName, NdexAuditUtils.AuditOperation oper){		
 		super( oper);	
@@ -61,6 +57,7 @@ public class NetworkOperationAuditService extends NdexAuditService{
 		return networkId;
 	}
 	
+	@Override
 	protected void initializeMetrics(){
 		//for(String metric : NdexAuditUtils.getNetworkMetricsList){
 		//	this.metrics.incrementMeasurement(metric);		 

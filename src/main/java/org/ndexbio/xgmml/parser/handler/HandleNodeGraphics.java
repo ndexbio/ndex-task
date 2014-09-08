@@ -40,16 +40,14 @@ public class HandleNodeGraphics extends AbstractHandler {
 
 	@Override
     public ParseState handle(final String namespace, final String tag, final String qName,  Attributes atts, ParseState current) throws SAXException, ExecutionException {
-        if (tag.equals("graphics")) {
-        	manager.addGraphicsAttributes(manager.getCurrentNodeId(), atts);
-        } else if (tag.equals("att")) {
-            // Handle special node graphics attributes
-            String name = atts.getValue("name");
-
-            if (name != null && !name.equals("cytoscapeNodeGraphicsAttributes")) {
-                manager.addGraphicsAttribute(manager.getCurrentNodeId(), name, atts.getValue("value"));
-            }
-        }
+			StringBuilder sb = new StringBuilder ();
+			sb.append("<"+qName );
+			for ( int i = 0 ; i < atts.getLength(); i++) {
+				sb.append(" " + atts.getQName(i) + "=\"" +atts.getValue(i) + "\""); 
+			}
+			sb.append(">\n");
+        	
+        	manager.appendCurrentNodeGraphicsString(sb.toString());
         
         return current;
     }

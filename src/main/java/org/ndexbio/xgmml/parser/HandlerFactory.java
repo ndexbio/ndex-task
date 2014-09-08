@@ -29,6 +29,8 @@ import org.ndexbio.xgmml.parser.handler.*;
 
 public class HandlerFactory {
 
+	public final static String graphics = "graphics";
+	
 	private Map<ParseState, Map<String, SAXState>> startParseMap;
 	private Map<ParseState, Map<String, SAXState>> endParseMap;
 
@@ -62,11 +64,11 @@ public class HandlerFactory {
 			final Object[][] tbl = {
 					// Initial state. It's all noise until we see our <graph> tag
 					{ NONE, "graph", GRAPH, new HandleViewGraph() },
-					{ GRAPH, "graphics", NET_GRAPHICS, new HandleViewGraphGraphics() },
+					{ GRAPH, graphics, NET_GRAPHICS, new HandleViewGraphGraphics() },
 					{ NET_GRAPHICS, "att", NET_GRAPHICS, new HandleViewGraphGraphics() },
 					// Handle nodes
 					{ GRAPH, "node", NODE, new HandleViewNode() },
-					{ NODE, "graphics", NODE_GRAPHICS, new HandleViewNodeGraphics() },
+					{ NODE, graphics, NODE_GRAPHICS, new HandleViewNodeGraphics() },
 					{ NODE_GRAPHICS, "att", NODE_GRAPHICS, new HandleViewNodeGraphics() },
 					// TODO: att-list for bypass
 					// Handle edges
@@ -82,7 +84,7 @@ public class HandlerFactory {
 			final Object[][] tbl = {
 					// Initial state. It's all noise until we see our <graph> tag
 					{ NONE, "graph", GRAPH, new HandleGraph() },
-					{ GRAPH, "graphics", NET_GRAPHICS, new HandleGraphGraphics() },
+					{ GRAPH, graphics, NET_GRAPHICS, new HandleGraphGraphics() },
 					{ NET_GRAPHICS, "att", NET_GRAPHICS, new HandleGraphGraphics() },
 					{ GRAPH, "att", NET_ATT, new HandleGraphAttribute() },
 					// RDF
@@ -101,7 +103,7 @@ public class HandlerFactory {
 					// Nodes
 					{ GRAPH, "node", NODE, new HandleNode() },
 					{ NODE_GRAPH, "node", NODE, new HandleNode() },
-					{ NODE, "graphics", NODE_GRAPHICS, new HandleNodeGraphics() },
+					{ NODE, graphics, NODE_GRAPHICS, new HandleNodeGraphics() },
 					{ NODE, "att", NODE_ATT, new HandleNodeAttribute() },
 					{ NODE_ATT, "graph", NODE_GRAPH, new HandleNodeGraph() },
 					{ NODE_GRAPH, "att", NET_ATT, new HandleGraphAttribute() },
@@ -110,7 +112,7 @@ public class HandlerFactory {
 					{ GRAPH, "edge", EDGE, new HandleEdge() },
 					{ NODE_GRAPH, "edge", EDGE, new HandleEdge() },
 					{ EDGE, "att", EDGE_ATT, new HandleEdgeAttribute() },
-					{ EDGE, "graphics", EDGE_GRAPHICS, new HandleEdgeGraphics() },
+					{ EDGE, graphics, EDGE_GRAPHICS, new HandleEdgeGraphics() },
 					{ EDGE_GRAPHICS, "att", EDGE_GRAPHICS, new HandleEdgeGraphics() },
 					{ EDGE_BEND, "att", EDGE_HANDLE, new HandleEdgeHandle() },
 					{ EDGE_HANDLE, "att", EDGE_HANDLE, new HandleEdgeHandle() },
@@ -132,9 +134,10 @@ public class HandlerFactory {
 					{ LOCKED_VISUAL_PROP_ATT, "att", NONE, null },
 					{ GRAPH, "graph", NONE, null } };
 			return tbl;
-		} else {
+		} 
+		
 			// Cy3 network, Cy2 network+view or regular XGMML formats
-			final Object[][] tbl = {
+		final Object[][] tbl = {
 					{ RDF_DESC, "type", RDF_DESC, new HandleRDFNetworkAttribute() },
 					{ RDF_DESC, "description", RDF_DESC, new HandleRDFNetworkAttribute()},
 					{ RDF_DESC, "identifier", RDF_DESC, new HandleRDFNetworkAttribute() },
@@ -142,15 +145,15 @@ public class HandlerFactory {
 					{ RDF_DESC, "title", RDF_DESC, new HandleRDFNetworkAttribute() },
 					{ RDF_DESC, "source", RDF_DESC, new HandleRDFNetworkAttribute()},
 					{ RDF_DESC, "format", RDF_DESC, new HandleRDFNetworkAttribute() },
-					{ NODE_GRAPHICS, "graphics", NODE, new HandleNodeGraphicsDone() },
+					{ NODE_GRAPHICS, "att", NODE_GRAPHICS, new HandleNodeGraphicsAttributeDone() },
+					{ NODE_GRAPHICS, graphics, NODE, new HandleNodeGraphicsDone() },
 					{ NODE,   "node", GRAPH, new HandleNodeDone() },
 					{ EDGE_HANDLE, "att", EDGE_BEND, new HandleEdgeHandleDone() },
 					{ EDGE_BEND, "att", EDGE_BEND, new HandleEdgeHandleList() },
 					{ NODE_GRAPH, "graph", NODE, new HandleNodeGraphDone() },
 					{ GRAPH, "graph", NONE, new HandleGraphDone() },
 					{ LIST_ATT, "att", NONE, new HandleListAttributeDone() } };
-			return tbl;
-		}
+		return tbl;
 	}
 
 	/**

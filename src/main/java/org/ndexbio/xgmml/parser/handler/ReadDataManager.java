@@ -72,6 +72,7 @@ public class ReadDataManager {
 	private static final Pattern PBG_COLOR = Pattern.compile(BG_COLOR_PATTERN);
 
 	private StringBuilder currentCData; 
+	private StringBuilder currentNodeGraphicsStr;
 
 	private boolean saved;
 	/* Stack of original network IDs */
@@ -155,7 +156,8 @@ public class ReadDataManager {
 	//	ParseState attState = ParseState.NONE;
 		currentAttributeID = null;
 		currentCData = new StringBuilder();
-
+		currentNodeGraphicsStr = new StringBuilder();
+		
 		/* Edge handle list */
 		handleList = null;
 
@@ -278,6 +280,18 @@ public class ReadDataManager {
 		}catch (NdexException e) {
 			throw new SAXException ("Ndex error: " + e.getMessage());
 		}
+	}
+	
+	protected void appendCurrentNodeGraphicsString(String s) {
+		this.currentNodeGraphicsStr.append(s);
+	}
+
+	protected String getCurrentNodeGraphicsString() {
+		return this.currentNodeGraphicsStr.toString();
+	}
+
+	protected void resetCurrentNodeGraphicsString() {
+		this.currentNodeGraphicsStr.setLength(0);
 	}
 	
 	protected void addNetworkGraphicsAttribute( String key, String value) throws SAXException {
