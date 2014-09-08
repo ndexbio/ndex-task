@@ -142,6 +142,8 @@ public class HandlerFactory {
 					{ RDF_DESC, "title", RDF_DESC, new HandleRDFNetworkAttribute() },
 					{ RDF_DESC, "source", RDF_DESC, new HandleRDFNetworkAttribute()},
 					{ RDF_DESC, "format", RDF_DESC, new HandleRDFNetworkAttribute() },
+					{ NODE_GRAPHICS, "graphics", NODE, new HandleNodeGraphicsDone() },
+					{ NODE,   "node", GRAPH, new HandleNodeDone() },
 					{ EDGE_HANDLE, "att", EDGE_BEND, new HandleEdgeHandleDone() },
 					{ EDGE_BEND, "att", EDGE_BEND, new HandleEdgeHandleList() },
 					{ NODE_GRAPH, "graph", NODE, new HandleNodeGraphDone() },
