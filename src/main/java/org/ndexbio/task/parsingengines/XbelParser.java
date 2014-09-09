@@ -87,7 +87,7 @@ public class XbelParser implements IParsingEngine
     }
   
     @Override
-	public void parseFile()
+	public void parseFile() throws NdexException
     {
         try
         {
@@ -120,6 +120,8 @@ public class XbelParser implements IParsingEngine
             // rollback current transaction and close the database connection
             this.networkService.abortTransaction();
             e.printStackTrace();
+            throw new NdexException ("Error occurred when loading " +
+              xmlFile + ". " + e.getMessage());
         }
 
     }

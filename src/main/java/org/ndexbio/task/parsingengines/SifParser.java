@@ -27,6 +27,7 @@ import org.ndexbio.common.util.TermUtilities;
 import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.model.tools.ProvenanceHelpers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -98,22 +99,24 @@ public class SifParser implements IParsingEngine {
 	 * considered part of the name. If the file contains no tabs, then any
 	 * spaces are delimiters that separate names (and names cannot contain
 	 * spaces).
+	 * @throws JsonProcessingException 
+	 * @throws NdexException 
 	 **************************************************************************/
 	@Override
-	public void parseFile() {
+	public void parseFile() throws  NdexException {
 		try {
 
 			this.getMsgBuffer().add("Parsing lines from " + this.getSIFURI());
 			BufferedReader bufferedReader;
 
-			try {
+//			try {
 				bufferedReader = new BufferedReader(new FileReader(
 						this.getSifFile()));
-			} catch (FileNotFoundException e1) {
+/*			} catch (FileNotFoundException e1) {
 				this.getMsgBuffer().add("Could not find " + this.getSIFURI());
 				return;
 			}
-
+*/
 			boolean extendedBinarySIF = checkForExtendedFormat();
 			if (extendedBinarySIF) {
 				this.processExtendedBinarySIF(bufferedReader);
@@ -143,9 +146,11 @@ public class SifParser implements IParsingEngine {
 //			logger.info("finished loading. Total Pubmed Ids: " + this.pubmedIdSet.size());
 		} catch (Exception e) {
 			// delete network and close the database connection
-			//this.persistenceService.abortTransaction();
+			this.persistenceService.abortTransaction();
 			e.printStackTrace();
-		}
+			throw new NdexException("Error occurred when loading file " +
+					this.sifFile.getName() + ". " + e.getMessage() );
+		} 
 	}
 
 	private boolean checkForExtendedFormat() throws IOException {

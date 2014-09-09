@@ -10,6 +10,7 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 import org.ndexbio.common.access.NdexDatabase;
+import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.persistence.orientdb.NdexPersistenceService;
 import org.ndexbio.xgmml.parser.HandlerFactory;
 import org.ndexbio.xgmml.parser.XGMMLParser;
@@ -53,7 +54,7 @@ public class XgmmlParser implements IParsingEngine {
 	}
 
 	@Override
-	public void parseFile() {
+	public void parseFile() throws NdexException {
         
 		FileInputStream xgmmlFileStream = null;
         try
@@ -65,7 +66,7 @@ public class XgmmlParser implements IParsingEngine {
             log("Could not read " + this.getXgmmlFile());
             this.networkService.abortTransaction();  //TODO: close connection to database
             // e1.printStackTrace();
-            return;
+            throw new NdexException("File not found: " + this.xgmmlFile.getName());
         }
 
         try
@@ -82,6 +83,8 @@ public class XgmmlParser implements IParsingEngine {
             // rollback current transaction and close the database connection
             this.networkService.abortTransaction();
             e.printStackTrace();
+            throw new NdexException("Error occurred when loading "
+            		+ this.xgmmlFile.getName() + ". " + e.getMessage());
         } 
 		
 	}
