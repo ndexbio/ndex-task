@@ -294,8 +294,8 @@ public class SifParser implements IParsingEngine {
 //										this.pubmedIdSet.add(pubmedIdTokens[1]);
 										this.persistenceService.addCitationToElement(edgeId, citationId, NdexClasses.Edge);
 								} else {	
-								  logger.warning("Unsupported Pubmed id format: " + 
-							       pubMedId + " found in file.\n line:\n " + line +"\n Ignore this pubmedId.\n" );
+					/*			  logger.warning("Unsupported Pubmed id format: " + 
+							       pubMedId + " found in file.\n line:\n " + line +"\n Ignore this pubmedId.\n" ); */
 								}
 							}
 						}
