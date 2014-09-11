@@ -89,7 +89,7 @@ public class FileUploadTask extends NdexTask {
 		case ("XGMML"):
 			try {
 				final XgmmlParser xgmmlParser = new XgmmlParser(
-						file.getAbsolutePath(), this.getFilename());
+						file.getAbsolutePath(), this.getTaskOwnerAccount());
 				xgmmlParser.parseFile();
 				this.taskStatus = Status.COMPLETED;
 			} catch (Exception e) {

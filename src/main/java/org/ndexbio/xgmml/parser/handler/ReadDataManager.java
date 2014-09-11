@@ -244,7 +244,6 @@ public class ReadDataManager {
 	 * @throws ExecutionException 
 	 */
 	protected void addGraphicsAttribute(Long elementId, String attName, String attValue) throws ExecutionException {
-		System.out.println("Adding graphics " + attName + " = " + attValue + " to " + elementId.toString());
 		this.networkService.setElementPresentationProperty(elementId, attName, attValue);
 	}
 	
@@ -302,7 +301,7 @@ public class ReadDataManager {
 		try {
 			this.networkService.setNetworkProperties(null, plist);
 		} catch ( Exception e) {
-			String message = "Error accours in adding graphic attribute in XGMML parser. " 
+			String message = "Error accours when adding graphic attribute in XGMML parser. " 
 					+e.getMessage(); 
 			logger.error(message);
 			throw new SAXException(message);

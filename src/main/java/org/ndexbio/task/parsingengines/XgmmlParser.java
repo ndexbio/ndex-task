@@ -4,6 +4,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.sql.Timestamp;
+import java.util.Calendar;
+import java.util.List;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -12,6 +15,10 @@ import javax.xml.parsers.SAXParserFactory;
 import org.ndexbio.common.access.NdexDatabase;
 import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.persistence.orientdb.NdexPersistenceService;
+import org.ndexbio.model.object.ProvenanceEntity;
+import org.ndexbio.model.object.SimplePropertyValuePair;
+import org.ndexbio.model.object.network.NetworkSummary;
+import org.ndexbio.model.tools.ProvenanceHelpers;
 import org.ndexbio.xgmml.parser.HandlerFactory;
 import org.ndexbio.xgmml.parser.XGMMLParser;
 import org.ndexbio.xgmml.parser.handler.ReadDataManager;
@@ -74,6 +81,21 @@ public class XgmmlParser implements IParsingEngine {
         	
             setNetwork();
             readXGMML(xgmmlFileStream);
+
+			//add provenance to network
+			NetworkSummary currentNetwork = this.networkService.getCurrentNetwork();
+			
+			String uri = NdexDatabase.getURIPrefix();
+
+			ProvenanceEntity provEntity = ProvenanceHelpers.createProvenanceHistory(currentNetwork,
+					uri, "FILE_UPLOAD", currentNetwork.getCreationTime(), (ProvenanceEntity)null);
+			provEntity.getCreationEvent().setEndedAtTime(new Timestamp(Calendar.getInstance().getTimeInMillis()));
+			
+			List<SimplePropertyValuePair> l = provEntity.getCreationEvent().getProperties();
+			l.add(	new SimplePropertyValuePair ( "filename",this.xgmmlFile.getName()) );
+			
+			this.networkService.setNetworkProvenance(provEntity);
+
             
             // close database connection
          	this.networkService.persistNetwork();
