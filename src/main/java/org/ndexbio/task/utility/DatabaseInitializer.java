@@ -41,13 +41,6 @@ public class DatabaseInitializer {
 	        newUser.setLastName("");
 	        dao.createNewUser(newUser);
 
-	        newUser.setEmailAddress("ndexnciadmin@ndexbio.org");
-	        newUser.setPassword("ndexnci-321");
-	        newUser.setAccountName("ndexnciadmin");
-	        newUser.setFirstName("");
-	        newUser.setLastName("");
-	        dao.createNewUser(newUser);
-
 	        
 		} catch (NdexException e) {
 			System.err.println ("Error accurs when initializing Ndex database. " +  
