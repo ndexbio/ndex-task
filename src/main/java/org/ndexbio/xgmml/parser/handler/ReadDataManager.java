@@ -72,7 +72,7 @@ public class ReadDataManager {
 	private static final Pattern PBG_COLOR = Pattern.compile(BG_COLOR_PATTERN);
 
 	private StringBuilder currentCData; 
-	private StringBuilder currentNodeGraphicsStr;
+	private StringBuilder currentGraphicsStr;
 
 	private boolean saved;
 	/* Stack of original network IDs */
@@ -156,7 +156,7 @@ public class ReadDataManager {
 	//	ParseState attState = ParseState.NONE;
 		currentAttributeID = null;
 		currentCData = new StringBuilder();
-		currentNodeGraphicsStr = new StringBuilder();
+		currentGraphicsStr = new StringBuilder();
 		
 		/* Edge handle list */
 		handleList = null;
@@ -282,16 +282,16 @@ public class ReadDataManager {
 		}
 	}
 	
-	protected void appendCurrentNodeGraphicsString(String s) {
-		this.currentNodeGraphicsStr.append(s);
+	protected void appendCurrentGraphicsString(String s) {
+		this.currentGraphicsStr.append(s);
 	}
 
-	protected String getCurrentNodeGraphicsString() {
-		return this.currentNodeGraphicsStr.toString();
+	protected String getCurrentGraphicsString() {
+		return this.currentGraphicsStr.toString();
 	}
 
-	protected void resetCurrentNodeGraphicsString() {
-		this.currentNodeGraphicsStr.setLength(0);
+	protected void resetCurrentGraphicsString() {
+		this.currentGraphicsStr.setLength(0);
 	}
 	
 	protected void addNetworkGraphicsAttribute( String key, String value) throws SAXException {

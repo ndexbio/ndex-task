@@ -37,19 +37,18 @@ public class HandleEdgeGraphics extends AbstractHandler {
 	@Override
 	public ParseState handle(String namespace, String tag, String qName,  Attributes atts, ParseState current) throws SAXException, ExecutionException {
 		if (tag.equals("graphics")) {
-			manager.addGraphicsAttributes(manager.getCurrentEdgeId(), atts);
-		} else if (tag.equals("att")) {
-			// Handle special edge graphics attributes
-			final String name = atts.getValue("name");
-
-			if (name != null && name.equals(EDGE_BEND)) {
-				manager.handleList = new ArrayList<String>();
-				return ParseState.EDGE_BEND;
-			} else if (name != null && !name.equals("cytoscapeEdgeGraphicsAttributes")) {
-				manager.addGraphicsAttribute(manager.getCurrentEdgeId(), name, atts.getValue("value"));
-			}
+			manager.resetCurrentGraphicsString();
+		} 
+		
+		StringBuilder sb = new StringBuilder ();
+		sb.append("<"+qName );
+		for ( int i = 0 ; i < atts.getLength(); i++) {
+				sb.append(" " + atts.getQName(i) + "=\"" +atts.getValue(i) + "\""); 
 		}
+		sb.append(">\n");
 
+		manager.appendCurrentGraphicsString(sb.toString());
+		
 		return current;
 	}
 }

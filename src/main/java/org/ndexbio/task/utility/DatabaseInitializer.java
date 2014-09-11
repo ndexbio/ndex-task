@@ -20,27 +20,34 @@ public class DatabaseInitializer {
 			UserDAO dao = new UserDAO(conn);
 
 			NewUser newUser = new NewUser();
-	        newUser.setEmailAddress("reactomeadmin@ndexbio.org");
+	        newUser.setEmailAddress("ndexreactomeadmin@ndexbio.org");
 	        newUser.setPassword("reactome-321");
-	        newUser.setAccountName("reactomeadmin");
+	        newUser.setAccountName("ndexreactomeadmin");
 	        newUser.setFirstName("");
 	        newUser.setLastName("");
 	        dao.createNewUser(newUser);
 
-	        newUser.setEmailAddress("nciadmin@ndexbio.org");
+	        newUser.setEmailAddress("ndexnciadmin@ndexbio.org");
 	        newUser.setPassword("nci-321");
-	        newUser.setAccountName("nciadmin");
+	        newUser.setAccountName("ndexnciadmin");
 	        newUser.setFirstName("");
 	        newUser.setLastName("");
 	        dao.createNewUser(newUser);
 
-	        newUser.setEmailAddress("openbeladmin@ndexbio.org");
+	        newUser.setEmailAddress("ndexopenbeladmin@ndexbio.org");
 	        newUser.setPassword("obenbel-321");
-	        newUser.setAccountName("openbeladmin");
+	        newUser.setAccountName("ndexopenbeladmin");
 	        newUser.setFirstName("");
 	        newUser.setLastName("");
 	        dao.createNewUser(newUser);
-	        
+
+	        newUser.setEmailAddress("ndexnciadmin@ndexbio.org");
+	        newUser.setPassword("ndexnci-321");
+	        newUser.setAccountName("ndexnciadmin");
+	        newUser.setFirstName("");
+	        newUser.setLastName("");
+	        dao.createNewUser(newUser);
+
 	        
 		} catch (NdexException e) {
 			System.err.println ("Error accurs when initializing Ndex database. " +  

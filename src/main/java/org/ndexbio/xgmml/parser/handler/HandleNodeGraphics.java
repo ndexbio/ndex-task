@@ -47,7 +47,7 @@ public class HandleNodeGraphics extends AbstractHandler {
 			}
 			sb.append(">\n");
         	
-        	manager.appendCurrentNodeGraphicsString(sb.toString());
+        	manager.appendCurrentGraphicsString(sb.toString());
         
         return current;
     }

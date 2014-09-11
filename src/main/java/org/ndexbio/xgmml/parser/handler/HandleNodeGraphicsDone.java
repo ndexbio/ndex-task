@@ -14,13 +14,15 @@ public class HandleNodeGraphicsDone extends AbstractHandler {
 	@Override
 	public ParseState handle(final String namespace, final String tag, final String qName,  Attributes atts, ParseState current) throws SAXException, ExecutionException {
 
-		this.manager.appendCurrentNodeGraphicsString("</");
-		this.manager.appendCurrentNodeGraphicsString(tag);
-		this.manager.appendCurrentNodeGraphicsString(">\n");
+		this.manager.appendCurrentGraphicsString("</");
+		this.manager.appendCurrentGraphicsString(qName);
+		this.manager.appendCurrentGraphicsString(">\n");
 		
-		String presentationPropStr = this.manager.getCurrentNodeGraphicsString();
+		String presentationPropStr = this.manager.getCurrentGraphicsString();
 		Long nodeId = this.manager.getCurrentNodeId();
 				this.manager.addGraphicsAttribute(nodeId, HandlerFactory.graphics, presentationPropStr);
+				
+		this.manager.resetCurrentGraphicsString();
 		
 		return current;
 	}
