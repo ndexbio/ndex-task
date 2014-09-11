@@ -200,9 +200,30 @@ public class StatementGroupSplitter extends XBelSplitter {
 	}
 
 	private Long processStatement(Statement statement, Long supportId,
-			Long citationId, Map<String,String> annotations, int level) 
+			Long citationId, Map<String,String> outerAnnotations, int level) 
 					throws ExecutionException, NdexException {
 		if (level > 1) throw new NdexException("Attempt to process XBEL nested statement at level greater than 1");
+
+		// process the Annotation group for this Statement
+		AnnotationGroup annotationGroup = statement.getAnnotationGroup();
+
+		Map<String, String> annotations = annotationsFromAnnotationGroup(annotationGroup);
+		if (null != outerAnnotations){
+			// if outerAnnotations is not null, then need to deal with them
+			if (null != annotations) {
+				for (String key : outerAnnotations.keySet()) {
+					if (!annotations.containsKey(key)) {
+						// The annotations from the outer group are carried forward
+						// unless the inner group overrides them.
+						annotations.put(key, outerAnnotations.get(key));
+					}
+				}
+			} else {
+				// since annotations was null, just use the outer annotations 
+				annotations = outerAnnotations;
+			}
+		}
+		
 		if (null != statement.getSubject()) {
 
 			// All statements are expected to have a subject.
