@@ -51,7 +51,7 @@ public class NdexTaskExecutor implements Callable<Integer> {
 	public Integer getThreadIdentifier() { return this.threadIdentifier;}
 
 	@Override
-	public Integer call() {
+	public Integer call() throws Exception {
 		logger.info("Executor " + this.getThreadIdentifier() +" invoked");
 		while (!NdexTaskQueueService.INSTANCE.isTaskQueueEmpty()) {
 			try {
@@ -74,6 +74,7 @@ public class NdexTaskExecutor implements Callable<Integer> {
 				
 				logger.error(e.getMessage());
 				e.printStackTrace();
+				throw new Exception ("Error occured when executing task. " + e.getMessage());
 			} catch (InterruptedException e){
 				logger.info("Thread is interrupted");
 				return this.getCompletionCount();

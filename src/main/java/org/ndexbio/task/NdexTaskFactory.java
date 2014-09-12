@@ -18,7 +18,7 @@ import org.ndexbio.common.persistence.orientdb.NdexTaskService;
 	private NdexTaskFactory(){
 	}
 	
-	NdexTask getNdexTaskByTaskType(Task task){
+	NdexTask getNdexTaskByTaskType(Task task) throws NdexException{
 		
 		try {
 			if( task.getTaskType() == TaskType.PROCESS_UPLOADED_NETWORK) {
@@ -32,12 +32,9 @@ import org.ndexbio.common.persistence.orientdb.NdexTaskService;
 			}
 			throw new IllegalArgumentException("Task type: " +task.getType() +" is not supported");
 		} catch (IllegalArgumentException | SecurityException | NdexException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} finally {
-			
-		}
-		return null;
+			throw new NdexException ("Error occurred when creating task. " + e.getMessage());
+		} 
 	}
 	
 }

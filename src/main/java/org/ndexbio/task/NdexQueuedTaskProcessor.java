@@ -8,6 +8,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import org.ndexbio.common.exceptions.NdexException;
+import org.ndexbio.model.object.Status;
 import org.ndexbio.model.object.Task;
 import org.ndexbio.common.persistence.orientdb.NdexTaskService;
 import org.slf4j.Logger;
@@ -61,12 +62,19 @@ public class NdexQueuedTaskProcessor {
 	 */
 	//TODO: need to handle stale tasks 
 	private void processQueuedTasks() {
+		List<Task> stagedTasks = null;
 		try {
 			/*
 			 * obtain a List of queued tasks and update their status to staged
 			 */
-			List<Task> stagedTasks = taskService.stageQueuedTasks();
-			if(!stagedTasks.isEmpty()){
+			stagedTasks = taskService.stageQueuedTasks();
+		} catch (NdexException e) {
+			logger.error(e.getMessage());
+			e.printStackTrace();
+			return;
+		}
+
+		if(!stagedTasks.isEmpty()){
 				NdexTaskQueueService.INSTANCE.addCollection(stagedTasks);		
 				logger.info("The task queue contains" +NdexTaskQueueService.INSTANCE.getTaskQueueSize()
 						+" staged tasks");
@@ -74,10 +82,18 @@ public class NdexQueuedTaskProcessor {
 				int threadCount = Math.min(NdexTaskQueueService.INSTANCE.getTaskQueueSize(), 
 						MAX_THREADS);
 				int startedThreads = 0;
-				while( startedThreads < threadCount){
-					startedThreads++;
-					this.taskCompletionService.submit(new NdexTaskExecutor(startedThreads));
-					logger.info("A NdexTaskExecutor thread started");
+				for ( int i = 0 ; i < threadCount ; i++ ){
+					
+					try {
+						NdexTaskExecutor executor  = new NdexTaskExecutor(startedThreads);
+						this.taskCompletionService.submit(executor);
+						logger.info("A NdexTaskExecutor thread started");
+						startedThreads++;
+					} catch (NdexException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+						logger.error("Failed to create NdexTaskExecutor thread. "+ e1.getMessage() );
+					}
 					
 				}
 				// monitor submitted jobs until completion
@@ -103,15 +119,20 @@ public class NdexQueuedTaskProcessor {
 			        }
 			        
 			    }
+				// clear the stage flags in case error occurs.
+			   	try {
+					for ( Task t : taskService.getActiveTasks()) {
+						taskService.updateTaskStatus ( Status.COMPLETED_WITH_ERRORS, t);
+					}
+				} catch (NdexException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					logger.error("Failed to cleanup the unfinished tasks."  + e.getMessage());
+				} 
+		 
 				
-				
-				
-			}
-			
-		} catch (NdexException e) {
-			logger.error(e.getMessage());
-			e.printStackTrace();
 		}
+			
 	}
 	
 	private void shutdown() {
@@ -146,6 +167,7 @@ public class NdexQueuedTaskProcessor {
 
 			if (taskProcessor.determineActiveTasks() < 1){
 				taskProcessor.processQueuedTasks();
+				
 			}
 			
 		} catch (NdexException e) {
