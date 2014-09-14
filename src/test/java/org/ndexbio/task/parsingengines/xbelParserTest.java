@@ -10,12 +10,14 @@ public class xbelParserTest {
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		String user = "NdexAdministrator";
-		XbelParser parser = new XbelParser("small_corpus.xbel", user);
+//		String user = "reactomeadmin";
+		String user = "cjtest";
+		XbelParser parser = new XbelParser("c:/tmp/foo2.xbel", user);
+//		XbelParser parser = new XbelParser("large_corpus_unzip.xbel", user);
 		parser.parseFile();
 //		XbelParser 
-		parser = new XbelParser("/home/chenjing/working/ndex/networks/selventa_full.xbel", user);
-		parser.parseFile();
+	//	parser = new XbelParser("/home/chenjing/working/ndex/networks/selventa_full.xbel", user);
+	//	parser.parseFile();
 	}
 
 	@AfterClass

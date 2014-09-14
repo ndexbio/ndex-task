@@ -130,7 +130,10 @@ public class StatementGroupSplitter extends XBelSplitter {
 		for (Object object : annotationGroup
 				.getAnnotationOrEvidenceOrCitation()) {
 			if (object instanceof Annotation) {
-				Annotation annotation = (Annotation)object;
+				Annotation annotation = (Annotation)object; 
+	/*			System.out.println("AnnoGroup: " +
+						annotation.getRefID() + "=> " + 
+						annotation.getValue()); */
 				annotationMap.put(annotation.getRefID(), annotation.getValue());
 			}
 		}
@@ -145,8 +148,10 @@ public class StatementGroupSplitter extends XBelSplitter {
 		for (Object object : annotationGroup
 				.getAnnotationOrEvidenceOrCitation()) {
 			if (object instanceof String) {
+				
 				// No explicit type for Evidence, therefore if it is a string,
 				// its an Evidence and we find/create an ISupport
+
 				return this.networkService.getSupportId(
 						(String) object, citationId);
 			}
@@ -268,8 +273,8 @@ public class StatementGroupSplitter extends XBelSplitter {
 					getNodeIdByFunctionTermId(representedTermId);
 			return subjectNodeId;
 		} catch (ExecutionException e) {
-			logger.error(e.getMessage());
 			e.printStackTrace();
+			logger.error(e.getMessage());
 			throw (e);
 		}
 
@@ -309,8 +314,8 @@ public class StatementGroupSplitter extends XBelSplitter {
 					
 			return objectNodeId;
 		} catch (ExecutionException e) {
-			logger.error(e.getMessage());
 			e.printStackTrace();
+			logger.error(e.getMessage());
 			throw (e);
 		}
 	}

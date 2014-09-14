@@ -54,7 +54,7 @@ public class SifParserTest {
 	@Test
 	public void test() throws Exception {
 		
-		String userAccount = "NdexAdministrator";
+		String userAccount = "reactomeadmin";
 		SifParser parser = new SifParser("ca-calmodulin-dependent_protein_kinase_activation.SIF", userAccount);
 		parser.parseFile();
 		parser = new SifParser("gal-filtered.sif", userAccount);

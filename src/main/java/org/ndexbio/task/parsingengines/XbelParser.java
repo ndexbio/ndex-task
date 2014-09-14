@@ -117,9 +117,9 @@ public class XbelParser implements IParsingEngine
         }
         catch (Exception e)
         {
+            e.printStackTrace();
             // rollback current transaction and close the database connection
             this.networkService.abortTransaction();
-            e.printStackTrace();
             throw new NdexException ("Error occurred when loading " +
               xmlFile + ". " + e.getMessage());
         }

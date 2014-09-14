@@ -28,8 +28,8 @@ import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
 public class XbelExporterTask extends NdexTask {
 	
 	private String networkId;
-	private static final String NETWORK_EXPORT_PATH = "/opt/ndex/exported-networks/";
-	private static final String NETWORK_EXPORT_EVENT_PATH = "/opt/ndex/exported-networks-events/";
+	private static final String NETWORK_EXPORT_PATH = "c:/tmp/ndex/exported-networks/";
+	private static final String NETWORK_EXPORT_EVENT_PATH = "c:/tmp/ndex/exported-networks-events/";
 	private static final String XBEL_FILE_EXTENSION = ".xbel";
 	private static final String EVENT_FILE_EXTENSION = ".csv";
 //	private final NdexTaskModelService modelService;

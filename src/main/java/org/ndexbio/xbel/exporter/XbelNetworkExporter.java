@@ -260,11 +260,14 @@ public class XbelNetworkExporter {
 		Collection<org.ndexbio.model.object.network.Citation> modelCitations = this
 				.getCitationsByNetworkId();
 		for (org.ndexbio.model.object.network.Citation citation : modelCitations) {
+//			if (citation.getId() == 985626 )
+//				System.out.println("got you.");
 			this.subNetwork = this.modelService.getSubnetworkByCitationId(
 					this.networkId, citation.getId());
 			if (null == subNetwork) {
 				continue;
 			}
+
 			System.out.println(" Citation " + citation.getTitle()
 					+ " has a subnetwork with  " + subNetwork.getEdgeCount()
 					+ " edges and " + subNetwork.getCitations().size()
@@ -301,7 +304,7 @@ public class XbelNetworkExporter {
 //		this.sgStack.clear();
 		StatementGroup sg = new StatementGroup();
 		AnnotationGroup ag = new AnnotationGroup();
-		sg.setName(this.createXbelCitation(ag));
+		sg.setName(this.createXbelCitation(ag, modelCitation));
 		sg.setAnnotationGroup(ag);
 //		sgStack.push(sg);
 		processCitationSupports(sg, modelCitation);
@@ -574,40 +577,33 @@ public class XbelNetworkExporter {
 
 	}
 
-	private String createXbelCitation(AnnotationGroup annotGroup) {
+	private String createXbelCitation(AnnotationGroup annotGroup,
+			org.ndexbio.model.object.network.Citation modelCitation) {
 		Citation xbelCitation = new Citation();
-		Map<Long, org.ndexbio.model.object.network.Citation> networkCitations =
-				this.subNetwork.getCitations();
-		if (networkCitations.size() == 1) {
 
-			for (org.ndexbio.model.object.network.Citation modelCitation : networkCitations.values()) {
-				xbelCitation.setName(modelCitation.getType());
-				xbelCitation.setReference(modelCitation.getIdentifier());
-				xbelCitation.setName(modelCitation.getTitle());
+		xbelCitation.setName(modelCitation.getType());
+		xbelCitation.setReference(modelCitation.getIdentifier());
+		xbelCitation.setName(modelCitation.getTitle());
 
-				if ( modelCitation.getIdType().equals("URI") && 
-						modelCitation.getIdentifier().startsWith(NdexPersistenceService.pmidPrefix)) {
-					xbelCitation.setType(CitationType.PUB_MED);
-				} else {
-					xbelCitation.setType(CitationType.fromValue(modelCitation.getIdType()));
-				}
-				if (null != modelCitation.getContributors()) {
-					org.ndexbio.xbel.model.Citation.AuthorGroup authors = new org.ndexbio.xbel.model.Citation.AuthorGroup();
-					for (String contributor : modelCitation.getContributors()) {
-						authors.getAuthor().add(contributor);
-					}
-					xbelCitation.setAuthorGroup(authors);
-				}
-
+		if ( modelCitation.getIdType().equals("URI") && 
+					modelCitation.getIdentifier().startsWith(NdexPersistenceService.pmidPrefix)) {
+			xbelCitation.setType(CitationType.PUB_MED);
+		} else {
+			xbelCitation.setType(CitationType.fromValue(modelCitation.getIdType()));
+		}
+		if (null != modelCitation.getContributors()) {
+			org.ndexbio.xbel.model.Citation.AuthorGroup authors = new org.ndexbio.xbel.model.Citation.AuthorGroup();
+			for (String contributor : modelCitation.getContributors()) {
+				authors.getAuthor().add(contributor);
 			}
-			annotGroup.getAnnotationOrEvidenceOrCitation().add(xbelCitation);
-
-			return xbelCitation.getType().value() + " " + 
-			   (xbelCitation.getReference().startsWith(NdexPersistenceService.pmidPrefix)? 
-					   xbelCitation.getReference().substring(5) : xbelCitation.getReference());
+			xbelCitation.setAuthorGroup(authors);
 		}
 
-		return " ";
+		annotGroup.getAnnotationOrEvidenceOrCitation().add(xbelCitation);
+
+		return xbelCitation.getType().value() + " " + 
+			   (xbelCitation.getReference().startsWith(NdexPersistenceService.pmidPrefix)? 
+					   xbelCitation.getReference().substring(5) : xbelCitation.getReference());
 	}
 
 	/*

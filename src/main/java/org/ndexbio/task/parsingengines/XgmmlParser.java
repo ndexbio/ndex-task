@@ -70,9 +70,9 @@ public class XgmmlParser implements IParsingEngine {
         }
         catch (FileNotFoundException e1)
         {
+            e1.printStackTrace();
             log("Could not read " + this.getXgmmlFile());
             this.networkService.abortTransaction();  //TODO: close connection to database
-            // e1.printStackTrace();
             throw new NdexException("File not found: " + this.xgmmlFile.getName());
         }
 

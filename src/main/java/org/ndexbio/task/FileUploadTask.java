@@ -25,7 +25,7 @@ public class FileUploadTask extends NdexTask {
 			.getLogger(FileUploadTask.class);
 
 	private Status taskStatus;
-	private static final String NETWORK_UPLOAD_PATH = "/opt/ndex/uploaded-networks/";
+	private static final String NETWORK_UPLOAD_PATH = "C:/tmp/ndex/uploaded-networks/";
 
 /*	
 	public FileUploadTask(Task task) throws IllegalArgumentException,

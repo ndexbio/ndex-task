@@ -146,8 +146,8 @@ public class SifParser implements IParsingEngine {
 //			logger.info("finished loading. Total Pubmed Ids: " + this.pubmedIdSet.size());
 		} catch (Exception e) {
 			// delete network and close the database connection
-			this.persistenceService.abortTransaction();
 			e.printStackTrace();
+			this.persistenceService.abortTransaction();
 			throw new NdexException("Error occurred when loading file " +
 					this.sifFile.getName() + ". " + e.getMessage() );
 		} 
