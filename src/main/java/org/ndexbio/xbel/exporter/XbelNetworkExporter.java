@@ -23,6 +23,7 @@ import org.ndexbio.model.object.network.FunctionTerm;
 import org.ndexbio.model.object.network.Namespace;
 import org.ndexbio.model.object.network.Network;
 import org.ndexbio.model.object.network.Node;
+import org.ndexbio.model.object.network.PropertiedNetworkElement;
 import org.ndexbio.model.object.network.ReifiedEdgeTerm;
 import org.ndexbio.model.object.network.Support;
 import org.ndexbio.model.object.network.Term;
@@ -321,7 +322,6 @@ public class XbelNetworkExporter {
 	private void processCitationSupports(StatementGroup outerSG,
 			org.ndexbio.model.object.network.Citation modelCitation) {
 		//TODO: need to reimplement this function, because the support info is not in Citation in 1.0.  -cj
-		
 		for ( Support support : this.subNetwork.getSupports().values()) {
 			if ( support.getCitation() == modelCitation.getId()) {
 				StatementGroup supportStatementGroup = new StatementGroup();
@@ -358,12 +358,25 @@ public class XbelNetworkExporter {
 	}
 
 	/*
-	 * The collection of edges which reference the same support (i.e. evidence)
+	 * The collection of nodes and edges which reference the same support (i.e. evidence)
 	 * represent an inner level statement group wrt to the outer level citation
 	 * statement group
 	 */
 	private void processSupportStatementGroup(StatementGroup sg, Long supportId) {
 
+		// nodes
+		for (Map.Entry<Long, Node> entry : this.subNetwork.getNodes()
+				.entrySet()) {
+			Node node = entry.getValue();
+			if (node.getSupports().contains(supportId)) {
+				// we've identified a node that belongs to this support
+				this.processSupportNode(sg, node);
+				
+				this.nodeAuditor.removeProcessedNdexObject(node);
+			}
+		}
+		
+		//edges
 		for (Map.Entry<Long, Edge> entry : this.subNetwork.getEdges()
 				.entrySet()) {
 			Edge edge = entry.getValue();
@@ -393,6 +406,26 @@ public class XbelNetworkExporter {
 		this.processStatement(stmt, edge);
 	}
 
+	private void processSupportNode(StatementGroup sg, Node node) {
+		// we're at the outer level so clear the Statement stack
+//		this.stmtStack.clear();
+		Statement stmt = new Statement();
+		sg.getStatement().add(stmt);
+//		this.sgStack.peek().getStatement().add(stmt);
+		
+		this.processNodeStatement(stmt, node);
+	}
+
+	private void processNodeStatement(Statement stmt, Node node) {
+
+		// increment the audit edge count
+		this.auditService.incrementObservedMetricValue("node count");
+	
+		this.processStatementAnnotations(stmt, node);
+
+		this.processTermSubject(stmt, node.getId());
+	}
+	
 	private void processStatement(Statement stmt, Edge edge) {
 
 		// increment the audit edge count
@@ -414,7 +447,8 @@ public class XbelNetworkExporter {
 	/*
 	 * private method to map NDEx Edge metadata to an XBEL AnnotationGroup
 	 */
-	private void processStatementAnnotations(Statement stmt, Edge edge) {
+	private void processStatementAnnotations(Statement stmt, 
+			PropertiedNetworkElement edge) {
     
 		if (null == edge.getProperties() || edge.getProperties().isEmpty()) {
 			return;
