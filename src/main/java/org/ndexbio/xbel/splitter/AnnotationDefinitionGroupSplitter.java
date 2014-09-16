@@ -85,18 +85,22 @@ public class AnnotationDefinitionGroupSplitter extends XBelSplitter {
 				Namespace internalAnnotationNamespace = this.networkService.getNamespace(
 						new RawNamespace(internalAnnotationDefinition.getId(),null));
 			
-				this.networkService.setElementProperty(internalAnnotationNamespace.getId(), property_Type, internal_annotation_def);
+				String attDataType = "String";
+				this.networkService.setElementProperty(internalAnnotationNamespace.getId(),
+						property_Type, internal_annotation_def, attDataType);
 				
 				if (null != internalAnnotationDefinition.getDescription()){
 					this.networkService.setElementProperty(internalAnnotationNamespace.getId(),desc, 
-										internalAnnotationDefinition.getDescription());
+										internalAnnotationDefinition.getDescription(), "");
 				}
 				if (null != internalAnnotationDefinition.getPatternAnnotation()){
-					this.networkService.setElementProperty(internalAnnotationNamespace.getId(),"patternAnnotation", internalAnnotationDefinition.getPatternAnnotation());
+					this.networkService.setElementProperty(internalAnnotationNamespace.getId(),
+							"patternAnnotation", internalAnnotationDefinition.getPatternAnnotation(), attDataType);
 				}
 				if (null != internalAnnotationDefinition.getListAnnotation()){
 					for (String annotation : internalAnnotationDefinition.getListAnnotation().getListValue()){
-						this.networkService.setElementProperty(internalAnnotationNamespace.getId(),"listAnnotation", annotation); 
+						this.networkService.setElementProperty(internalAnnotationNamespace.getId(),
+								"listAnnotation", annotation, attDataType); 
 						// Create a term in the namespace
 						this.networkService.getBaseTermId(internalAnnotationNamespace.getPrefix()+":"+ annotation);
 					}
@@ -121,7 +125,8 @@ public class AnnotationDefinitionGroupSplitter extends XBelSplitter {
 				Namespace externalAnnotationNamespace = this.networkService.getNamespace(
 						new RawNamespace(externalAnnotationDefinition.getId(), 
 						externalAnnotationDefinition.getUrl()));
-				this.networkService.setElementProperty(externalAnnotationNamespace.getId(), "type", "ExternalAnnotationDefinition");
+				this.networkService.setElementProperty(externalAnnotationNamespace.getId(),
+						"type", "ExternalAnnotationDefinition", "String");
 
 			} catch (NdexException e) {
 				logger.error(e.getMessage());

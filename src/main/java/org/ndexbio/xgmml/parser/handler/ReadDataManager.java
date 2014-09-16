@@ -251,20 +251,21 @@ public class ReadDataManager {
 		return element.getPresentationProperties();
 	}
 	
-	protected void addGraphicsAttributes(Long elementId, Attributes atts) throws ExecutionException, SAXException {
+/*	protected void addGraphicsAttributes(Long elementId, Attributes atts) throws ExecutionException, SAXException {
 		if (elementId != null) {
 			final int attrLength = atts.getLength();
 
 			for (int i = 0; i < attrLength; i++) {
 				System.out.println("Adding graphics " + atts.getLocalName(i) + " = " + atts.getValue(i) + " to " + elementId.toString());
 				try {
-					this.setElementProperty(elementId, atts.getLocalName(i), atts.getValue(i));
+					this.setElementProperty(elementId, atts.getLocalName(i), 
+							atts.getValue(i));
 				} catch ( NdexException e) {
 					throw new SAXException("Ndex error:" + e.getMessage());
 				}
 			}
 		}
-	}
+	} */
 
 	protected void addNetworkGraphicsAttributes( Attributes atts) throws ExecutionException, SAXException {
 		final int attrLength = atts.getLength();
@@ -438,8 +439,9 @@ public class ReadDataManager {
 		return this.currentEdgeId;
 	}
 	
-	protected void setElementProperty ( Long elementId, String key, String value) throws ExecutionException, NdexException {
-		this.networkService.setElementProperty(elementId, key, value);
+	protected void setElementProperty ( Long elementId, String key, String value,
+			String type) throws ExecutionException, NdexException {
+		this.networkService.setElementProperty(elementId, key, value,type);
 	}
 
 	protected Long getCurrentElementId() {

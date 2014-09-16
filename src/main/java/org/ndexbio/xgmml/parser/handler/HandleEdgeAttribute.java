@@ -45,7 +45,9 @@ public class HandleEdgeAttribute extends AbstractHandler {
 
 		// Is this a graphics override?
 		String name = atts.getValue(NAME);
-
+      
+		if ( name.equals("interaction")) return current;
+		
 		// Check for blank attribute
 		final String value = atts.getValue(VALUE);
 		if (name == null && value == null)

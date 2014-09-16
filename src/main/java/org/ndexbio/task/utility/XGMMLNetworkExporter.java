@@ -1,6 +1,7 @@
 package org.ndexbio.task.utility;
 
 import java.io.ByteArrayInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.UUID;
@@ -21,6 +22,8 @@ import org.ndexbio.common.models.dao.orientdb.NetworkDAO;
 import org.ndexbio.model.object.NdexPropertyValuePair;
 import org.ndexbio.model.object.PropertiedObject;
 import org.ndexbio.model.object.SimplePropertyValuePair;
+import org.ndexbio.model.object.network.BaseTerm;
+import org.ndexbio.model.object.network.Edge;
 import org.ndexbio.model.object.network.Namespace;
 import org.ndexbio.model.object.network.Network;
 import org.ndexbio.model.object.network.Node;
@@ -43,6 +46,7 @@ public class XGMMLNetworkExporter {
 	static final private String xmlns = "http://www.w3.org/2000/xmlns/";
 	static final private String attTag = "att";
 	static final private String nodeTag = "node";
+	static final private String edgeTag = "edge";
 	
 	private DocumentBuilder docBuilder;
 	public XGMMLNetworkExporter (ODatabaseDocumentTx db) throws ParserConfigurationException {
@@ -123,8 +127,12 @@ public class XGMMLNetworkExporter {
 		
 		//network presentation property
 		for ( SimplePropertyValuePair p : network.getPresentationProperties()) {
-			org.w3c.dom.Node e = getElementFromString(doc,p.getValue());
-			networkElement.appendChild(e);
+			if ( isXGMMLGraph ) {
+				org.w3c.dom.Node e = getElementFromString(doc,p.getValue());
+				networkElement.appendChild(e);
+			} else { 
+				//TODO: for non XGMML graphs, just treat them as properties.
+			}	
 		}
 		
 		//Nodes
@@ -132,28 +140,90 @@ public class XGMMLNetworkExporter {
 			Element nodeEle = doc.createElement(nodeTag);
 			networkElement.appendChild(nodeEle);
 			nodeEle.setAttribute("id", String.valueOf(node.getId()));
+			nodeEle.setAttribute("name", "base"); //don't know the schema, this is the file
 			if ( node.getName() != null ) 
 				nodeEle.setAttribute("name", node.getName());
 			
 			addPropertiesToElement(node, nodeEle, doc);
 		}
-		
+
+		for (Edge edge : network.getEdges().values()) {
+			Element edgeEle = doc.createElement(edgeTag);
+			networkElement.appendChild(edgeEle);
+			edgeEle.setAttribute("source", String.valueOf(edge.getSubjectId()));
+			edgeEle.setAttribute("target", String.valueOf(edge.getObjectId()));
+			
+			String pp = getBaseTermStr(network, edge.getPredicateId());
+			
+			String srcName = network.getNodes().get(edge.getSubjectId()).getName();
+			if ( srcName == null)
+				srcName = String.valueOf(edge.getObjectId());
+			String targetName = network.getNodes().get(edge.getObjectId()).getName();
+			if ( targetName == null)
+				targetName = String.valueOf(edge.getObjectId());
+			
+			String ss = srcName + " (" + pp+ ") " + targetName;
+			edgeEle.setAttribute("id", ss);
+			edgeEle.setAttribute("label", ss);
+			Element ppElt = doc.createElement(attTag);
+			edgeEle.appendChild(ppElt);
+			ppElt.setAttribute("label", "interaction");
+			ppElt.setAttribute("name", "interaction");
+			ppElt.setAttribute("value", pp);
+			ppElt.setAttribute("type", "string");
+/*			edgeEle.setAttribute("id", String.valueOf(node.getId()));
+			if ( node.getName() != null ) 
+				nodeEle.setAttribute("name", node.getName());
+*/			
+			addPropertiesToElement(edge, edgeEle, doc);
+		} 
+
  
 		return doc;
 		
 	}
 
+	private String getBaseTermStr(Network n, long termId) {
+		BaseTerm bt = n.getBaseTerms().get(termId);
+		if (bt.getNamespace() >0 ) {
+			Namespace ns = n.getNamespaces().get(bt.getNamespace());
+			if ( ns.getPrefix()!= null)
+				return ns.getPrefix() + ":" + bt.getName();
+			return ns.getUri() + bt.getName();
+		} 
+		return bt.getName();
+		
+	}
 	
-	private void addPropertiesToElement(PropertiedObject obj, Element parent, Document doc) {
+	private void addPropertiesToElement(PropertiedObject obj, Element parent, Document doc) throws SAXException, IOException {
 		for ( NdexPropertyValuePair p : obj.getProperties() ) {
 			Element metaData = doc.createElement(attTag);
 			parent.appendChild(metaData);
 			metaData.setAttribute("label", p.getPredicateString());
 			metaData.setAttribute("name", p.getPredicateString());
-			metaData.setAttribute("value", p.getValue());
-			metaData.setAttribute("type", p.getDataType());
+		    metaData.setAttribute("type", p.getDataType());
+	        if ( !p.getDataType().equals("list")) { 
+				metaData.setAttribute("value", p.getValue());
+	        } else {
+	        	
+	        	String[] tokens = p.getValue().split(",(?=([^\']*\'[^\']*\')*[^\']*$)");
+                for ( String v : tokens) {
+                	Element valElement = doc.createElement(attTag);
+                	metaData.appendChild(valElement);
+                	valElement.setAttribute("value", v.substring(1, v.length()-1));
+                	valElement.setAttribute("type", "string");
+                }
+	        }
 		}
 		
+		for ( SimplePropertyValuePair p : obj.getPresentationProperties() ) {
+		  if ( p.getName().equals("graphics") ) {
+			  org.w3c.dom.Node n = getElementFromString(doc, p.getValue());
+			  parent.appendChild(n);
+		  } else {
+			//TODO: handles other graphics property
+		  }	  
+		}
 	}
 	
 	/**
@@ -193,7 +263,11 @@ public class XGMMLNetworkExporter {
 		
 		XGMMLNetworkExporter exporter = new XGMMLNetworkExporter(db);
 		
-		exporter.exportNetwork(UUID.fromString("1449182e-39f6-11e4-b298-90b11c72aefa"), System.out);
+		FileOutputStream fo = new FileOutputStream("C:/tmp/galout.xgmml");
+		exporter.exportNetwork(UUID.fromString("07e0a47f-3d78-11e4-8be6-001f3bca188f"),
+				fo);
+		fo.close();
+	//	exporter.exportNetwork(UUID.fromString("1449182e-39f6-11e4-b298-90b11c72aefa"), System.out);
 		
 		db.close();
 

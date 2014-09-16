@@ -180,7 +180,7 @@ public class AttributeValueUtil {
 		
 		if (null != type){
 			try {
-				manager.setElementProperty(curElementId, name, value);
+				manager.setElementProperty(curElementId, name, value, type);
 			} catch ( NdexException e) {
 				throw new SAXParseException ("Ndex error: " + e.getMessage(),null);
 			}
