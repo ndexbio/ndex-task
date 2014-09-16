@@ -150,7 +150,6 @@ public class XGMMLParser extends DefaultHandler {
 	@Override
 	public void startPrefixMapping(String prefix, String uri)         throws SAXException  {
 		
-		System.out.println("Parsing namespace -- " + prefix + " : = " + uri);
 		try {
 			if ( prefix == null || prefix.equals(""))
 				prefix = "xmlns";
