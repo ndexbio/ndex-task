@@ -428,7 +428,7 @@ public class SifParser implements IParsingEngine {
 		Long subjectNodeId = addNode(subject);
 		Long objectNodeId = addNode(object);
 		Long predicateTermId = persistenceService.getBaseTermId(predicate);
-		return persistenceService.createEdge(subjectNodeId, objectNodeId,
+		return persistenceService.getEdge(subjectNodeId, objectNodeId,
 				predicateTermId, null,null,null);
 
 	}

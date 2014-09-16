@@ -244,10 +244,14 @@ public class StatementGroupSplitter extends XBelSplitter {
 				Long predicateId = this.networkService.getBaseTermId(
 						XbelParser.belPrefix + ":"+statement.getRelationship().name());
 
+				if ( statement.getObject().getTerm() == null && statement.getObject().getStatement() == null) {
+					System.out.println("got you");
+				}
+					
 				Long objectNodeId = this.processStatementObject(statement
 						.getObject(), supportId, citationId, annotations, level);
 
-				return this.networkService.createEdge(subjectNodeId, objectNodeId,
+				return this.networkService.getEdge(subjectNodeId, objectNodeId,
 						predicateId, supportId, citationId, annotations);
 			} 
 			
@@ -307,7 +311,8 @@ public class StatementGroupSplitter extends XBelSplitter {
 						
 				return objectNodeId;
 			} 
-			
+			if ( obj.getTerm() == null)
+				System.out.println("got you.");
 			Long representedTermId = this.processFunctionTerm(obj
 						.getTerm());
 			Long objectNodeId = this.networkService.getNodeIdByFunctionTermId(representedTermId);

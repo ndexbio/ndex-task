@@ -3,6 +3,8 @@ package org.ndexbio.xbel.exporter;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Stack;
 
@@ -302,13 +304,20 @@ public class XbelNetworkExporter {
 
 	private StatementGroup processCitationStatementGroup(org.ndexbio.model.object.network.Citation modelCitation) {
 		// clear the statement group stack
-//		this.sgStack.clear();
 		StatementGroup sg = new StatementGroup();
 		AnnotationGroup ag = new AnnotationGroup();
 		sg.setName(this.createXbelCitation(ag, modelCitation));
 		sg.setAnnotationGroup(ag);
-//		sgStack.push(sg);
+
+		for ( Edge e : this.subNetwork.getEdges().values()) {
+			if(  e.getSupports().size() == 0) {
+				this.processSupportEdge(sg, e);
+				this.edgeAuditor.removeProcessedNdexObject(e);
+			}
+		}
+		
 		processCitationSupports(sg, modelCitation);
+		
 		// increment the audit citation count
 		this.auditService.incrementObservedMetricValue("citation count");
 		
@@ -321,7 +330,7 @@ public class XbelNetworkExporter {
 	 */
 	private void processCitationSupports(StatementGroup outerSG,
 			org.ndexbio.model.object.network.Citation modelCitation) {
-		//TODO: need to reimplement this function, because the support info is not in Citation in 1.0.  -cj
+		
 		for ( Support support : this.subNetwork.getSupports().values()) {
 			if ( support.getCitation() == modelCitation.getId()) {
 				StatementGroup supportStatementGroup = new StatementGroup();
@@ -364,7 +373,7 @@ public class XbelNetworkExporter {
 	 */
 	private void processSupportStatementGroup(StatementGroup sg, Long supportId) {
 
-		// nodes
+		// process orphan nodes
 		for (Map.Entry<Long, Node> entry : this.subNetwork.getNodes()
 				.entrySet()) {
 			Node node = entry.getValue();
@@ -513,7 +522,7 @@ public class XbelNetworkExporter {
 			if ( null != term && term instanceof ReifiedEdgeTerm){
 				// this represents an inner statement - add to Object
 				ReifiedEdgeTerm rt = (ReifiedEdgeTerm) term;
-				Edge innerEdge = this.subNetwork.getEdges().
+				Edge innerEdge = this.network.getEdges().
 						get(rt.getEdgeId());
 				if(null != innerEdge){
 					Statement stmt = new Statement();
@@ -616,7 +625,11 @@ public class XbelNetworkExporter {
 		Citation xbelCitation = new Citation();
 
 		xbelCitation.setName(modelCitation.getType());
-		xbelCitation.setReference(modelCitation.getIdentifier());
+		String idString = modelCitation.getIdentifier();
+		if ( idString.startsWith(NdexPersistenceService.pmidPrefix))
+			xbelCitation.setReference(idString.substring(5));
+		else
+			xbelCitation.setReference(idString);
 		xbelCitation.setName(modelCitation.getTitle());
 
 		if ( modelCitation.getIdType().equals("URI") && 
@@ -635,9 +648,7 @@ public class XbelNetworkExporter {
 
 		annotGroup.getAnnotationOrEvidenceOrCitation().add(xbelCitation);
 
-		return xbelCitation.getType().value() + " " + 
-			   (xbelCitation.getReference().startsWith(NdexPersistenceService.pmidPrefix)? 
-					   xbelCitation.getReference().substring(5) : xbelCitation.getReference());
+		return xbelCitation.getType().value() + " " + xbelCitation.getReference();
 	}
 
 	/*

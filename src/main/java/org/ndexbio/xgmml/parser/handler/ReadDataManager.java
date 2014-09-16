@@ -366,7 +366,7 @@ public class ReadDataManager {
 		Long subjectNodeId = this.networkService.findOrCreateNodeIdByExternalId(subjectId, null);
 		Long objectNodeId  = this.networkService.findOrCreateNodeIdByExternalId(objectId, null);
 		Long predicateTermId = this.networkService.getBaseTermId(predicate);
-		Long edgeId = this.networkService.createEdge(subjectNodeId, objectNodeId,
+		Long edgeId = this.networkService.getEdge(subjectNodeId, objectNodeId,
 				predicateTermId, null, null, null);
 		this.currentEdgeId = edgeId;
 		return edgeId;

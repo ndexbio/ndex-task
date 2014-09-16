@@ -161,7 +161,7 @@ public class ExcelParser implements IParsingEngine
         Long subjectNode = addNode(subject);
         Long objectNode = addNode(object);
         Long predicateTerm = this.networkService.getBaseTermId(predicate);
-        this.networkService.createEdge(subjectNode, objectNode, predicateTerm, null, null, null);
+        this.networkService.getEdge(subjectNode, objectNode, predicateTerm, null, null, null);
     }
 
     /*
