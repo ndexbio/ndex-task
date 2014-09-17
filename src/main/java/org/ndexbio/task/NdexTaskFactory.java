@@ -27,6 +27,9 @@ import org.ndexbio.common.persistence.orientdb.NdexTaskService;
 			if( task.getTaskType() == TaskType.EXPORT_NETWORK_TO_FILE) {
 				if ( task.getFormat() == FileFormat.XBEL)
 					return new XbelExporterTask(task);
+				else if ( task.getFormat() == FileFormat.XGMML) {
+					return new XGMMLExporterTask(task);
+				}
 				
 				throw new NdexException ("Only XBEL exporter is implemented.");
 			}

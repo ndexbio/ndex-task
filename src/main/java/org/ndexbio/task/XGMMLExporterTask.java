@@ -1,7 +1,9 @@
 package org.ndexbio.task;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.UUID;
 
 import org.ndexbio.common.access.NdexAOrientDBConnectionPool;
 import org.ndexbio.common.exceptions.NdexException;
@@ -10,6 +12,7 @@ import org.ndexbio.model.object.Status;
 import org.ndexbio.task.event.NdexTaskEventHandler;
 import org.ndexbio.task.service.NdexJVMDataModelService;
 import org.ndexbio.task.service.NdexTaskModelService;
+import org.ndexbio.task.utility.XGMMLNetworkExporter;
 import org.ndexbio.xbel.exporter.XbelNetworkExporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,28 +28,24 @@ import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
  * 
  */
 
-public class XbelExporterTask extends NdexTask {
+public class XGMMLExporterTask extends NdexTask {
 	
-	private String networkId;
 	private static final String NETWORK_EXPORT_PATH = "/opt/ndex/exported-networks/";
 	private static final String NETWORK_EXPORT_EVENT_PATH = "/opt/ndex/exported-networks-events/";
-	private static final String XBEL_FILE_EXTENSION = ".xbel";
+	private static final String XGMML_FILE_EXTENSION = ".xgmml";
 	private static final String EVENT_FILE_EXTENSION = ".csv";
-//	private final NdexTaskModelService modelService;
+
 	private NdexTaskEventHandler eventHandler;
 	private Status taskStatus;
 	
 	
 	private static final Logger logger = LoggerFactory
-			.getLogger(XbelExporterTask.class);
+			.getLogger(XGMMLExporterTask.class);
 	
-	public XbelExporterTask(Task task) throws
+	public XGMMLExporterTask(Task task) throws
 		IllegalArgumentException, SecurityException, NdexException{
 		
 			super(task);
-			this.networkId = this.getTask().getResource();
-//			this.modelService = new NdexJVMDataModelService();
-			
 	}
 
 	@Override
@@ -74,16 +73,14 @@ public class XbelExporterTask extends NdexTask {
 	private void exportNetwork() throws Exception{
 		this.taskStatus = Status.PROCESSING;
 		this.startTask();
-		String exportFilename = this.resolveFilename(this.NETWORK_EXPORT_PATH, this.XBEL_FILE_EXTENSION);
-	
+		String exportFilename = this.resolveFilename(this.NETWORK_EXPORT_PATH, this.XGMML_FILE_EXTENSION);
+
+		FileOutputStream out = new FileOutputStream (exportFilename);
 		ODatabaseDocumentTx db = null; 
 		try {
 			db = NdexAOrientDBConnectionPool.getInstance().acquire();
-			NdexTaskModelService modelService = new NdexJVMDataModelService(db);
-			XbelNetworkExporter exporter = new XbelNetworkExporter(this.getTask().getTaskOwnerId().toString(),
-				this.networkId,
-				 modelService, exportFilename);
-			exporter.exportNetwork();
+			XGMMLNetworkExporter exporter = new XGMMLNetworkExporter(db);
+			exporter.exportNetwork( UUID.fromString(getTask().getResource()), out );
 			this.taskStatus = Status.COMPLETED;
 			this.updateTaskStatus(this.taskStatus);
 		} finally { 
@@ -110,14 +107,5 @@ public class XbelExporterTask extends NdexTask {
 		return sb.toString();		
 	}
 	
-	
-
-	protected String getNetworkId() {
-		return networkId;
-	}
-
-	private void setNetworkId(String networkId) {
-		this.networkId = networkId;
-	}
 
 }
