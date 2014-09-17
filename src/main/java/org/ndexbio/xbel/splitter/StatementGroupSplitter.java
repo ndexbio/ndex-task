@@ -251,7 +251,7 @@ public class StatementGroupSplitter extends XBelSplitter {
 				Long objectNodeId = this.processStatementObject(statement
 						.getObject(), supportId, citationId, annotations, level);
 
-				return this.networkService.getEdge(subjectNodeId, objectNodeId,
+				return this.networkService.createEdge(subjectNodeId, objectNodeId,
 						predicateId, supportId, citationId, annotations);
 			} 
 			

@@ -12,6 +12,7 @@ import org.ndexbio.common.persistence.orientdb.NdexTaskService;
  * Singleton responsible for instantiating the appropriate implementation
  * of NdexTask based on the Task type
  */
+@Deprecated
  enum NdexTaskFactory {
 	INSTANCE;
 	

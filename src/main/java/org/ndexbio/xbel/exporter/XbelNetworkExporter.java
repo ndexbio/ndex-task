@@ -6,7 +6,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.Stack;
+import java.util.TreeSet;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -308,15 +310,21 @@ public class XbelNetworkExporter {
 		AnnotationGroup ag = new AnnotationGroup();
 		sg.setName(this.createXbelCitation(ag, modelCitation));
 		sg.setAnnotationGroup(ag);
-
+		
+		// a collection of edge ids that referenced by ReifedEdgesTerm
+		TreeSet<Long> reifiedEdgeIds = new TreeSet<Long>();
+		for ( ReifiedEdgeTerm rt: this.subNetwork.getReifiedEdgeTerms().values()) {
+			reifiedEdgeIds.add(rt.getEdgeId());
+		}
+		
 		for ( Edge e : this.subNetwork.getEdges().values()) {
-			if(  e.getSupports().size() == 0) {
+			if(  e.getSupports().size() == 0 && (! reifiedEdgeIds.contains(e.getId())) ) {
 				this.processSupportEdge(sg, e);
 				this.edgeAuditor.removeProcessedNdexObject(e);
 			}
 		}
 		
-		processCitationSupports(sg, modelCitation);
+		processCitationSupports(sg, modelCitation, reifiedEdgeIds);
 		
 		// increment the audit citation count
 		this.auditService.incrementObservedMetricValue("citation count");
@@ -329,7 +337,7 @@ public class XbelNetworkExporter {
 	 * inner level statement group and contains a collection of edges
 	 */
 	private void processCitationSupports(StatementGroup outerSG,
-			org.ndexbio.model.object.network.Citation modelCitation) {
+			org.ndexbio.model.object.network.Citation modelCitation, Set<Long> reifiedEdgeIds) {
 		
 		for ( Support support : this.subNetwork.getSupports().values()) {
 			if ( support.getCitation() == modelCitation.getId()) {
@@ -348,7 +356,7 @@ public class XbelNetworkExporter {
 				this.auditService.incrementObservedMetricValue("support count");
 				this.supportAuditor.removeProcessedNdexObject(support);
 
-				this.processSupportStatementGroup(supportStatementGroup, support.getId());
+				this.processSupportStatementGroup(supportStatementGroup, support.getId(), reifiedEdgeIds);
 			}
 		}
 
@@ -371,7 +379,7 @@ public class XbelNetworkExporter {
 	 * represent an inner level statement group wrt to the outer level citation
 	 * statement group
 	 */
-	private void processSupportStatementGroup(StatementGroup sg, Long supportId) {
+	private void processSupportStatementGroup(StatementGroup sg, Long supportId, Set<Long> reifiedEdgeIds) {
 
 		// process orphan nodes
 		for (Map.Entry<Long, Node> entry : this.subNetwork.getNodes()
@@ -389,7 +397,7 @@ public class XbelNetworkExporter {
 		for (Map.Entry<Long, Edge> entry : this.subNetwork.getEdges()
 				.entrySet()) {
 			Edge edge = entry.getValue();
-			if (edge.getSupports().contains(supportId)) {
+			if ( (!reifiedEdgeIds.contains(edge.getId())) && edge.getSupports().contains(supportId)) {
 				// we've identified an Edge that belongs to this support
 				this.processSupportEdge(sg, edge);
 				this.edgeAuditor.removeProcessedNdexObject(edge);

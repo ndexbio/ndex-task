@@ -9,10 +9,10 @@ import java.util.concurrent.Executors;
 
 import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.model.object.Task;
+import org.ndexbio.model.object.TaskType;
+import org.ndexbio.model.object.network.FileFormat;
 import org.ndexbio.common.persistence.orientdb.NdexTaskService;
 import org.slf4j.*;
-
-import com.orientechnologies.orient.core.id.ORID;
 
 import java.util.concurrent.Future;
 
@@ -56,8 +56,7 @@ public class NdexTaskExecutor implements Callable<Integer> {
 		while (!NdexTaskQueueService.INSTANCE.isTaskQueueEmpty()) {
 			try {
 				Task itask = NdexTaskQueueService.INSTANCE.getNextTask();
-				NdexTask ndexTask = NdexTaskFactory.INSTANCE
-						.getNdexTaskByTaskType(itask);
+				NdexTask ndexTask = getNdexTaskByTaskType(itask);
 				this.taskCompletionService.submit(ndexTask);
 				// now wait for completion of child task
 				logger.info("Invoking Ndextask type: " + ndexTask.getClass().getName()
@@ -101,6 +100,29 @@ public class NdexTaskExecutor implements Callable<Integer> {
 
 	private void incrementCompletionCount() {
 		this.completionCount++;
+	}
+	
+	
+	private static NdexTask getNdexTaskByTaskType(Task task) throws NdexException{
+		
+		try {
+			if( task.getTaskType() == TaskType.PROCESS_UPLOADED_NETWORK) {
+				return new FileUploadTask(task);
+			}
+			if( task.getTaskType() == TaskType.EXPORT_NETWORK_TO_FILE) {
+				if ( task.getFormat() == FileFormat.XBEL)
+					return new XbelExporterTask(task);
+				else if ( task.getFormat() == FileFormat.XGMML) {
+					return new XGMMLExporterTask(task);
+				}
+				
+				throw new NdexException ("Only XBEL exporter is implemented.");
+			}
+			throw new IllegalArgumentException("Task type: " +task.getType() +" is not supported");
+		} catch (IllegalArgumentException | SecurityException | NdexException e) {
+			e.printStackTrace();
+			throw new NdexException ("Error occurred when creating task. " + e.getMessage());
+		} 
 	}
 
 
