@@ -265,14 +265,13 @@ public class XbelNetworkExporter {
 		Collection<org.ndexbio.model.object.network.Citation> modelCitations = this
 				.getCitationsByNetworkId();
 		for (org.ndexbio.model.object.network.Citation citation : modelCitations) {
-//			if (citation.getId() == 985626 )
-//				System.out.println("got you.");
+
 			this.subNetwork = this.modelService.getSubnetworkByCitationId(
 					this.networkId, citation.getId());
 			if (null == subNetwork) {
 				continue;
 			}
-
+			
 			System.out.println(" Citation " + citation.getTitle()
 					+ " has a subnetwork with  " + subNetwork.getEdgeCount()
 					+ " edges and " + subNetwork.getCitations().size()
@@ -403,7 +402,7 @@ public class XbelNetworkExporter {
 				this.edgeAuditor.removeProcessedNdexObject(edge);
 			}
 		}
-
+		
 	}
 
 	/*

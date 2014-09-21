@@ -9,6 +9,7 @@ import java.util.concurrent.ExecutionException;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 
+import org.ndexbio.common.NdexClasses;
 import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.persistence.orientdb.NdexPersistenceService;
 import org.ndexbio.task.parsingengines.XbelParser;
@@ -16,6 +17,7 @@ import org.ndexbio.xbel.model.Annotation;
 import org.ndexbio.xbel.model.AnnotationGroup;
 import org.ndexbio.xbel.model.Citation;
 import org.ndexbio.xbel.model.Parameter;
+import org.ndexbio.xbel.model.Relationship;
 import org.ndexbio.xbel.model.Statement;
 import org.ndexbio.xbel.model.StatementGroup;
 import org.ndexbio.xbel.model.Subject;
@@ -152,8 +154,7 @@ public class StatementGroupSplitter extends XBelSplitter {
 				// No explicit type for Evidence, therefore if it is a string,
 				// its an Evidence and we find/create an ISupport
 
-				return this.networkService.getSupportId(
-						(String) object, citationId);
+				return this.networkService.getSupportId((String) object, citationId);
 			}
 		}
 		return null;
@@ -234,20 +235,18 @@ public class StatementGroupSplitter extends XBelSplitter {
 			// All statements are expected to have a subject.
 			// It is valid to have a statement with just a subject
 			// It creates a node - the biological meaning is "this exists"
+			
+			Relationship r = statement.getRelationship(); 
 			Long subjectNodeId = this.processStatementSubject(statement
-					.getSubject());
+					.getSubject(), r==null);
 			// A typical statement, however, has a relationship, and object
 			// as well as a subject
 			// In that case, we can create an edge
 
-			if (null != statement.getRelationship()) {
+			if (null != r) {
 				Long predicateId = this.networkService.getBaseTermId(
 						XbelParser.belPrefix + ":"+statement.getRelationship().name());
 
-				if ( statement.getObject().getTerm() == null && statement.getObject().getStatement() == null) {
-					System.out.println("got you");
-				}
-					
 				Long objectNodeId = this.processStatementObject(statement
 						.getObject(), supportId, citationId, annotations, level);
 
@@ -265,7 +264,7 @@ public class StatementGroupSplitter extends XBelSplitter {
 	}
 	
 
-	private Long processStatementSubject(Subject sub)
+	private Long processStatementSubject(Subject sub, boolean isOrphanNode)
 			throws ExecutionException, NdexException {
 		if (null == sub) {
 			return null;
@@ -273,8 +272,14 @@ public class StatementGroupSplitter extends XBelSplitter {
 		try {
 			Long representedTermId = this.processFunctionTerm(sub
 					.getTerm());
-			Long subjectNodeId = this.networkService.
-					getNodeIdByFunctionTermId(representedTermId);
+			
+			Long subjectNodeId ;
+			if ( isOrphanNode ) {
+				subjectNodeId =	this.networkService.createNodeFromFunctionTermId(representedTermId);
+				
+			} else {		
+				subjectNodeId =	this.networkService.getNodeIdByFunctionTermId(representedTermId);
+			}
 			return subjectNodeId;
 		} catch (ExecutionException e) {
 			e.printStackTrace();
@@ -311,10 +316,7 @@ public class StatementGroupSplitter extends XBelSplitter {
 						
 				return objectNodeId;
 			} 
-			if ( obj.getTerm() == null)
-				System.out.println("got you.");
-			Long representedTermId = this.processFunctionTerm(obj
-						.getTerm());
+			Long representedTermId = this.processFunctionTerm(obj.getTerm());
 			Long objectNodeId = this.networkService.getNodeIdByFunctionTermId(representedTermId);
 					
 			return objectNodeId;
