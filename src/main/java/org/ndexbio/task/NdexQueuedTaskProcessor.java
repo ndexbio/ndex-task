@@ -160,6 +160,17 @@ public class NdexQueuedTaskProcessor {
 
 	public static void main(String[] args) {
 		
+		try {
+			processAll();
+		} catch (NdexException e) {
+			e.printStackTrace();
+			logger.error(e.getMessage());
+			System.exit(-1);
+		} 
+	}
+	
+
+	public static void processAll () throws NdexException {
 		NdexQueuedTaskProcessor taskProcessor = null;
 		try {
 			taskProcessor = new NdexQueuedTaskProcessor();
@@ -169,18 +180,13 @@ public class NdexQueuedTaskProcessor {
 				taskProcessor.processQueuedTasks();
 				
 			}
-			
-		} catch (NdexException e) {
-			logger.error(e.getMessage());
-			e.printStackTrace();
+
+			logger.info(taskProcessor.getClass().getSimpleName() + " completed.");
 		} finally {
 			if ( taskProcessor != null ) 
 				taskProcessor.shutdown();
 		}
 		
-		logger.info(taskProcessor.getClass().getSimpleName() + " completed.");
 	}
-	
-
 
 }
