@@ -51,10 +51,10 @@ public class TestXGMMLParsingEngine {
 		// IBD_subnetwork_go.xgmml
 		//final String path = "/Users/dextergraphics/Documents/NDEx_xgmml_test/Full_qMax_0.95_Severe-Healthy_net_gml.xgmml";
 		final String path = "/Users/dextergraphics/Documents/NDEx_xgmml_test/IBD_subnetwork_go.xgmml";
-		final XgmmlParser xgmmlParser = new XgmmlParser(path,
-				_testUserName);
+//		final XgmmlParser xgmmlParser = new XgmmlParser(path,
+//				_testUserName);
 		System.out.println("Parsing XGMML : " + path);
-		xgmmlParser.parseFile();
+//		xgmmlParser.parseFile();
 	}
 
 	/*

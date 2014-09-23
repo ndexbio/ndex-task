@@ -39,13 +39,13 @@ public class ExcelParser implements IParsingEngine
     private NdexPersistenceService networkService;
 
 
-    public ExcelParser(String fileName, String ownerName) throws Exception
+    public ExcelParser(String fileName, String ownerName, NdexDatabase db) throws Exception
     {
         Preconditions.checkArgument(!Strings.isNullOrEmpty(fileName), "A filename is required");
         Preconditions.checkArgument(!Strings.isNullOrEmpty(ownerName), 
         		"A network owner name is required");
         this.setOwnerName(ownerName);
-        this.networkService = new NdexPersistenceService(new NdexDatabase());
+        this.networkService = new NdexPersistenceService(db);
         this.msgBuffer = Lists.newArrayList();
         this.excelFile = new File(fileName);
         this.excelURI = excelFile.toURI().toString();

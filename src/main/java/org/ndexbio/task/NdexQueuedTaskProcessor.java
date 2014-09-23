@@ -7,6 +7,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import org.ndexbio.common.access.NdexDatabase;
 import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.model.object.Status;
 import org.ndexbio.model.object.Task;
@@ -44,14 +45,15 @@ public class NdexQueuedTaskProcessor {
 	private final NdexTaskService taskService ;
 	private   final CompletionService<Integer> taskCompletionService;
 	private final ExecutorService taskExecutor;
+	private NdexDatabase db ;
 	
 	
-	public NdexQueuedTaskProcessor() throws NdexException {
+	public NdexQueuedTaskProcessor(NdexDatabase db) throws NdexException {
 		 this.taskService = new NdexTaskService();
 		 taskExecutor = Executors.newFixedThreadPool(MAX_THREADS);
 	       this.taskCompletionService =
 	           new ExecutorCompletionService<Integer>(taskExecutor);  
-	        
+	     this.db = db;   
 	}
 	
 	
@@ -85,7 +87,7 @@ public class NdexQueuedTaskProcessor {
 				for ( int i = 0 ; i < threadCount ; i++ ){
 					
 					try {
-						NdexTaskExecutor executor  = new NdexTaskExecutor(startedThreads);
+						NdexTaskExecutor executor  = new NdexTaskExecutor(startedThreads, db);
 						this.taskCompletionService.submit(executor);
 						logger.info("A NdexTaskExecutor thread started");
 						startedThreads++;
@@ -158,7 +160,7 @@ public class NdexQueuedTaskProcessor {
 	}
 	
 
-	public static void main(String[] args) {
+/*	public static void main(String[] args) {
 		
 		try {
 			processAll();
@@ -167,25 +169,17 @@ public class NdexQueuedTaskProcessor {
 			logger.error(e.getMessage());
 			System.exit(-1);
 		} 
-	}
+	} */
 	
 
-	public static void processAll () throws NdexException {
-		NdexQueuedTaskProcessor taskProcessor = null;
-		try {
-			taskProcessor = new NdexQueuedTaskProcessor();
-			logger.info(taskProcessor.getClass().getSimpleName() +" invoked");
+	public void processAll () throws NdexException {
+			logger.info("Task processer invoked");
 
-			if (taskProcessor.determineActiveTasks() < 1){
-				taskProcessor.processQueuedTasks();
-				
+			if (determineActiveTasks() < 1){
+				processQueuedTasks();
 			}
 
-			logger.info(taskProcessor.getClass().getSimpleName() + " completed.");
-		} finally {
-			if ( taskProcessor != null ) 
-				taskProcessor.shutdown();
-		}
+			logger.info(this.getClass().getSimpleName() + " completed.");
 		
 	}
 

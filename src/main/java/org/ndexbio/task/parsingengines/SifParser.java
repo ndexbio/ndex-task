@@ -17,7 +17,6 @@ import java.util.logging.Logger;
 import org.ndexbio.common.NdexClasses;
 import org.ndexbio.common.access.NdexDatabase;
 import org.ndexbio.common.exceptions.NdexException;
-import org.ndexbio.common.helpers.Configuration;
 import org.ndexbio.model.object.NdexPropertyValuePair;
 import org.ndexbio.model.object.ProvenanceEntity;
 import org.ndexbio.model.object.SimplePropertyValuePair;
@@ -56,7 +55,7 @@ public class SifParser implements IParsingEngine {
 	
 //	private TreeSet<String> pubmedIdSet;
 
-	public SifParser(String fn, String ownerName) throws Exception {
+	public SifParser(String fn, String ownerName, NdexDatabase db) throws Exception {
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(fn),
 				"A filename is required");
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(ownerName),
@@ -67,7 +66,7 @@ public class SifParser implements IParsingEngine {
 		else
 		    this.sifFile = new File(getClass().getClassLoader().getResource(fn).toURI());
 		this.sifURI = sifFile.toURI().toString();
-		this.persistenceService = new NdexPersistenceService(new NdexDatabase());
+		this.persistenceService = new NdexPersistenceService(db);
 		
 		String title =  Files.getNameWithoutExtension(this.sifFile.getName());
 

@@ -1,31 +1,40 @@
 package org.ndexbio.task.utility;
 
+import org.ndexbio.common.access.NdexAOrientDBConnectionPool;
 import org.ndexbio.common.access.NdexDatabase;
 import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.exceptions.ObjectNotFoundException;
 import org.ndexbio.common.models.dao.orientdb.UserDAO;
 import org.ndexbio.model.object.NewUser;
 import org.ndexbio.model.object.User;
-
-import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
+import org.ndexbio.task.Configuration;
 
 public class DatabaseInitializer {
 
+	
 	public static void main(String[] args) {
 		
-		NdexDatabase db = null;
-		ODatabaseDocumentTx conn = null;
 		try {
 
-			db = new NdexDatabase();
-
+	    	// read configuration
+	    	Configuration configuration = Configuration.getInstance();
+	    	
+	    	//and initialize the db connections
+	    	NdexAOrientDBConnectionPool.createOrientDBConnectionPool(
+	    			configuration.getDBURL(),
+	    			configuration.getDBUser(),
+	    			configuration.getDBPasswd());
+	    	
+	    	
+			NdexDatabase db = new NdexDatabase(configuration.getHostURI());			
+			System.out.println("Database initialized.");
+            db.close();
+            
 		} catch (NdexException e) {
 			System.err.println ("Error accurs when initializing Ndex database. " +  
 					e.getMessage());
 		} finally {
-/*			if ( conn != null)
-				conn.close(); */
-			if ( db != null ) db.close();
+			NdexAOrientDBConnectionPool.close();
 		}
 	}
 

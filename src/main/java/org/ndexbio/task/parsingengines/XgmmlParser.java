@@ -40,14 +40,14 @@ public class XgmmlParser implements IParsingEngine {
     private NdexPersistenceService networkService;
     private static final Logger logger = LoggerFactory.getLogger(XgmmlParser.class);
 
-	public XgmmlParser(String fn, String ownerName) throws Exception {
+	public XgmmlParser(String fn, String ownerName, NdexDatabase db) throws Exception {
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(fn),
 				"A filename is required");
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(fn),
 				"A network owner name is required");
 		this.ownerName = ownerName;
 		this.xgmmlFile = new File(fn);
-		this.networkService = new NdexPersistenceService(new NdexDatabase());
+		this.networkService = new NdexPersistenceService(db);
 	}  
 	
 	private void log (String string){

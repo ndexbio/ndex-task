@@ -2,6 +2,7 @@ package org.ndexbio.task;
 
 import java.io.File;
 
+import org.ndexbio.common.access.NdexDatabase;
 import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.model.object.Task;
 import org.ndexbio.model.object.Status;
@@ -25,21 +26,12 @@ public class FileUploadTask extends NdexTask {
 			.getLogger(FileUploadTask.class);
 
 	private Status taskStatus;
+	//TODO: remove the hard coded path
 	private static final String NETWORK_UPLOAD_PATH = "C:/tmp/ndex/uploaded-networks/";
-
-/*	
-	public FileUploadTask(Task task) throws IllegalArgumentException,
-			SecurityException, NdexException {
-		super(task);
-		this.filename = this.getTask().getResource();
-		// this.filename = this.getTask().getResource();
-		if (!(new File(this.filename).isFile())) {
-			throw new NdexException("File " + this.filename + " does not exist");
-		}
-	}
-*/
+    private NdexDatabase db;
 	
-	public FileUploadTask(Task itask) throws IllegalArgumentException,
+	
+	public FileUploadTask(Task itask, NdexDatabase db) throws IllegalArgumentException,
 			SecurityException, NdexException {
 		super(itask);
 		this.filename = this.getTask().getResource();
@@ -47,6 +39,7 @@ public class FileUploadTask extends NdexTask {
 		if (!(new File(this.filename).isFile())) {
 			throw new NdexException("File " + this.filename + " does not exist");
 		}
+		this.db = db;
 	}
 
 	@Override
@@ -78,7 +71,7 @@ public class FileUploadTask extends NdexTask {
 		case ("SIF"):
 			try {
 				final SifParser sifParser = new SifParser(
-						file.getAbsolutePath(), this.getTaskOwnerAccount());
+						file.getAbsolutePath(), this.getTaskOwnerAccount(),db);
 				sifParser.parseFile();
 				this.taskStatus = Status.COMPLETED;
 			} catch (Exception e) {
@@ -89,7 +82,7 @@ public class FileUploadTask extends NdexTask {
 		case ("XGMML"):
 			try {
 				final XgmmlParser xgmmlParser = new XgmmlParser(
-						file.getAbsolutePath(), this.getTaskOwnerAccount());
+						file.getAbsolutePath(), this.getTaskOwnerAccount(),db);
 				xgmmlParser.parseFile();
 				this.taskStatus = Status.COMPLETED;
 			} catch (Exception e) {
@@ -102,7 +95,7 @@ public class FileUploadTask extends NdexTask {
 				logger.info("Processing xbel file " + file.getAbsolutePath()
 						+ " for " + this.getTaskOwnerAccount());
 				final XbelParser xbelParser = new XbelParser(
-						file.getAbsolutePath(), this.getTaskOwnerAccount());
+						file.getAbsolutePath(), this.getTaskOwnerAccount(),db);
 
 				if (!xbelParser.getValidationState().isValid()) {
 					logger.info("XBel validation failed");
@@ -121,7 +114,7 @@ public class FileUploadTask extends NdexTask {
 		case ("XLS"):
 			try {
 				final ExcelParser excelParser = new ExcelParser(
-						file.getAbsolutePath(), this.getTaskOwnerAccount());
+						file.getAbsolutePath(), this.getTaskOwnerAccount(),db);
 				excelParser.parseFile();
 				this.taskStatus = Status.COMPLETED;
 			} catch (Exception e) {

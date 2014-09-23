@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 
 import org.ndexbio.common.access.NdexAOrientDBConnectionPool;
+import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.task.event.NdexNetworkState;
 import org.ndexbio.task.event.NdexTaskEventHandler;
 import org.ndexbio.task.service.NdexJVMDataModelService;
@@ -15,12 +16,13 @@ import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
 
 public class TestXbelExporterApp {
 
-	private static final String NETWORK_EXPORT_PATH = "c:/tmp/ndex/exported-networks/";
+	private static final String NETWORK_EXPORT_PATH = "/opt/ndex/exported-networks/";
 	private static final String XBEL_FILE_EXTENSION = ".xbel";
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws IOException, NdexException {
 
-		String networkId = "0ef6614e-3bb3-11e4-a7e4-001f3bca188f"; // is for small corpus
-		String userId =    "c9ed4e57-3bb1-11e4-8208-001f3bca188f"; // dbowner
+		String networkId = "74377e1d-41e4-11e4-96ed-90b11c72aefa"; // is for small corpus
+//		String networkId = "f003d77a-3f4e-11e4-bc7d-90b11c72aefa";
+		String userId =    "84443d6d-3dbf-11e4-a671-90b11c72aefa"; // dbowner
 		//add shutdown hook
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			public void run() {
@@ -35,7 +37,7 @@ public class TestXbelExporterApp {
 			NdexTaskModelService  modelService = new NdexJVMDataModelService(db);
 			// initiate the network state
 			initiateStateForMonitoring(modelService, userId, networkId);
-			NdexTaskEventHandler eventHandler = new NdexTaskEventHandler("c:/tmp/ndextaskevents.csv");
+			NdexTaskEventHandler eventHandler = new NdexTaskEventHandler("/opt/ndex/exported-networks/ndextaskevents.csv");
 			XbelNetworkExporter exporter = new XbelNetworkExporter(userId, networkId, 
 				modelService,
 				resolveExportFile(modelService, userId, networkId));
@@ -57,7 +59,7 @@ public class TestXbelExporterApp {
 			new File(sb.toString()).mkdirs();
 //		}
 		sb.append(File.separator);
-		sb.append(modelService.getNetworkById(networkId).getName());
+		sb.append(modelService.getNetworkById(networkId).getExternalId().toString());
 		sb.append(XBEL_FILE_EXTENSION);
 		System.out.println("Export file: " +sb.toString());
 		return sb.toString();

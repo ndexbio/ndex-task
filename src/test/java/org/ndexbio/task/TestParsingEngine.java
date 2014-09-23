@@ -80,7 +80,7 @@ public class TestParsingEngine {
 	 * sifParser.parseFile(); }
 	 */
 
-	@Test
+/*	@Test
 	public void parseLargeSifFile() throws Exception {
 		final URL url = getClass().getResource(
 				"/resources/Glucocorticoid_receptor_regulatory_network.SIF");
@@ -108,7 +108,7 @@ public class TestParsingEngine {
 			sifParser.parseFile();
 		}
 
-	}
+	} */
 
 
 }

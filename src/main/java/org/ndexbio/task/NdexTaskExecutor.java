@@ -7,6 +7,7 @@ import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.ndexbio.common.access.NdexDatabase;
 import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.model.object.Task;
 import org.ndexbio.model.object.TaskType;
@@ -38,14 +39,16 @@ public class NdexTaskExecutor implements Callable<Integer> {
 	private final NdexTaskService taskService;
 	private final Integer threadIdentifier;
 	private final ExecutorService taskExecutor;
+	private NdexDatabase db;
 
-	public NdexTaskExecutor(Integer id) throws NdexException {
+	public NdexTaskExecutor(Integer id, NdexDatabase db) throws NdexException {
 		 taskExecutor = Executors
 				.newFixedThreadPool(MAX_THREADS);
 		this.taskCompletionService = new ExecutorCompletionService<Task>(
 				taskExecutor);
 		this.taskService = new NdexTaskService();
 		this.threadIdentifier = id;
+		this.db = db;
 	}
 	
 	public Integer getThreadIdentifier() { return this.threadIdentifier;}
@@ -103,11 +106,11 @@ public class NdexTaskExecutor implements Callable<Integer> {
 	}
 	
 	
-	private static NdexTask getNdexTaskByTaskType(Task task) throws NdexException{
+	private NdexTask getNdexTaskByTaskType(Task task) throws NdexException{
 		
 		try {
 			if( task.getTaskType() == TaskType.PROCESS_UPLOADED_NETWORK) {
-				return new FileUploadTask(task);
+				return new FileUploadTask(task, db);
 			}
 			if( task.getTaskType() == TaskType.EXPORT_NETWORK_TO_FILE) {
 				if ( task.getFormat() == FileFormat.XBEL)

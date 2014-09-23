@@ -16,7 +16,6 @@ import javax.xml.parsers.SAXParserFactory;
 
 import org.ndexbio.common.access.NdexDatabase;
 import org.ndexbio.common.exceptions.NdexException;
-import org.ndexbio.common.helpers.Configuration;
 import org.ndexbio.common.persistence.orientdb.NdexPersistenceService;
 import org.ndexbio.model.object.NdexPropertyValuePair;
 import org.ndexbio.model.object.ProvenanceEntity;
@@ -62,7 +61,7 @@ public class XbelParser implements IParsingEngine
 
     public static final String belPrefix = "BEL";
     
-    public XbelParser(String fn, String ownerName) throws JAXBException, NdexException, URISyntaxException
+    public XbelParser(String fn, String ownerName, NdexDatabase db) throws JAXBException, NdexException, URISyntaxException
     {
         Preconditions.checkArgument(!Strings.isNullOrEmpty(fn), "A filename is required");
         Preconditions.checkArgument(!Strings.isNullOrEmpty(ownerName),
@@ -77,7 +76,7 @@ public class XbelParser implements IParsingEngine
         this.validationState = new XbelFileValidator(this.xmlFile).getValidationState();
         logger.info(this.validationState.getValidationMessage());
         this.context = JAXBContext.newInstance("org.ndexbio.xbel.model");
-        this.networkService = new NdexPersistenceService(new NdexDatabase());
+        this.networkService = new NdexPersistenceService(db);
         this.nsSplitter = new NamespaceGroupSplitter(context, this.networkService);
         this.adSplitter = new AnnotationDefinitionGroupSplitter(context, networkService);
         this.sgSplitter = new StatementGroupSplitter(context, this.networkService);

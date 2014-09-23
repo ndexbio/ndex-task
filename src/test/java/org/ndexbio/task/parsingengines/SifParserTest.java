@@ -14,6 +14,9 @@ import java.nio.file.StandardCopyOption;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.ndexbio.common.access.NdexAOrientDBConnectionPool;
+import org.ndexbio.common.access.NdexDatabase;
+import org.ndexbio.task.Configuration;
 import org.ndexbio.task.utility.BulkFileUploadUtility;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,14 +56,26 @@ public class SifParserTest {
 */
 	@Test
 	public void test() throws Exception {
+    	// read configuration
+    	Configuration configuration = Configuration.getInstance();
+    	
+    	//and initialize the db connections
+    	NdexAOrientDBConnectionPool.createOrientDBConnectionPool(
+    			configuration.getDBURL(),
+    			configuration.getDBUser(),
+    			configuration.getDBPasswd());
+    	
+    	
+		NdexDatabase db = new NdexDatabase(configuration.getHostURI());
 		
 		String userAccount = "reactomeadmin";
-		SifParser parser = new SifParser("ca-calmodulin-dependent_protein_kinase_activation.SIF", userAccount);
+		SifParser parser = new SifParser("ca-calmodulin-dependent_protein_kinase_activation.SIF", userAccount,
+				db);
 		parser.parseFile();
-		parser = new SifParser("gal-filtered.sif", userAccount);
+		parser = new SifParser("gal-filtered.sif", userAccount,db);
 		parser.parseFile();
 		
-		parser = new SifParser("Calcineurin-regulated_NFAT-dependent_transcription_in_lymphocytes.SIF",userAccount);
+		parser = new SifParser("Calcineurin-regulated_NFAT-dependent_transcription_in_lymphocytes.SIF",userAccount,db);
 		parser.parseFile();
 
 //		SifParser parser = new SifParser("/home/chenjing/working/ndex/networks/reactome46_human/Meiosis.SIF","Support");
@@ -76,7 +91,7 @@ public class SifParserTest {
 		{
             for (Path path : directoryStream) {
               logger.info("Processing file " +path.toString());
-              SifParser parser2 = new SifParser(path.toString(),userAccount);
+              SifParser parser2 = new SifParser(path.toString(),userAccount,db);
          		parser2.parseFile();
       		
   			 logger.info("file upload for  " + path.toString() +" finished.");
@@ -86,7 +101,9 @@ public class SifParserTest {
         	throw e;
         }
 		
+		db.close();
 		
+		NdexAOrientDBConnectionPool.close();
 	} 
 
 }
