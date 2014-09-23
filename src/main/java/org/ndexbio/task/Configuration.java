@@ -19,11 +19,14 @@ public class Configuration
     private static final Logger _logger = LoggerFactory.getLogger(Configuration.class);
     private Properties _configurationProperties;
     
-	private static String dbURL;
+	private String dbURL;
 	private static final String dbUserPropName 	   = "OrientDB-Username";
 	private static final String dbPasswordPropName = "OrientDB-Password";
 	    
-	private static String hostURI ;
+	private String hostURI ;
+	private String ndexSystemUser ;
+	private String ndexSystemUserPassword;
+	private String ndexRoot;
    
     
     /**************************************************************************
@@ -62,6 +65,21 @@ public class Configuration
             hostURI = _configurationProperties.getProperty("HostURI");
             if ( hostURI == null) {
             	throw new NdexException ("property " +  "HostURI" + " not found in configuration.");
+            }
+            
+            this.ndexSystemUser = _configurationProperties.getProperty("NdexSystemUser");
+            if ( ndexSystemUser == null) {
+            	throw new NdexException ("property " +  "NdexSystemUser" + " not found in configuration.");
+            }
+
+            this.ndexSystemUserPassword = _configurationProperties.getProperty("NdexSystemUserPassword");
+            if ( ndexSystemUserPassword == null) {
+            	throw new NdexException ("property " +  "NdexSystemUserPassword" + " not found in configuration.");
+            }
+
+            this.ndexRoot = _configurationProperties.getProperty("NdexRoot");
+            if ( ndexRoot == null) {
+            	throw new NdexException ("property " +  "NdexRoot" + " not found in configuration.");
             }
 
         }
@@ -115,5 +133,9 @@ public class Configuration
     public String getDBURL () { return dbURL; }
     public String getDBUser() { return _configurationProperties.getProperty(dbUserPropName); }
     public String getDBPasswd () { return _configurationProperties.getProperty(dbPasswordPropName); }
-    public String getHostURI () { return hostURI; } 
+    public String getHostURI () { return hostURI; }
+    public String getSystmUserName() {return this.ndexSystemUser;}
+    public String getSystemUserPassword () {return this.ndexSystemUserPassword;}
+    public String getNdexRoot()  {return this.ndexRoot;}
+    
 }

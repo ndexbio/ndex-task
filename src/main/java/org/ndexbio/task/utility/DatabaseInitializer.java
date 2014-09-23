@@ -38,7 +38,7 @@ public class DatabaseInitializer {
 		}
 	}
 
-	private static void createUserIfnotExist(UserDAO dao, String accountName, String email, String password) throws NdexException {
+	public static void createUserIfnotExist(UserDAO dao, String accountName, String email, String password) throws NdexException {
 		try {
 			User u = dao.getUserByAccountName(accountName);
 			if ( u!= null) return;
@@ -56,6 +56,7 @@ public class DatabaseInitializer {
         newUser.setFirstName("");
         newUser.setLastName("");
         dao.createNewUser(newUser);
+        
 
 	}
 	

@@ -26,8 +26,6 @@ public class FileUploadTask extends NdexTask {
 			.getLogger(FileUploadTask.class);
 
 	private Status taskStatus;
-	//TODO: remove the hard coded path
-	private static final String NETWORK_UPLOAD_PATH = "C:/tmp/ndex/uploaded-networks/";
     private NdexDatabase db;
 	
 	
