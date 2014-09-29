@@ -48,11 +48,11 @@ public class NdexQueuedTaskProcessor {
 	private NdexDatabase db ;
 	
 	
-	public NdexQueuedTaskProcessor(NdexDatabase db) throws NdexException {
+	public NdexQueuedTaskProcessor(NdexDatabase db) {
 		 this.taskService = new NdexTaskService();
 		 taskExecutor = Executors.newFixedThreadPool(MAX_THREADS);
 	       this.taskCompletionService =
-	           new ExecutorCompletionService<Integer>(taskExecutor);  
+	           new ExecutorCompletionService<>(taskExecutor);  
 	     this.db = db;   
 	}
 	
@@ -86,16 +86,10 @@ public class NdexQueuedTaskProcessor {
 				int startedThreads = 0;
 				for ( int i = 0 ; i < threadCount ; i++ ){
 					
-					try {
-						NdexTaskExecutor executor  = new NdexTaskExecutor(startedThreads, db);
-						this.taskCompletionService.submit(executor);
-						logger.info("A NdexTaskExecutor thread started");
-						startedThreads++;
-					} catch (NdexException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-						logger.error("Failed to create NdexTaskExecutor thread. "+ e1.getMessage() );
-					}
+					NdexTaskExecutor executor  = new NdexTaskExecutor(startedThreads, db);
+					this.taskCompletionService.submit(executor);
+					logger.info("A NdexTaskExecutor thread started");
+					startedThreads++;
 					
 				}
 				// monitor submitted jobs until completion

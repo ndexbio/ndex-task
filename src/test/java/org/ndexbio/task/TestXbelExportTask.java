@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.Date;
 
 import org.ndexbio.common.exceptions.NdexException;
-import org.ndexbio.common.models.dao.CommonDAOValues;
+import org.ndexbio.common.models.dao.orientdb.CommonDAOValues;
 import org.ndexbio.common.models.dao.orientdb.TaskDAO;
 import org.ndexbio.model.object.Status;
 import org.ndexbio.model.object.Task;

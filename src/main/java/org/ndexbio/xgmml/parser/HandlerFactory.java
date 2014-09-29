@@ -44,8 +44,8 @@ public class HandlerFactory {
 	}
 	
 	public void init() {
-		startParseMap = new HashMap<ParseState, Map<String, SAXState>>();
-		endParseMap = new HashMap<ParseState, Map<String, SAXState>>();
+		startParseMap = new HashMap<>();
+		endParseMap = new HashMap<>();
 		
 		final Object[][] startParseTable = createStartParseTable();
 		final Object[][] endParseTable = createEndParseTable();
@@ -180,7 +180,7 @@ public class HandlerFactory {
 			
 			internalMap = map.get(st.getStartState());
 			if (internalMap == null) {
-				internalMap = new HashMap<String, SAXState>();
+				internalMap = new HashMap<>();
 			}
 			
 			internalMap.put(st.getTag(), st);

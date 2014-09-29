@@ -3,8 +3,6 @@ package org.ndexbio.xbel.exporter;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
@@ -84,17 +82,17 @@ public class XbelNetworkExporter {
 	// incorporate operation auditing
 	private NdexAuditService auditService;
 
-	private final NdexObjectAuditor<Edge> edgeAuditor = new NdexObjectAuditor<Edge>(
+	private final NdexObjectAuditor<Edge> edgeAuditor = new NdexObjectAuditor<>(
 			Edge.class);
-	private final NdexObjectAuditor<Node> nodeAuditor = new NdexObjectAuditor<Node>(
+	private final NdexObjectAuditor<Node> nodeAuditor = new NdexObjectAuditor<>(
 			Node.class);
-	private final NdexObjectAuditor<BaseTerm> termAuditor = new NdexObjectAuditor<BaseTerm>(
+	private final NdexObjectAuditor<BaseTerm> termAuditor = new NdexObjectAuditor<>(
 			BaseTerm.class);
-	private final NdexObjectAuditor<ReifiedEdgeTerm> reifiedTermAuditor = new NdexObjectAuditor<ReifiedEdgeTerm>(
+	private final NdexObjectAuditor<ReifiedEdgeTerm> reifiedTermAuditor = new NdexObjectAuditor<>(
 			ReifiedEdgeTerm.class);
-	private final NdexObjectAuditor<FunctionTerm> functionTermAuditor = new NdexObjectAuditor<FunctionTerm>(
+	private final NdexObjectAuditor<FunctionTerm> functionTermAuditor = new NdexObjectAuditor<>(
 			FunctionTerm.class);
-	private final NdexObjectAuditor<Support> supportAuditor = new NdexObjectAuditor<Support>(
+	private final NdexObjectAuditor<Support> supportAuditor = new NdexObjectAuditor<>(
 			Support.class);
 
 	private static final Logger logger = LoggerFactory
@@ -115,7 +113,7 @@ public class XbelNetworkExporter {
 		xm = new XbelMarshaller(exportFilename);
 		this.network = this.modelService.getNetworkById(this.networkId);
 
-		this.xbelTermStack = new XbelStack<org.ndexbio.xbel.model.Term>(
+		this.xbelTermStack = new XbelStack<>(
 				"XBEL Term", Boolean.FALSE);
 		
 		this.initiateAuditService(network.getName());
@@ -790,18 +788,18 @@ public class XbelNetworkExporter {
 					| FactoryConfigurationError e) {
 
 				e.printStackTrace();
-			}
+			} 
 		}
 
 		public void writeDocument(Document d) throws JAXBException {
-			JAXBElement<Document> element = new JAXBElement<Document>(
+			JAXBElement<Document> element = new JAXBElement<>(
 					QName.valueOf("bel:document"),
 					(Class<Document>) d.getClass(), d);
 			this.marshaller.marshal(element, this.writer);
 		}
 
 		public void writeHeader(Header h) throws JAXBException {
-			JAXBElement<Header> element = new JAXBElement<Header>(
+			JAXBElement<Header> element = new JAXBElement<>(
 					QName.valueOf("bel:header"), (Class<Header>) h.getClass(),
 					h);
 
@@ -810,21 +808,21 @@ public class XbelNetworkExporter {
 
 		public void writeNamespaceGroup(NamespaceGroup nsg)
 				throws JAXBException {
-			JAXBElement<NamespaceGroup> element = new JAXBElement<NamespaceGroup>(
+			JAXBElement<NamespaceGroup> element = new JAXBElement<>(
 					QName.valueOf("bel:namespaceGroup"),
 					(Class<NamespaceGroup>) nsg.getClass(), nsg);
 			this.marshaller.marshal(element, this.writer);
 		}
 		
 		public void writeAnnotationDefinitionGroup(AnnotationDefinitionGroup adg) throws JAXBException{
-			JAXBElement<AnnotationDefinitionGroup> element = new JAXBElement<AnnotationDefinitionGroup>(
+			JAXBElement<AnnotationDefinitionGroup> element = new JAXBElement<>(
 					QName.valueOf("bel:annotationDefinitionGroup"),
 					(Class<AnnotationDefinitionGroup>) adg.getClass(), adg);
 			this.marshaller.marshal(element, this.writer);
 		}
 
 		public void writeStatementGroup(StatementGroup sg) throws JAXBException {
-			JAXBElement<StatementGroup> element = new JAXBElement<StatementGroup>(
+			JAXBElement<StatementGroup> element = new JAXBElement<>(
 					QName.valueOf("bel:statementGroup"),
 					(Class<StatementGroup>) sg.getClass(), sg);
 			this.marshaller.marshal(element, this.writer);

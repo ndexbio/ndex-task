@@ -71,7 +71,7 @@ public class AnnotationDefinitionGroup {
      */
     public List<InternalAnnotationDefinition> getInternalAnnotationDefinition() {
         if (internalAnnotationDefinition == null) {
-            internalAnnotationDefinition = new ArrayList<InternalAnnotationDefinition>();
+            internalAnnotationDefinition = new ArrayList<>();
         }
         return this.internalAnnotationDefinition;
     }
@@ -100,7 +100,7 @@ public class AnnotationDefinitionGroup {
      */
     public List<ExternalAnnotationDefinition> getExternalAnnotationDefinition() {
         if (externalAnnotationDefinition == null) {
-            externalAnnotationDefinition = new ArrayList<ExternalAnnotationDefinition>();
+            externalAnnotationDefinition = new ArrayList<>();
         }
         return this.externalAnnotationDefinition;
     }

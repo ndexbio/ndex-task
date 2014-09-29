@@ -107,7 +107,11 @@ public class XgmmlParser implements IParsingEngine {
             e.printStackTrace();
             throw new NdexException("Error occurred when loading "
             		+ this.xgmmlFile.getName() + ". " + e.getMessage());
-        } 
+        } finally {
+        	try {
+				xgmmlFileStream.close();
+			} catch (IOException e) {}
+        }
 		
 	}
 	

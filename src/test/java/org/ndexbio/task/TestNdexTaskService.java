@@ -6,7 +6,7 @@ public class TestNdexTaskService {
 
 	private final NdexTaskService service;
 	
-	public TestNdexTaskService() throws NdexException {
+	public TestNdexTaskService() {
 		this.service = new NdexTaskService();
 	}
 	
@@ -23,7 +23,7 @@ public class TestNdexTaskService {
 		}
 	}
 	
-	public static void main(String[] args) throws NdexException {
+	public static void main(String[] args) {
 		TestNdexTaskService test = new TestNdexTaskService();
 		test.performTests();
 

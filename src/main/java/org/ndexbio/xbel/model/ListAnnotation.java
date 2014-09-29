@@ -70,7 +70,7 @@ public class ListAnnotation {
      */
     public List<String> getListValue() {
         if (listValue == null) {
-            listValue = new ArrayList<String>();
+            listValue = new ArrayList<>();
         }
         return this.listValue;
     }

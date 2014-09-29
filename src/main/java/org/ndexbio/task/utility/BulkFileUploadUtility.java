@@ -34,7 +34,7 @@ public class BulkFileUploadUtility {
 	private final Path uploadDir;
 	private final LocalDataService ds;
 	
-	public BulkFileUploadUtility(String dir) throws NdexException{
+	public BulkFileUploadUtility(String dir){
 		this.uploadDir = Paths.get(dir);
 		this.ds = new LocalDataService();
 	}
@@ -43,7 +43,7 @@ public class BulkFileUploadUtility {
 	private static final Logger logger = LoggerFactory.getLogger(BulkFileUploadUtility.class);
 	private static final String NETWORK_UPLOAD_PATH = "/opt/ndex/uploaded-networks/";
 	
-	public static void main(String[] args) throws NdexException {
+	public static void main(String[] args) {
 		String dir = DEFAULT_DIRECTORY;
 		if (args.length >0){
 			dir = args[0];
@@ -88,7 +88,7 @@ public class BulkFileUploadUtility {
 	
 class LocalDataService extends OrientDBNoTxConnectionService {
 		
-		LocalDataService() throws NdexException {
+		LocalDataService() {
 			super();
 			
 		}

@@ -152,7 +152,7 @@ public class StatementGroup {
      */
     public List<Statement> getStatement() {
         if (statement == null) {
-            statement = new ArrayList<Statement>();
+            statement = new ArrayList<>();
         }
         return this.statement;
     }
@@ -181,7 +181,7 @@ public class StatementGroup {
      */
     public List<StatementGroup> getStatementGroup() {
         if (statementGroup == null) {
-            statementGroup = new ArrayList<StatementGroup>();
+            statementGroup = new ArrayList<>();
         }
         return this.statementGroup;
     }

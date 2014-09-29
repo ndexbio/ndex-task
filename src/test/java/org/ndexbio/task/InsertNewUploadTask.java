@@ -98,7 +98,7 @@ public class InsertNewUploadTask {
 	
 	class LocalDataService extends OrientDBNoTxConnectionService {
 		
-		LocalDataService() throws NdexException {
+		LocalDataService() {
 			super();
 			
 		}

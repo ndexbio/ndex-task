@@ -14,19 +14,14 @@ public class TestTaskQueries {
 	private final NdexTaskService taskService ;
 	private static final Logger logger = LoggerFactory.getLogger(TestTaskQueries.class);
 	
-	public TestTaskQueries() throws NdexException {
+	public TestTaskQueries() {
 		taskService = new NdexTaskService();
 	}
 	
 	private void runTests() {
-		try {
-			this.determineInProgressTasks();
+		this.determineInProgressTasks();
 //			this.determineQueuedTasks();
 //			this.determineCompletedTasks();
-		} catch (NdexException e) {
-			logger.error(e.getMessage());
-			e.printStackTrace();
-		}
 		
 	}
 	
@@ -36,7 +31,7 @@ public class TestTaskQueries {
 
 	}
 
-	private  Integer determineInProgressTasks() throws NdexException {
+	private  Integer determineInProgressTasks() {
 /*		List<Task> taskList = taskService.getInProgressTasks();
 		Integer activeTasks = taskList.size();
 		logger.info("There are " +taskList.size() +" in progress tasks");

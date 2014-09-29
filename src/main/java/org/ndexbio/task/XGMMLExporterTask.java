@@ -85,6 +85,7 @@ public class XGMMLExporterTask extends NdexTask {
 			this.updateTaskStatus(this.taskStatus);
 		} finally { 
 			if ( db !=null ) db.close();
+		    out.close();
 		}
 	}
 	

@@ -27,14 +27,13 @@ package org.ndexbio.xgmml.parser;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 public class ObjectTypeMap {
 
     private Map<String, ObjectType> typeMap;
 
     public ObjectTypeMap() {
-        typeMap = new HashMap<String, ObjectType>();
+        typeMap = new HashMap<>();
 
         for (ObjectType type : ObjectType.values())
             typeMap.put(type.getName(), type);
@@ -45,8 +44,7 @@ public class ObjectTypeMap {
         
         if (type != null)
             return type;
-        else
-            return ObjectType.NONE;
+		return ObjectType.NONE;
     }
 
     /**

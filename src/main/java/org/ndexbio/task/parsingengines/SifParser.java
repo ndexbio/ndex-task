@@ -103,19 +103,13 @@ public class SifParser implements IParsingEngine {
 	 **************************************************************************/
 	@Override
 	public void parseFile() throws  NdexException {
+		BufferedReader bufferedReader = null;
 		try {
 
 			this.getMsgBuffer().add("Parsing lines from " + this.getSIFURI());
-			BufferedReader bufferedReader;
 
-//			try {
-				bufferedReader = new BufferedReader(new FileReader(
+			bufferedReader = new BufferedReader(new FileReader(
 						this.getSifFile()));
-/*			} catch (FileNotFoundException e1) {
-				this.getMsgBuffer().add("Could not find " + this.getSIFURI());
-				return;
-			}
-*/
 			boolean extendedBinarySIF = checkForExtendedFormat();
 			if (extendedBinarySIF) {
 				this.processExtendedBinarySIF(bufferedReader);
@@ -142,14 +136,19 @@ public class SifParser implements IParsingEngine {
 			
 			// close database connection
 			this.persistenceService.persistNetwork();
-//			logger.info("finished loading. Total Pubmed Ids: " + this.pubmedIdSet.size());
+			
 		} catch (Exception e) {
 			// delete network and close the database connection
 			e.printStackTrace();
 			this.persistenceService.abortTransaction();
 			throw new NdexException("Error occurred when loading file " +
 					this.sifFile.getName() + ". " + e.getMessage() );
-		} 
+		} finally {
+			if ( bufferedReader != null )
+				try {
+					bufferedReader.close();
+				} catch (IOException e) {}
+		}
 	}
 
 	private boolean checkForExtendedFormat() throws IOException {

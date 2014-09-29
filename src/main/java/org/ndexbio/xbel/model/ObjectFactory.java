@@ -218,7 +218,7 @@ public class ObjectFactory {
      */
     @XmlElementDecl(namespace = "http://belframework.org/schema/1.0/xbel", name = "name")
     public JAXBElement<String> createName(String value) {
-        return new JAXBElement<String>(_Name_QNAME, String.class, null, value);
+        return new JAXBElement<>(_Name_QNAME, String.class, null, value);
     }
 
     /**
@@ -227,7 +227,7 @@ public class ObjectFactory {
      */
     @XmlElementDecl(namespace = "http://belframework.org/schema/1.0/xbel", name = "evidence")
     public JAXBElement<String> createEvidence(String value) {
-        return new JAXBElement<String>(_Evidence_QNAME, String.class, null, value);
+        return new JAXBElement<>(_Evidence_QNAME, String.class, null, value);
     }
 
     /**
@@ -236,7 +236,7 @@ public class ObjectFactory {
      */
     @XmlElementDecl(namespace = "http://belframework.org/schema/1.0/xbel", name = "description")
     public JAXBElement<String> createDescription(String value) {
-        return new JAXBElement<String>(_Description_QNAME, String.class, null, value);
+        return new JAXBElement<>(_Description_QNAME, String.class, null, value);
     }
 
     /**
@@ -245,7 +245,7 @@ public class ObjectFactory {
      */
     @XmlElementDecl(namespace = "http://belframework.org/schema/1.0/xbel", name = "disclaimer")
     public JAXBElement<String> createDisclaimer(String value) {
-        return new JAXBElement<String>(_Disclaimer_QNAME, String.class, null, value);
+        return new JAXBElement<>(_Disclaimer_QNAME, String.class, null, value);
     }
 
     /**
@@ -254,7 +254,7 @@ public class ObjectFactory {
      */
     @XmlElementDecl(namespace = "http://belframework.org/schema/1.0/xbel", name = "contactInfo")
     public JAXBElement<String> createContactInfo(String value) {
-        return new JAXBElement<String>(_ContactInfo_QNAME, String.class, null, value);
+        return new JAXBElement<>(_ContactInfo_QNAME, String.class, null, value);
     }
 
     /**
@@ -263,7 +263,7 @@ public class ObjectFactory {
      */
     @XmlElementDecl(namespace = "http://belframework.org/schema/1.0/xbel", name = "listValue")
     public JAXBElement<String> createListValue(String value) {
-        return new JAXBElement<String>(_ListValue_QNAME, String.class, null, value);
+        return new JAXBElement<>(_ListValue_QNAME, String.class, null, value);
     }
 
     /**
@@ -272,7 +272,7 @@ public class ObjectFactory {
      */
     @XmlElementDecl(namespace = "http://belframework.org/schema/1.0/xbel", name = "author")
     public JAXBElement<String> createAuthor(String value) {
-        return new JAXBElement<String>(_Author_QNAME, String.class, null, value);
+        return new JAXBElement<>(_Author_QNAME, String.class, null, value);
     }
 
     /**
@@ -281,7 +281,7 @@ public class ObjectFactory {
      */
     @XmlElementDecl(namespace = "http://belframework.org/schema/1.0/xbel", name = "patternAnnotation")
     public JAXBElement<String> createPatternAnnotation(String value) {
-        return new JAXBElement<String>(_PatternAnnotation_QNAME, String.class, null, value);
+        return new JAXBElement<>(_PatternAnnotation_QNAME, String.class, null, value);
     }
 
     /**
@@ -290,7 +290,7 @@ public class ObjectFactory {
      */
     @XmlElementDecl(namespace = "http://belframework.org/schema/1.0/xbel", name = "version")
     public JAXBElement<String> createVersion(String value) {
-        return new JAXBElement<String>(_Version_QNAME, String.class, null, value);
+        return new JAXBElement<>(_Version_QNAME, String.class, null, value);
     }
 
     /**
@@ -299,7 +299,7 @@ public class ObjectFactory {
      */
     @XmlElementDecl(namespace = "http://belframework.org/schema/1.0/xbel", name = "license")
     public JAXBElement<String> createLicense(String value) {
-        return new JAXBElement<String>(_License_QNAME, String.class, null, value);
+        return new JAXBElement<>(_License_QNAME, String.class, null, value);
     }
 
     /**
@@ -308,7 +308,7 @@ public class ObjectFactory {
      */
     @XmlElementDecl(namespace = "http://belframework.org/schema/1.0/xbel", name = "comment")
     public JAXBElement<String> createComment(String value) {
-        return new JAXBElement<String>(_Comment_QNAME, String.class, null, value);
+        return new JAXBElement<>(_Comment_QNAME, String.class, null, value);
     }
 
     /**
@@ -317,7 +317,7 @@ public class ObjectFactory {
      */
     @XmlElementDecl(namespace = "http://belframework.org/schema/1.0/xbel", name = "copyright")
     public JAXBElement<String> createCopyright(String value) {
-        return new JAXBElement<String>(_Copyright_QNAME, String.class, null, value);
+        return new JAXBElement<>(_Copyright_QNAME, String.class, null, value);
     }
 
     /**
@@ -326,7 +326,7 @@ public class ObjectFactory {
      */
     @XmlElementDecl(namespace = "http://belframework.org/schema/1.0/xbel", name = "usage")
     public JAXBElement<String> createUsage(String value) {
-        return new JAXBElement<String>(_Usage_QNAME, String.class, null, value);
+        return new JAXBElement<>(_Usage_QNAME, String.class, null, value);
     }
 
 }

@@ -80,7 +80,7 @@ public class Term {
      */
     public List<java.lang.Object> getParameterOrTerm() {
         if (parameterOrTerm == null) {
-            parameterOrTerm = new ArrayList<java.lang.Object>();
+            parameterOrTerm = new ArrayList<>();
         }
         return this.parameterOrTerm;
     }

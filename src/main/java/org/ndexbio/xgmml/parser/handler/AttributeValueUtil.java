@@ -94,8 +94,7 @@ public class AttributeValueUtil {
 
         if (name != null && name.equals(key))
             return atts.getValue(ATTR_VALUE);
-        else
-            return null;
+		return null;
     }
 
     /**

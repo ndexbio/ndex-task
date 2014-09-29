@@ -41,10 +41,10 @@ public class NdexTaskExecutor implements Callable<Integer> {
 	private final ExecutorService taskExecutor;
 	private NdexDatabase db;
 
-	public NdexTaskExecutor(Integer id, NdexDatabase db) throws NdexException {
+	public NdexTaskExecutor(Integer id, NdexDatabase db) {
 		 taskExecutor = Executors
 				.newFixedThreadPool(MAX_THREADS);
-		this.taskCompletionService = new ExecutorCompletionService<Task>(
+		this.taskCompletionService = new ExecutorCompletionService<>(
 				taskExecutor);
 		this.taskService = new NdexTaskService();
 		this.threadIdentifier = id;

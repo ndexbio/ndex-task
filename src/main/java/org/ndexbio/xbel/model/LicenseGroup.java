@@ -70,7 +70,7 @@ public class LicenseGroup {
      */
     public List<String> getLicense() {
         if (license == null) {
-            license = new ArrayList<String>();
+            license = new ArrayList<>();
         }
         return this.license;
     }
