@@ -311,7 +311,7 @@ public class XbelNetworkExporter {
 		sg.setAnnotationGroup(ag);
 		
 		// a collection of edge ids that referenced by ReifedEdgesTerm
-		TreeSet<Long> reifiedEdgeIds = new TreeSet<Long>();
+		TreeSet<Long> reifiedEdgeIds = new TreeSet<>();
 		for ( ReifiedEdgeTerm rt: this.subNetwork.getReifiedEdgeTerms().values()) {
 			reifiedEdgeIds.add(rt.getEdgeId());
 		}

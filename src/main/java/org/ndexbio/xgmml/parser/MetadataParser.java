@@ -102,7 +102,7 @@ public class MetadataParser {
 	 * structure.
 	 */
 	public List<NdexPropertyValuePair> makeNewMetadataProperties() {
-		List<NdexPropertyValuePair> props = new ArrayList<NdexPropertyValuePair>();
+		List<NdexPropertyValuePair> props = new ArrayList<>();
 
 	    // TODO: determine where these defaults should be coming from
 		// Extract default values from property

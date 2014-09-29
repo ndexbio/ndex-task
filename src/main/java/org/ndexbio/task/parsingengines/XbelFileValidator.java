@@ -5,26 +5,31 @@ import java.io.IOException;
 
 import com.google.common.base.Strings;
 
+import org.ndexbio.common.exceptions.NdexException;
+import org.ndexbio.task.Configuration;
 import org.openbel.framework.common.xbel.parser.XBELValidator;
 import org.xml.sax.SAXException;
 
 public class XbelFileValidator {
 
 	private String xmlFileName;
-	private final static String XBEL_ROOT = "xbel/";
-	private final static String XBEL_XSD = XBEL_ROOT + "xbel.xsd";
-	private final static String ANNO_XSD = XBEL_ROOT + "xbel-annotations.xsd";
+//	private final static String XBEL_ROOT = ""; //"xbel/";
+	private  String XBEL_XSD; //= XBEL_ROOT + "xbel.xsd";
+	private  String ANNO_XSD ; //= XBEL_ROOT + "xbel-annotations.xsd";
 
 	private XBELValidator xv;
 	private final ValidationState validationState;
 
-	public XbelFileValidator(String fileName) {
+	public XbelFileValidator(String fileName) throws NdexException {
 		if (Strings.isNullOrEmpty(fileName)) {
 			this.validationState = new ValidationState(false,
 					"Null or empty filename parameter");
 			return;
 		}
 		this.xmlFileName = fileName;
+		
+		XBEL_XSD = Configuration.getInstance().getNdexRoot() + "/resource/xbel.xsd";
+		ANNO_XSD = Configuration.getInstance().getNdexRoot() + "/resource/xbel-annotations.xsd";
 		if (!this.xsdCheck() || !this.initValidator()) {
 			this.validationState = new ValidationState(false,
 					"Valid BEL XSD file(s) unavailable");
