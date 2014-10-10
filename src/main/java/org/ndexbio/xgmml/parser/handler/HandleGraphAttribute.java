@@ -50,7 +50,7 @@ public class HandleGraphAttribute extends AbstractHandler {
 		if (attName.equals("documentVersion")) {
 			// Old format only!
 			manager.setDocumentVersion(attributeValueUtil.getAttributeValue(atts, attName));
-		} else if (attName.matches("backgroundColor|GRAPH_VIEW_ZOOM|GRAPH_VIEW_CENTER_[XY]|NODE_SIZE_LOCKED")) {
+		} else if (attName.matches("backgroundColor|GRAPH_VIEW_ZOOM|GRAPH_VIEW_CENTER_[XY]|NODE_SIZE_LOCKED|__layoutAlgorithm")) {
 			
 		//	String attValue = attributeValueUtil.getAttributeValue(atts, attName);
 			
@@ -65,7 +65,7 @@ public class HandleGraphAttribute extends AbstractHandler {
 		} else {
 			//TODO: this line is removed by cj. need to review it.
 		//	manager.setCurrentElement(manager.getCurrentNetwork());
-			nextState = attributeValueUtil.handleAttribute(atts);
+			nextState = attributeValueUtil.handleAttribute(atts, true);
 		}
 
 		if (nextState != ParseState.NONE)

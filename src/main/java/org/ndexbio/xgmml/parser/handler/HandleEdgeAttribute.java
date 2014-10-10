@@ -64,7 +64,7 @@ public class HandleEdgeAttribute extends AbstractHandler {
 			}
 		}
 
-		ParseState nextState = attributeValueUtil.handleAttribute(atts);
+		ParseState nextState = attributeValueUtil.handleAttribute(atts,false);
 
 		if (nextState != ParseState.NONE)
 			return nextState;

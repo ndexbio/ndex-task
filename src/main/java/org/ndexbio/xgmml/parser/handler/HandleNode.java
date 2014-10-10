@@ -39,10 +39,10 @@ public class HandleNode extends AbstractHandler {
 	public ParseState handle(final String namespace, final String tag, final String qName,  final Attributes atts, final ParseState current) throws SAXException, NdexException, ExecutionException {
 		final String href = atts.getValue(ReadDataManager.XLINK, "href");
 		Object id = null;
-		String label = null;
+		//String label = null;
 		String nodeName = null;
 		Long nodeId = null;
-		final NetworkSummary curNet = manager.getCurrentNetwork();
+		//final NetworkSummary curNet = manager.getCurrentNetwork();
 		//final CyNetwork rootNet = manager.getRootNetwork();
 		
 		if (href == null) {

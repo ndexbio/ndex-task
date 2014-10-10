@@ -46,7 +46,7 @@ public class HandleNodeAttribute extends AbstractHandler {
 		if (name == null && atts.getValue("value") == null)
 			return current;
 
-		ParseState nextState = attributeValueUtil.handleAttribute(atts);
+		ParseState nextState = attributeValueUtil.handleAttribute(atts, false);
 
 		if (nextState != ParseState.NONE)
 			return nextState;

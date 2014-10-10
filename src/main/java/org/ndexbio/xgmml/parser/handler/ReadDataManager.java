@@ -63,13 +63,13 @@ public class ReadDataManager {
 
 	protected final static String XLINK = "http://www.w3.org/1999/xlink";
 	
-	private static final String PATTERN2X = "type|fill|w|h|size|width|outline|"
+/*	private static final String PATTERN2X = "type|fill|w|h|size|width|outline|"
 			 + "(cy:)?((node|edge)Transparency|(node|edge)LabelFont|(border|edge)LineType)|"
 			 + "(cy:)?(source|target)Arrow(Color)?";
 	private static final String BG_COLOR_PATTERN = "backgroundColor";
-	
-	private static final Pattern P2X = Pattern.compile(PATTERN2X);
-	private static final Pattern PBG_COLOR = Pattern.compile(BG_COLOR_PATTERN);
+*/	
+//	private static final Pattern P2X = Pattern.compile(PATTERN2X);
+//	private static final Pattern PBG_COLOR = Pattern.compile(BG_COLOR_PATTERN);
 
 	private StringBuilder currentCData; 
 	private StringBuilder currentGraphicsStr;
@@ -94,9 +94,10 @@ public class ReadDataManager {
 	/** The graph-global directedness, which will be used as default directedness of edges. */
 	protected boolean currentNetworkIsDirected = true;
 
-	private Map<Long/*network suid*/, Map<String/*att name*/, String/*att value*/>> networkGraphics;
-	private Map<Long/*node suid*/, Map<String/*att name*/, String/*att value*/>> nodeGraphics;
-	private Map<Long/*edge suid*/, Map<String/*att name*/, String/*att value*/>> edgeGraphics;
+	
+//	private Map<Long/*network suid*/, Map<String/*att name*/, String/*att value*/>> networkGraphics;
+//	private Map<Long/*node suid*/, Map<String/*att name*/, String/*att value*/>> nodeGraphics;
+//	private Map<Long/*edge suid*/, Map<String/*att name*/, String/*att value*/>> edgeGraphics;
 	
 
 	//private Map<CyRow, Map<String/*column name*/, String/*equation*/>> equations;
@@ -112,7 +113,7 @@ public class ReadDataManager {
 	private List<String> currentList;
 	
 	
-	private List<NdexPropertyValuePair> currentProperties;
+//	private List<NdexPropertyValuePair> currentProperties;
 	private Long currentNodeId;
 	private Long currentEdgeId;
 
@@ -146,7 +147,7 @@ public class ReadDataManager {
 		graphDoneCount = 0;
 		documentVersion = 1;
 
-		currentProperties = null;
+//		currentProperties = null;
 		currentNodeId = null;
 		currentEdgeId = null;
 		//parentNetwork = null;
@@ -165,14 +166,15 @@ public class ReadDataManager {
 		edgeBendY = null;
 		
 		saved = false;
-		networkStack = new Stack<Object>();
+		networkStack = new Stack<>();
 		
 		// TODO: determine how these are used 
-		networkGraphics = new LinkedHashMap<Long, Map<String, String>>();
-		nodeGraphics = new LinkedHashMap<Long, Map<String, String>>();
-		edgeGraphics = new LinkedHashMap<Long, Map<String, String>>();
-		
-		prefixMap = new TreeMap<String,Namespace> ();
+/*
+		networkGraphics = new LinkedHashMap<>();
+		nodeGraphics = new LinkedHashMap<>();
+		edgeGraphics = new LinkedHashMap<>();
+*/		
+		prefixMap = new TreeMap<> ();
 		
 		networkViewId = null;
 		networkId = null;
@@ -187,7 +189,7 @@ public class ReadDataManager {
 
 		currentNodeId = null;
 		currentEdgeId = null;
-		currentProperties = null;
+//		currentProperties = null;
 
 	}
 	
@@ -270,7 +272,7 @@ public class ReadDataManager {
 	protected void addNetworkGraphicsAttributes( Attributes atts) throws ExecutionException, SAXException {
 		final int attrLength = atts.getLength();
 
-		ArrayList<SimplePropertyValuePair> plist = new ArrayList<SimplePropertyValuePair> ();
+		ArrayList<SimplePropertyValuePair> plist = new ArrayList<> ();
 		for (int i = 0; i < attrLength; i++) {
 			SimplePropertyValuePair p = new SimplePropertyValuePair( atts.getLocalName(i), atts.getValue(i));
 			plist.add(p);
@@ -296,7 +298,7 @@ public class ReadDataManager {
 	
 	protected void addNetworkGraphicsAttribute( String key, String value) throws SAXException {
 
-		ArrayList<SimplePropertyValuePair> plist = new ArrayList<SimplePropertyValuePair> ();
+		ArrayList<SimplePropertyValuePair> plist = new ArrayList<> ();
 		SimplePropertyValuePair p = new SimplePropertyValuePair( key, value);
 		plist.add(p);
 		try {
@@ -309,6 +311,24 @@ public class ReadDataManager {
 			
 		}
 	}
+	
+	protected void addNetworkAttribute( String key, String value, String type) throws SAXException {
+
+		ArrayList<NdexPropertyValuePair> plist = new ArrayList<> ();
+		NdexPropertyValuePair p = new NdexPropertyValuePair( key, value);
+		p.setDataType(type);
+		plist.add(p);
+		try {
+			this.networkService.setNetworkProperties(plist, null);
+		} catch ( Exception e) {
+			String message = "Error accours when adding attribute in XGMML parser. " 
+					+e.getMessage(); 
+			logger.error(message);
+			throw new SAXException(message);
+			
+		}
+	}
+	
 	
 
 	protected NetworkSummary getCurrentNetwork() {
