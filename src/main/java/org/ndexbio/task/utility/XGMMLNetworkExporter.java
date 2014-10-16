@@ -185,8 +185,8 @@ public class XGMMLNetworkExporter {
 
 	private String getBaseTermStr(Network n, long termId) {
 		BaseTerm bt = n.getBaseTerms().get(termId);
-		if (bt.getNamespace() >0 ) {
-			Namespace ns = n.getNamespaces().get(bt.getNamespace());
+		if (bt.getNamespaceId() >0 ) {
+			Namespace ns = n.getNamespaces().get(bt.getNamespaceId());
 			if ( ns.getPrefix()!= null)
 				return ns.getPrefix() + ":" + bt.getName();
 			return ns.getUri() + bt.getName();

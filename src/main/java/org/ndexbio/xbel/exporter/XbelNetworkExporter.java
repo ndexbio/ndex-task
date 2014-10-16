@@ -315,7 +315,7 @@ public class XbelNetworkExporter {
 		}
 		
 		for ( Edge e : this.subNetwork.getEdges().values()) {
-			if(  e.getSupports().size() == 0 && (! reifiedEdgeIds.contains(e.getId())) ) {
+			if(  e.getSupportIds().size() == 0 && (! reifiedEdgeIds.contains(e.getId())) ) {
 				this.processSupportEdge(sg, e);
 				this.edgeAuditor.removeProcessedNdexObject(e);
 			}
@@ -337,7 +337,7 @@ public class XbelNetworkExporter {
 			org.ndexbio.model.object.network.Citation modelCitation, Set<Long> reifiedEdgeIds) {
 		
 		for ( Support support : this.subNetwork.getSupports().values()) {
-			if ( support.getCitation() == modelCitation.getId()) {
+			if ( support.getCitationId() == modelCitation.getId()) {
 				StatementGroup supportStatementGroup = new StatementGroup();
 				AnnotationGroup ag = new AnnotationGroup();
 				String evidence = Objects.firstNonNull(support.getText(), " ");
@@ -394,7 +394,7 @@ public class XbelNetworkExporter {
 		for (Map.Entry<Long, Edge> entry : this.subNetwork.getEdges()
 				.entrySet()) {
 			Edge edge = entry.getValue();
-			if ( (!reifiedEdgeIds.contains(edge.getId())) && edge.getSupports().contains(supportId)) {
+			if ( (!reifiedEdgeIds.contains(edge.getId())) && edge.getSupportIds().contains(supportId)) {
 				// we've identified an Edge that belongs to this support
 				this.processSupportEdge(sg, edge);
 				this.edgeAuditor.removeProcessedNdexObject(edge);
@@ -573,7 +573,7 @@ public class XbelNetworkExporter {
 		
 		// the parameter map key now represents an ordering value
 		// process map sorted by keys
-		for (Long tId : ft.getParameters()) {
+		for (Long tId : ft.getParameterIds()) {
 			Term parameter = this.getSubNetworkTerm(tId);
 			if (parameter instanceof FunctionTerm) {
 				// register the generated XBEL term in the hierarchy
@@ -589,7 +589,7 @@ public class XbelNetworkExporter {
 			} else if (parameter instanceof BaseTerm) {
 				BaseTerm parameterBt = (BaseTerm) parameter;
 				Namespace ns = this.subNetwork.getNamespaces().get(
-						parameterBt.getNamespace());
+						parameterBt.getNamespaceId());
 				Parameter xbelParameter = new Parameter();
 				/*
 				 * don't export the parameter namespace if it is BEL
