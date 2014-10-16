@@ -382,7 +382,7 @@ public class XbelNetworkExporter {
 		for (Map.Entry<Long, Node> entry : this.subNetwork.getNodes()
 				.entrySet()) {
 			Node node = entry.getValue();
-			if (node.getSupports().contains(supportId)) {
+			if (node.getSupportIds().contains(supportId)) {
 				// we've identified a node that belongs to this support
 				this.processSupportNode(sg, node);
 				
@@ -766,7 +766,7 @@ public class XbelNetworkExporter {
 
 		public void open() {
 			try {
-				XMLOutputFactory xmlFactory = XMLOutputFactory.newFactory();
+				XMLOutputFactory xmlFactory = XMLOutputFactory.newInstance();
 				xmlFactory.setProperty(
 						"javax.xml.stream.isRepairingNamespaces", Boolean.TRUE);
 				
