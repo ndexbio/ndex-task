@@ -16,6 +16,7 @@ import org.ndexbio.task.parsingengines.XbelParser;
 import org.ndexbio.xbel.model.Annotation;
 import org.ndexbio.xbel.model.AnnotationGroup;
 import org.ndexbio.xbel.model.Citation;
+import org.ndexbio.xbel.model.CitationType;
 import org.ndexbio.xbel.model.Parameter;
 import org.ndexbio.xbel.model.Relationship;
 import org.ndexbio.xbel.model.Statement;
@@ -170,8 +171,9 @@ public class StatementGroupSplitter extends XBelSplitter {
 				
 				Citation c = (Citation)object;
 				
-				String idType = c.getType().toString();
-				if ( idType.equals("PUB_MED")) {
+				CitationType citationType = c.getType();
+		//		String idType = c.getType().value();
+				if ( citationType == CitationType.PUB_MED) {
 					return this.networkService.getCitationId
 							(c.getName(), NdexPersistenceService.defaultCitationType, 
 									NdexPersistenceService.pmidPrefix+c.getReference(), 
@@ -180,7 +182,7 @@ public class StatementGroupSplitter extends XBelSplitter {
 				}
 				
 				return this.networkService.getCitationId
-						(c.getName(), idType, c.getReference(), 
+						(c.getName(), citationType.value(), c.getReference(), 
 							(c.getAuthorGroup() == null ? null : c.getAuthorGroup().getAuthor())	
 					        );
 			}
