@@ -27,6 +27,7 @@ package org.ndexbio.xgmml.parser.handler;
 
 import java.util.concurrent.ExecutionException;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import org.ndexbio.xgmml.parser.ParseState;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -43,7 +44,7 @@ public class HandleNodeGraphics extends AbstractHandler {
 			StringBuilder sb = new StringBuilder ();
 			sb.append("<"+qName );
 			for ( int i = 0 ; i < atts.getLength(); i++) {
-				sb.append(" " + atts.getQName(i) + "=\"" +atts.getValue(i) + "\""); 
+				sb.append(" " + atts.getQName(i) + "=\"" +  StringEscapeUtils.escapeXml(atts.getValue(i)) + "\""); 
 			}
 			sb.append(">\n");
         	
