@@ -405,7 +405,7 @@ public class ReadDataManager {
 		
 		RawNamespace rns = new RawNamespace (prefix, uri);
 		
-		ns = this.networkService.findOrCreateNamespace(rns);
+		ns = this.networkService.getNamespace(rns);
 		this.prefixMap.put(prefix, ns);
 		return ns;
 	}
