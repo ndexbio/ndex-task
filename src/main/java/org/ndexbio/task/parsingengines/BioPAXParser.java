@@ -10,6 +10,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;
@@ -24,6 +25,7 @@ import org.biopax.paxtools.model.Model;
 import org.biopax.paxtools.model.level3.PublicationXref;
 import org.biopax.paxtools.model.level3.RelationshipXref;
 import org.biopax.paxtools.model.level3.UnificationXref;
+import org.biopax.paxtools.model.level3.XReferrable;
 import org.biopax.paxtools.model.level3.Xref;
 import org.ndexbio.common.NdexClasses;
 import org.ndexbio.common.access.NdexDatabase;
@@ -211,7 +213,7 @@ public class BioPAXParser implements IParsingEngine {
 		
 	}
 	
-	private void processXREFElement(BioPAXElement xref){	
+	private void processXREFElement(BioPAXElement xref) throws NdexException, ExecutionException{	
 		if (xref instanceof PublicationXref){
 			processPublicationXref(xref);				
 		} else if (xref instanceof UnificationXref){
@@ -252,12 +254,106 @@ public class BioPAXParser implements IParsingEngine {
 		
 	}
 
-	private void processPublicationXref(BioPAXElement xref) {
+	private void processPublicationXref(BioPAXElement xref) throws NdexException, ExecutionException {
 		String rdfId = xref.getRDFId();
 		String name = xref.getClass().getName();
 		System.out.println("Citation: " + rdfId + ": " + name );
 		PublicationXref pubXref = (PublicationXref) xref;
-		String title = pubXref.getTitle();
+		
+		// These are the Xref properties 
+		// that we can encode in the Citation
+		Map<String, Object> annotations = pubXref.getAnnotations();
+		Set<String> authors = pubXref.getAuthor();
+		Set<String> comments = pubXref.getComment();
+		String xrefDb = pubXref.getDb();
+		String xrefDbVersion = pubXref.getDbVersion();
+		String xrefId = pubXref.getId();
+		String xrefIdVersion = pubXref.getIdVersion();
+		Set<String> sources = pubXref.getSource();
+		String xrefTitle = pubXref.getTitle();
+		Set<String> urls = pubXref.getUrl();
+		int year = pubXref.getYear();
+		Set<XReferrable> refersTo = pubXref.getXrefOf();
+		
+		/*
+
+An xref that defines a reference to a publication such as a
+journal article, book, web page, or software manual. The reference
+may or may not be in a database, although references to PubMed are
+preferred when possible. The publication should make a direct
+reference to the instance it is attached to.
+
+Comment: Publication xrefs should make use of PubMed IDs wherever
+possible. The db property of an xref to an entry in PubMed should use
+the string “PubMed” and not “MEDLINE”.
+Examples: PubMed:10234245
+
+*therefore, if both xref.db and xref.id are available, 
+*Citation.identifier = xref.id and Citation.idType = xref.db
+
+The following properties may be used when the db and id fields cannot
+be used, such as when referencing a publication that is not in PubMed.
+The url property should not be used to reference publications that can
+be uniquely referenced using a db, id pair. 
+
+*therefore, if xref.url is available, the second choices is:
+* Citation.identifier = xref.url and Citation.idType = "url"
+
+author - The authors of this publication, one per property value.
+
+* corresponds directly to Citation.contributors
+
+title - The title of the publication.
+
+* corresponds directly to Citation.title
+
+* Store as pv pairs:
+
+dbVersion
+idVersion
+source - The source in which the reference was published, such as: a
+book title, or a journal title and volume and pages.
+url - The URL at which the publication can be found, if it is available
+through the Web.
+y ear - The year in which this publication was published. 
+* store as value with datatype "integer"
+		 */
+		
+		String identifier = "unspecified";
+		String idType = "unspecified";
+		if (null != xrefId && null != xrefDb){
+			identifier = xrefId;
+			idType = xrefDb;
+		} else if (null != urls && urls.size() > 0){
+			identifier = urls.toArray()[0].toString();
+			
+		} else if (null != xrefId){
+			identifier = xrefId;
+		}
+		
+		List<String> contributors = new ArrayList<String>();
+		if (null != authors){
+			for (String author : authors){
+				contributors.add(author);
+			}
+		}
+		
+		this.persistenceService.getCitationId(xrefTitle, idType, identifier, contributors);
+		
+		// These are the Citation properties:
+		//"contributors",
+		//"identifier",
+		//"idType"
+		// "title"
+		
+		// Other Xref properties can be stored as NdexPropertyValuePair objects
+        //"properties", 
+		
+		// At the moment, no BioPAX3 properties are mapped to ndex presentation properties
+        //"presentationProperties",
+        
+		
+        
 		
 		// Create the citation
 		/*

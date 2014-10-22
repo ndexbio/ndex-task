@@ -36,7 +36,7 @@ public class BioPAXParserTest {
 		NdexDatabase db = new NdexDatabase(configuration.getHostURI());
 		
 		String user = "cjtest";
-		BioPAXParser parser = new BioPAXParser("/home/chenjing/Downloads/Hox.xgmml", user, 
+		BioPAXParser parser = new BioPAXParser("/users/dextergraphics/biopax/L3/testnfkb.owl", user, 
 				db);
 		parser.parseFile();
 
