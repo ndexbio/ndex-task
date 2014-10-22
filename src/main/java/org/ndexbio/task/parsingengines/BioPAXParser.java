@@ -135,9 +135,6 @@ public class BioPAXParser implements IParsingEngine {
 	}
 	
 	private void loadBioPAXModel(Model model) throws Exception{
-		// Create Network
-		NdexPersistenceService persistenceService = new NdexPersistenceService(db);
-		persistenceService.createNewNetwork(ownerName, title, null);
 		Set<BioPAXElement> elementSet = model.getObjects();
 		//
 		// Iterate over all elements to create Node, Citation and BaseTerm objects
@@ -275,9 +272,7 @@ public class BioPAXParser implements IParsingEngine {
 			//	this.pubmedIdSet.add(pubmedIdTokens[1]);
 				
 	*/
-		
-	
-		
+			
 	}
 
 	private Long addNode(String name) throws ExecutionException, NdexException {

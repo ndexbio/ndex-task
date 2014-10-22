@@ -36,12 +36,9 @@ public class BioPAXParserTest {
 		NdexDatabase db = new NdexDatabase(configuration.getHostURI());
 		
 		String user = "cjtest";
-		XgmmlParser parser = new XgmmlParser("/home/chenjing/Downloads/Hox.xgmml", user, 
+		BioPAXParser parser = new BioPAXParser("/home/chenjing/Downloads/Hox.xgmml", user, 
 				db);
 		parser.parseFile();
-//		XbelParser 
-//		parser = new XbelParser("/home/chenjing/working/ndex/networks/selventa_full.xbel", user);
-//		parser.parseFile();
 
 		db.close();
 		NdexAOrientDBConnectionPool.close();
