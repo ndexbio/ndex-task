@@ -9,8 +9,10 @@ import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;
@@ -52,6 +54,8 @@ public class BioPAXParser implements IParsingEngine {
 	private List<String> msgBuffer;
 
 	private static Logger logger = Logger.getLogger("BioPAXParser");
+	
+	private Map<String, Long> rdfIdToElementIdMap;
 
 	private NdexPersistenceService persistenceService;
 
@@ -69,12 +73,11 @@ public class BioPAXParser implements IParsingEngine {
 					.getResource(fn).toURI());
 		this.bioPAXURI = bioPAXFile.toURI().toString();
 		this.persistenceService = new NdexPersistenceService(db);
+		this.rdfIdToElementIdMap = new HashMap<String, Long>();
 
 		String title = Files.getNameWithoutExtension(this.bioPAXFile.getName());
 
 		persistenceService.createNewNetwork(ownerName, title, null);
-
-		this.addBioPAXNamespaces();
 
 	}
 
@@ -146,6 +149,8 @@ public class BioPAXParser implements IParsingEngine {
 	}
 
 	private void loadBioPAXModel(Model model) throws Exception {
+		addBioPAXNamespaces(model);
+
 		Set<BioPAXElement> elementSet = model.getObjects();
 		//
 		// Iterate over all elements to create Node, Citation and BaseTerm
@@ -175,7 +180,7 @@ public class BioPAXParser implements IParsingEngine {
 		}
 	}
 
-	private void processElementToNode(BioPAXElement bpe) {
+	private void processElementToNode(BioPAXElement bpe) throws ExecutionException, NdexException {
 		String rdfId = bpe.getRDFId();
 		String className = bpe.getClass().getName();
 		String simpleName = bpe.getModelInterface().getSimpleName();
@@ -183,9 +188,9 @@ public class BioPAXParser implements IParsingEngine {
 		// this.persistenceService.
 		// create the node, map the id to the rdfId
 		// add a property to the node, setting bp:nodeType to the simpleName
-		Long nodeId = (long) 0;
+		Long nodeId = this.persistenceService.getNodeIdByBaseTerm(rdfId);
 		//Long nodeId = this.persistenceService.getNodeId();
-		this.mapRdfIdToNodeId(rdfId, nodeId);
+		this.mapRdfIdToElementId(rdfId, nodeId);
 	}
 
 	private void processElementProperties(BioPAXElement bpe) throws ExecutionException, NdexException {
@@ -224,6 +229,7 @@ public class BioPAXParser implements IParsingEngine {
 			// - create an NdexPropertyValuePair and add it to the current Node
 			// - (note that Edges do not have properties in BioPAX3, only Nodes)
 			//
+			List<NdexPropertyValuePair> literalProperties = new ArrayList<NdexPropertyValuePair>();
 			for (Object val : editor.getValueFromBean(bpe)) {
 				// System.out.println("       Property: " + editor.getProperty()
 				// + " : (" + val.getClass().getName() + ") " + val.toString());
@@ -238,55 +244,63 @@ public class BioPAXParser implements IParsingEngine {
 							nodeId);
 				} else if (val instanceof BioPAXElement){
 					// create the edge
-					processEdgeToBioPAXElement(editor, (BioPAXElement) val, nodeId);
+					processEdge(editor, (BioPAXElement) val, nodeId);
 				} else if (null != val){
-					// add a property
-					processLiteralProperty(editor, val, nodeId);
+					// queue up a property to be in the set to add
+					String propertyName = editor.getProperty();
+					String valueString = val.toString();
+					NdexPropertyValuePair pvp = new NdexPropertyValuePair(propertyName, valueString);
+					literalProperties.add(pvp);
 				}
 			}
+			literalProperties.add(new NdexPropertyValuePair("ndex:biopaxType", bpe.getModelInterface().getSimpleName()));
+			this.persistenceService.setNodeProperties(nodeId, literalProperties, null);
 
 		}
 
 	}
 
-	private void processLiteralProperty(PropertyEditor editor, Object val,
-			Long subjectId) {
-		
-		
-	}
-
-	private void processEdgeToBioPAXElement(
+	private void processEdge(
 			PropertyEditor editor,
 			BioPAXElement bpe, 
-			Long subjectId) {
-		Long objectId = getTermIdByRdfId(bpe.getRDFId());
-		this.persistenceService.
-		
+			Long subjectNodeId) throws NdexException, ExecutionException {
+		Long objectNodeId = getTermIdByRdfId(bpe.getRDFId());
+		// Determine the predicate Id from the editor
+		Long predicateId = getPropertyEditorPredicateId(editor);
+		Long supportId = null;
+		Long citationId = null;
+		Map<String,String> annotation = null;
+		this.persistenceService.createEdge(subjectNodeId, objectNodeId, predicateId, supportId, citationId, annotation);		
+	}
+	
+	private Long getPropertyEditorPredicateId(PropertyEditor editor) throws ExecutionException{
+		String propertyName  = editor.getProperty();
+		Long predicateId = this.persistenceService.getBaseTermId("bp", propertyName);
+		return predicateId;
 	}
 
 	private void processUnificationXrefProperty(
 			PropertyEditor editor,
 			UnificationXref xref, 
-			Long nodeId) throws ExecutionException {
+			Long nodeId) throws ExecutionException, NdexException {
 		Long termId = getTermIdByRdfId(xref.getRDFId());
-		this.persistenceService.setNodeRepresentTerm(nodeId, termId);
-		//this.persistenceService.addAliasToNode(nodeId,termId);	
+		//this.persistenceService.setNodeRepresentTerm(nodeId, termId);
+		this.persistenceService.addAliasToNode(nodeId,termId);	
 	}
 
 	private void processRelationshipXrefProperty(
 			PropertyEditor editor,
 			RelationshipXref xref, 
-			Long nodeId) {
-		// TODO Auto-generated method stub
+			Long nodeId) throws ExecutionException {
 		Long termId = getTermIdByRdfId(xref.getRDFId());
-		//this.persistenceService.addRelatedTermToNode(nodeId, termId);
+		this.persistenceService.addRelatedTermToNode(nodeId, termId);
 	}
 
 	private void processPublicationXrefProperty(
 			PropertyEditor editor,
 			PublicationXref xref, 
 			Long nodeId) throws ExecutionException, NdexException {
-		Long citationId = getTermIdByRdfId(xref.getRDFId());
+		Long citationId = getCitationIdByRdfId(xref.getRDFId());
 		this.persistenceService.addCitationToElement(nodeId, citationId, NdexClasses.Node);
 	}
 
@@ -305,11 +319,37 @@ public class BioPAXParser implements IParsingEngine {
 		}
 	}
 
-	private void processRelationshipXref(BioPAXElement xref) {
+	private void processRelationshipXref(BioPAXElement xref) throws NdexException, ExecutionException {
 		String rdfId = xref.getRDFId();
 		String name = xref.getClass().getName();
-		System.out.println("Skipping BaseTerm (r): " + rdfId + ": " + name);
-
+		System.out.println("BaseTerm (r): " + rdfId + ": " + name);
+		RelationshipXref rXref = (RelationshipXref) xref;
+		// These are the Xref properties
+		// that we have available for the the BaseTerm and Namespace
+		//Map<String, Object> annotations = uXref.getAnnotations();
+		//Set<String> comments = uXref.getComment();
+		String xrefDb = rXref.getDb();
+		String xrefDbVersion = rXref.getDbVersion();
+		String xrefId = rXref.getId();
+		String xrefIdVersion = rXref.getIdVersion();
+		Set<XReferrable> refersTo = rXref.getXrefOf();
+		
+		Long termId = null;
+		if (null != xrefId && null != xrefDb) {
+			// We have both an identifier string for a BaseTerm
+			// AND a prefix string for a Namespace
+			termId = this.persistenceService.getBaseTermId(xrefDb + ":" + xrefId);
+		} else if (null != xrefId) {
+			// We have an identifier string for a BaseTerm but no Namespace prefix
+			termId = this.persistenceService.getBaseTermId(xrefId);
+		} else {
+			// bad xref with no id!
+			throw new NdexException("no id for UnificationXref " + rdfId);
+		}
+		this.mapRdfIdToElementId(rdfId, termId);
+		
+		System.out.println("BaseTerm (r): " + rdfId + " -> " + termId);
+		
 	}
 
 	private void processUnificationXref(BioPAXElement xref) throws NdexException, ExecutionException {
@@ -331,7 +371,7 @@ public class BioPAXParser implements IParsingEngine {
 		if (null != xrefId && null != xrefDb) {
 			// We have both an identifier string for a BaseTerm
 			// AND a prefix string for a Namespace
-			termId = this.persistenceService.getBaseTermId(xrefDb, xrefId);
+			termId = this.persistenceService.getBaseTermId(xrefDb + ":" + xrefId);
 		} else if (null != xrefId) {
 			// We have an identifier string for a BaseTerm but no Namespace prefix
 			termId = this.persistenceService.getBaseTermId(xrefId);
@@ -339,7 +379,7 @@ public class BioPAXParser implements IParsingEngine {
 			// bad xref with no id!
 			throw new NdexException("no id for UnificationXref " + rdfId);
 		}
-		this.mapRdfIdToTermId(rdfId, termId);
+		this.mapRdfIdToElementId(rdfId, termId);
 		
 		System.out.println("BaseTerm (u): " + rdfId + " -> " + termId);
 
@@ -445,59 +485,41 @@ public class BioPAXParser implements IParsingEngine {
 		
 		System.out.println("Citation: " + rdfId + " -> " + citationId);
 
-		this.mapRdfIdToCitationId(rdfId, citationId);
+		this.mapRdfIdToElementId(rdfId, citationId);
 
 	}
 
-	private Long addNode(String name) throws ExecutionException, NdexException {
-		TermStringType stype = TermUtilities.getTermType(name);
-		if (stype == TermStringType.NAME) {
-			return persistenceService.getNodeIdByName(name);
+	private void addBioPAXNamespaces(Model model) throws NdexException {
+		Map<String,String> prefixMap = model.getNameSpacePrefixMap();
+		for (Entry<String, String> pair : prefixMap.entrySet()){
+			String prefix = pair.getKey();
+			String uri = pair.getValue();
+			this.persistenceService.createNamespace2(prefix, uri);
 		}
-		return persistenceService.getNodeIdByBaseTerm(name);
-	}
-
-	private Long addEdge(String subject, String predicate, String object)
-			throws ExecutionException, NdexException {
-		Long subjectNodeId = addNode(subject);
-		Long objectNodeId = addNode(object);
-		Long predicateTermId = persistenceService.getBaseTermId(predicate);
-		return persistenceService.getEdge(subjectNodeId, objectNodeId,
-				predicateTermId, null, null, null);
-
-	}
-
-	private void addBioPAXNamespaces() {
-
 	}
 	
-	private void mapRdfIdToNodeId(String rdfId, Long nodeId) {
-		// TODO Auto-generated method stub
-
-	}
 	
 	private Long getNodeIdByRDFId(String rdfId) {
-		// TODO Auto-generated method stub
-		return null;
+		return this.rdfIdToElementIdMap.get(rdfId);
 	}
 	
 	private Long getTermIdByRdfId(String rdfId) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
-	private void mapRdfIdToTermId(String rdfId, Long termId) {
-		// TODO Auto-generated method stub
-
+		return this.rdfIdToElementIdMap.get(rdfId);
 	}
 	
 	private Long getCitationIdByRdfId(String rdfId) {
-		// TODO Auto-generated method stub
-		return null;
+		return this.rdfIdToElementIdMap.get(rdfId);
 	}
 	
-	private void mapRdfIdToCitationId(String rdfId, Long citationId) {
-		// TODO Auto-generated method stub
+	private void mapRdfIdToElementId(String rdfId, Long elementId) throws NdexException {
+		Long currentId = this.getCitationIdByRdfId(rdfId);
+		if (currentId != null && currentId != elementId){
+			throw new NdexException(
+					"Attempted to map rdfId = " + rdfId + 
+					" to elementId = " + elementId + 
+					" but it is already mapped to " + currentId);
+		}
+		this.rdfIdToElementIdMap.put(rdfId, elementId);
 
 	}
 	
