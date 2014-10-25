@@ -39,6 +39,8 @@ import org.ndexbio.model.object.NdexPropertyValuePair;
 import org.ndexbio.model.object.ProvenanceEntity;
 import org.ndexbio.model.object.SimplePropertyValuePair;
 import org.ndexbio.model.object.network.NetworkSummary;
+import org.ndexbio.model.object.network.VisibilityType;
+import org.ndexbio.model.tools.PropertyHelpers;
 import org.ndexbio.model.tools.ProvenanceHelpers;
 import org.ndexbio.task.parsingengines.IParsingEngine;
 
@@ -122,9 +124,13 @@ public class BioPAXParser implements IParsingEngine {
 					.getName()));
 
 			this.persistenceService.setNetworkProvenance(provEntity);
+			
+			this.persistenceService.setNetworkVisibility(VisibilityType.PUBLIC);
 
 			// close database connection
 			this.persistenceService.persistNetwork();
+			
+			System.out.println("Network UUID: " + currentNetwork.getExternalId());
 
 		} catch (Exception e) {
 			// delete network and close the database connection
@@ -149,6 +155,12 @@ public class BioPAXParser implements IParsingEngine {
 	}
 
 	private void loadBioPAXModel(Model model) throws Exception {
+		
+		String xmlBase = model.getXmlBase();
+		NdexPropertyValuePair xmlBaseProp = new NdexPropertyValuePair("xmlBase", xmlBase);
+		List<NdexPropertyValuePair> networkProperties = new ArrayList<NdexPropertyValuePair>();
+		networkProperties.add(xmlBaseProp);	
+		this.persistenceService.setNetworkProperties(networkProperties, null);
 		addBioPAXNamespaces(model);
 
 		Set<BioPAXElement> elementSet = model.getObjects();
@@ -178,6 +190,7 @@ public class BioPAXParser implements IParsingEngine {
 				this.processElementProperties(bpe);
 			}
 		}
+		
 	}
 
 	private void processElementToNode(BioPAXElement bpe) throws ExecutionException, NdexException {
@@ -196,7 +209,10 @@ public class BioPAXParser implements IParsingEngine {
 	private void processElementProperties(BioPAXElement bpe) throws ExecutionException, NdexException {
 		String rdfId = bpe.getRDFId();
 		// Get the elementId for the Node corresponding to this rdfId
-		Long nodeId = this.getNodeIdByRDFId(rdfId);
+		Long nodeId = this.getElementIdByRdfId(rdfId);
+		System.out.println("_____________" + nodeId + "________________");
+		
+		List<NdexPropertyValuePair> literalProperties = new ArrayList<NdexPropertyValuePair>();
 
 		String className = bpe.getClass().getName();
 		String simpleName = bpe.getModelInterface().getSimpleName();
@@ -229,7 +245,7 @@ public class BioPAXParser implements IParsingEngine {
 			// - create an NdexPropertyValuePair and add it to the current Node
 			// - (note that Edges do not have properties in BioPAX3, only Nodes)
 			//
-			List<NdexPropertyValuePair> literalProperties = new ArrayList<NdexPropertyValuePair>();
+			
 			for (Object val : editor.getValueFromBean(bpe)) {
 				// System.out.println("       Property: " + editor.getProperty()
 				// + " : (" + val.getClass().getName() + ") " + val.toString());
@@ -249,14 +265,18 @@ public class BioPAXParser implements IParsingEngine {
 					// queue up a property to be in the set to add
 					String propertyName = editor.getProperty();
 					String valueString = val.toString();
+					
 					NdexPropertyValuePair pvp = new NdexPropertyValuePair(propertyName, valueString);
 					literalProperties.add(pvp);
 				}
 			}
-			literalProperties.add(new NdexPropertyValuePair("ndex:biopaxType", bpe.getModelInterface().getSimpleName()));
-			this.persistenceService.setNodeProperties(nodeId, literalProperties, null);
 
 		}
+		for (NdexPropertyValuePair pvp : literalProperties){
+			System.out.println("        Property: " + nodeId + " | " + pvp.getPredicateString() + " " + pvp.getValue());
+		}
+		literalProperties.add(new NdexPropertyValuePair("ndex:biopaxType", bpe.getModelInterface().getSimpleName()));
+		this.persistenceService.setNodeProperties(nodeId, literalProperties, null);
 
 	}
 
@@ -264,12 +284,13 @@ public class BioPAXParser implements IParsingEngine {
 			PropertyEditor editor,
 			BioPAXElement bpe, 
 			Long subjectNodeId) throws NdexException, ExecutionException {
-		Long objectNodeId = getTermIdByRdfId(bpe.getRDFId());
+		Long objectNodeId = getElementIdByRdfId(bpe.getRDFId());
 		// Determine the predicate Id from the editor
 		Long predicateId = getPropertyEditorPredicateId(editor);
 		Long supportId = null;
 		Long citationId = null;
 		Map<String,String> annotation = null;
+		System.out.println("       Edge: " + subjectNodeId + " | " + predicateId + " (" + editor.getProperty() + ") | " + objectNodeId);
 		this.persistenceService.createEdge(subjectNodeId, objectNodeId, predicateId, supportId, citationId, annotation);		
 	}
 	
@@ -283,8 +304,9 @@ public class BioPAXParser implements IParsingEngine {
 			PropertyEditor editor,
 			UnificationXref xref, 
 			Long nodeId) throws ExecutionException, NdexException {
-		Long termId = getTermIdByRdfId(xref.getRDFId());
+		Long termId = getElementIdByRdfId(xref.getRDFId());
 		//this.persistenceService.setNodeRepresentTerm(nodeId, termId);
+		System.out.println("       Alias: " + nodeId + " -> " + termId);
 		this.persistenceService.addAliasToNode(nodeId,termId);	
 	}
 
@@ -292,7 +314,8 @@ public class BioPAXParser implements IParsingEngine {
 			PropertyEditor editor,
 			RelationshipXref xref, 
 			Long nodeId) throws ExecutionException {
-		Long termId = getTermIdByRdfId(xref.getRDFId());
+		Long termId = getElementIdByRdfId(xref.getRDFId());
+		System.out.println("       Related: " + nodeId + " -> " + termId);
 		this.persistenceService.addRelatedTermToNode(nodeId, termId);
 	}
 
@@ -300,7 +323,8 @@ public class BioPAXParser implements IParsingEngine {
 			PropertyEditor editor,
 			PublicationXref xref, 
 			Long nodeId) throws ExecutionException, NdexException {
-		Long citationId = getCitationIdByRdfId(xref.getRDFId());
+		Long citationId = getElementIdByRdfId(xref.getRDFId());
+		System.out.println("       citation: " + nodeId + " -> " + citationId);
 		this.persistenceService.addCitationToElement(nodeId, citationId, NdexClasses.Node);
 	}
 
@@ -322,7 +346,6 @@ public class BioPAXParser implements IParsingEngine {
 	private void processRelationshipXref(BioPAXElement xref) throws NdexException, ExecutionException {
 		String rdfId = xref.getRDFId();
 		String name = xref.getClass().getName();
-		System.out.println("BaseTerm (r): " + rdfId + ": " + name);
 		RelationshipXref rXref = (RelationshipXref) xref;
 		// These are the Xref properties
 		// that we have available for the the BaseTerm and Namespace
@@ -346,9 +369,8 @@ public class BioPAXParser implements IParsingEngine {
 			// bad xref with no id!
 			throw new NdexException("no id for UnificationXref " + rdfId);
 		}
+		System.out.println("BaseTerm (r): " + rdfId + " (" + name + ") -> " + termId);
 		this.mapRdfIdToElementId(rdfId, termId);
-		
-		System.out.println("BaseTerm (r): " + rdfId + " -> " + termId);
 		
 	}
 
@@ -379,9 +401,8 @@ public class BioPAXParser implements IParsingEngine {
 			// bad xref with no id!
 			throw new NdexException("no id for UnificationXref " + rdfId);
 		}
+		System.out.println("BaseTerm (u): " + rdfId + " (" + name + ") -> " + termId);
 		this.mapRdfIdToElementId(rdfId, termId);
-		
-		System.out.println("BaseTerm (u): " + rdfId + " -> " + termId);
 
 	}
 
@@ -391,6 +412,10 @@ public class BioPAXParser implements IParsingEngine {
 		String name = xref.getClass().getName();
 		
 		PublicationXref pubXref = (PublicationXref) xref;
+		
+		List<NdexPropertyValuePair> citationProperties = new ArrayList<NdexPropertyValuePair>();
+		
+		PropertyHelpers.addNdexProperty("rdfId", rdfId, citationProperties);
 
 		// These are the Xref properties
 		// that we can encode in the Citation
@@ -446,6 +471,23 @@ public class BioPAXParser implements IParsingEngine {
 		 * available through the Web. y ear - The year in which this publication
 		 * was published. store as value with datatype "integer"
 		 */
+		
+		PropertyHelpers.addNdexProperty("db", xrefDb, citationProperties);
+		PropertyHelpers.addNdexProperty("dbVersion", xrefDbVersion, citationProperties);
+		PropertyHelpers.addNdexProperty("id", xrefId, citationProperties);
+		PropertyHelpers.addNdexProperty("idVersion", xrefIdVersion, citationProperties);
+		PropertyHelpers.addNdexProperty("year", year + "", citationProperties); // TODO encode with datatype
+		for (String comment : comments){
+			PropertyHelpers.addNdexProperty("comment", comment, citationProperties);
+		}
+		// TODO: handle annotations
+		// TODO: handle back references
+		for (String source : sources){
+			PropertyHelpers.addNdexProperty("source", source, citationProperties);
+		}
+		for (String url : urls){
+			PropertyHelpers.addNdexProperty("url", url, citationProperties);
+		}
 
 		String identifier = "unspecified";
 		String idType = "unspecified";
@@ -483,7 +525,9 @@ public class BioPAXParser implements IParsingEngine {
 		Long citationId = this.persistenceService.getCitationId(xrefTitle,
 				idType, identifier, contributors);
 		
-		System.out.println("Citation: " + rdfId + " -> " + citationId);
+		// Add properties to the citation
+		
+		this.persistenceService.setCitationProperties(citationId, citationProperties, null);		System.out.println("Citation: " + rdfId + " -> " + citationId);
 
 		this.mapRdfIdToElementId(rdfId, citationId);
 
@@ -498,21 +542,12 @@ public class BioPAXParser implements IParsingEngine {
 		}
 	}
 	
-	
-	private Long getNodeIdByRDFId(String rdfId) {
-		return this.rdfIdToElementIdMap.get(rdfId);
-	}
-	
-	private Long getTermIdByRdfId(String rdfId) {
-		return this.rdfIdToElementIdMap.get(rdfId);
-	}
-	
-	private Long getCitationIdByRdfId(String rdfId) {
+	private Long getElementIdByRdfId(String rdfId) {
 		return this.rdfIdToElementIdMap.get(rdfId);
 	}
 	
 	private void mapRdfIdToElementId(String rdfId, Long elementId) throws NdexException {
-		Long currentId = this.getCitationIdByRdfId(rdfId);
+		Long currentId = this.getElementIdByRdfId(rdfId);
 		if (currentId != null && currentId != elementId){
 			throw new NdexException(
 					"Attempted to map rdfId = " + rdfId + 

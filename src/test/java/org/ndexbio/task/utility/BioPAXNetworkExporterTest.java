@@ -1,23 +1,31 @@
-package org.ndexbio.task.parsingengines;
+package org.ndexbio.task.utility;
 
 import static org.junit.Assert.*;
 
 import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.Map;
+import java.util.UUID;
+
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.ndexbio.common.access.NdexAOrientDBConnectionPool;
 import org.ndexbio.common.access.NdexDatabase;
+import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.task.Configuration;
 
-public class BioPAXParserTest {
+
+import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
+
+public class BioPAXNetworkExporterTest {
 
 	static Configuration configuration ;
 	static String propertyFilePath = "/opt/ndex/conf/ndex.properties";
-
+	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 
@@ -36,11 +44,12 @@ public class BioPAXParserTest {
 		NdexDatabase db = new NdexDatabase(configuration.getHostURI());
 		
 		String user = "cjtest";
-		BioPAXParser parser = new BioPAXParser("/opt/biopax/L3/testnfkb.owl", user, 
-				db);
-		parser.parseFile();
 		
-
+		ODatabaseDocumentTx connection = db.getAConnection();
+		BioPAXNetworkExporter exporter = new BioPAXNetworkExporter(connection);
+		
+		exporter.exportNetwork(UUID.fromString("855e3d5d-5c8c-11e4-9dc4-040ccee25000"), System.out);
+		
 		db.close();
 		NdexAOrientDBConnectionPool.close();
 	}
@@ -50,10 +59,11 @@ public class BioPAXParserTest {
 	}
 
 	@Test
-	public void test() {
-		//fail("Not yet implemented");
-	}
+	public void test() throws NdexException, ParserConfigurationException, TransformerException {
 
+
+	}
+	
 	private static void setEnv()
 	{
 	  try
@@ -93,5 +103,5 @@ public class BioPAXParserTest {
 	        e1.printStackTrace();
 	    } 
 	}
-	
+
 }
