@@ -43,8 +43,10 @@ import org.ndexbio.common.util.TermUtilities;
 import org.ndexbio.model.object.NdexPropertyValuePair;
 import org.ndexbio.model.object.PropertiedObject;
 import org.ndexbio.model.object.SimplePropertyValuePair;
+import org.ndexbio.model.object.network.Citation;
 import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.model.object.network.Namespace;
+import org.ndexbio.model.object.network.Support;
 import org.ndexbio.xgmml.parser.ParseState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -115,7 +117,8 @@ public class ReadDataManager {
 	
 //	private List<NdexPropertyValuePair> currentProperties;
 	private Long currentNodeId;
-	private Long currentEdgeId;
+//	private Long currentEdgeId;
+	private XGMMLEdge currentXGMMLEdge;
 
 	
 //	private Network currentNetwork;
@@ -149,7 +152,7 @@ public class ReadDataManager {
 
 //		currentProperties = null;
 		currentNodeId = null;
-		currentEdgeId = null;
+		currentXGMMLEdge = null;
 		//parentNetwork = null;
 		currentNetworkIsDirected = true;
 		//currentRow = null;
@@ -188,7 +191,7 @@ public class ReadDataManager {
 	public void dispose() {
 
 		currentNodeId = null;
-		currentEdgeId = null;
+		currentXGMMLEdge = null;
 //		currentProperties = null;
 
 	}
@@ -381,17 +384,22 @@ public class ReadDataManager {
 		return null;
 	}
 
-	public Long addEdge(String subjectId, String predicate, String objectId)
-			throws ExecutionException, NdexException {
-		Long subjectNodeId = this.networkService.findOrCreateNodeIdByExternalId(subjectId, null);
-		Long objectNodeId  = this.networkService.findOrCreateNodeIdByExternalId(objectId, null);
-		Long predicateTermId = this.networkService.getBaseTermId(predicate);
-		Long edgeId = this.networkService.getEdge(subjectNodeId, objectNodeId,
-				predicateTermId, null, null, null);
-		this.currentEdgeId = edgeId;
-		return edgeId;
+	public void addEdge(String subjectId,  String objectId) {
+		this.currentXGMMLEdge = new XGMMLEdge(subjectId, objectId);
+		
 
 	}
+	
+	public void insertCurrentEdge () throws NdexException, ExecutionException {
+		Long subjectNodeId = this.networkService.findOrCreateNodeIdByExternalId(
+				                 this.currentXGMMLEdge.getSubjectId(), null);
+		Long objectNodeId  = this.networkService.findOrCreateNodeIdByExternalId(
+				this.currentXGMMLEdge.getObjectId(), null);
+		Long predicateTermId = this.networkService.getBaseTermId(this.currentXGMMLEdge.getPredicate());
+		this.networkService.createEdge(subjectNodeId, objectNodeId, predicateTermId, 
+				 null, null,this.currentXGMMLEdge.getProps(),this.currentXGMMLEdge.getPresentationProps() );
+	}
+
 	
 
 	public Long findOrCreateBaseTerm(String name, Namespace namespace) 
@@ -410,6 +418,7 @@ public class ReadDataManager {
 		return ns;
 	}
 
+	public XGMMLEdge getCurrentXGMMLEdge () { return this.currentXGMMLEdge;}
 	
 	public Object getNetworkViewId() {
 		return networkViewId;
@@ -455,9 +464,10 @@ public class ReadDataManager {
 		this.currentNodeId = currentNode;
 	}
 
+/*	
 	public Long getCurrentEdgeId() {
 		return this.currentEdgeId;
-	}
+	} */
 	
 	protected void setElementProperty ( Long elementId, String key, String value,
 			String type) throws ExecutionException, NdexException {

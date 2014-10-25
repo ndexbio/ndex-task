@@ -27,6 +27,7 @@ package org.ndexbio.xgmml.parser.handler;
 
 import java.util.concurrent.ExecutionException;
 
+import org.ndexbio.model.object.SimplePropertyValuePair;
 import org.ndexbio.xgmml.parser.ParseState;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -48,7 +49,7 @@ public class HandleEdgeHandleList extends AbstractHandler {
 				}
 			}
 
-			manager.addGraphicsAttribute(manager.getCurrentEdgeId(), "edgeHandleList", list);
+			manager.getCurrentXGMMLEdge().getPresentationProps().add( new SimplePropertyValuePair("edgeHandleList", list));
 			manager.handleList = null;
 		}
 		return current;

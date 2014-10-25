@@ -150,6 +150,7 @@ public class HandlerFactory {
 					{ NODE,   "node", GRAPH, new HandleNodeDone() },
 					{ EDGE_GRAPHICS, "att", EDGE_GRAPHICS, new HandleGraphicsAttributeDone() },
 					{ EDGE_GRAPHICS, graphics, EDGE_GRAPHICS, new HandleEdgeGraphicsDone() },
+					{ EDGE, "edge", GRAPH, new HandleEdgeDone() },
 					{ EDGE_HANDLE, "att", EDGE_BEND, new HandleEdgeHandleDone() },
 					{ EDGE_BEND, "att", EDGE_BEND, new HandleEdgeHandleList() },
 					{ NODE_GRAPH, "graph", NODE, new HandleNodeGraphDone() },

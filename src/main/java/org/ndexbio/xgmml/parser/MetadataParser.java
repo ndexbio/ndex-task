@@ -59,10 +59,10 @@ public class MetadataParser {
 	private static final String DEF_URI = "http://www.cytoscape.org/";
 	private static final String DEF_TYPE = "Protein-Protein Interaction";
 	private static final String DEF_FORMAT = "Cytoscape-XGMML";
-	private String metadataLabel;
+//	private String metadataLabel;
 	private Network network;
 	//private CyRow networkAttributes;
-	private Properties props;
+//	private Properties props;
 	private List<NdexPropertyValuePair> rdfAsNdexProperties;
 
 	/**
@@ -84,7 +84,7 @@ public class MetadataParser {
 	 *            Label used as a tag for this attribute.
 	 */
 	public MetadataParser(Network network, String metadataLabel) {
-		this.metadataLabel = metadataLabel;
+//		this.metadataLabel = metadataLabel;
 		this.network = network;
 
 		rdfAsNdexProperties = network.getProperties();
@@ -92,7 +92,7 @@ public class MetadataParser {
 
 	// TODO to be injected
 	public void setProperties(Properties p) {
-		props = p;
+//		props = p;
 	}
 
 	/**

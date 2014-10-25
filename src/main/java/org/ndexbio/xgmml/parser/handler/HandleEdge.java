@@ -27,49 +27,9 @@ public class HandleEdge extends AbstractHandler {
 			String label = getLabel(atts);
 			Object sourceId = asLongOrString(atts.getValue("source"));
 			Object targetId = asLongOrString(atts.getValue("target"));
-			String isDirected = atts.getValue("cy:directed");
-	//		String sourceAlias = null;
-	//		String targetAlias = null;
-			String interaction = ""; // no longer users
-
-			if (label != null) {
-			
-				final String[] parts = SPLIT.split(label);
-
-				if (parts.length == 3) {
-		//			sourceAlias = parts[0];
-					interaction = parts[1];
-		//			targetAlias = parts[2];
-				}
-			}
-
-			final boolean directed;
-
-			if (isDirected == null) {
-				// xgmml files made by pre-3.0 cytoscape and strictly
-				// upstream-XGMML conforming files
-				// won't have directedness flag, in which case use the
-				// graph-global directedness setting.
-				//
-				// (org.xml.sax.Attributes.getValue() returns null if attribute
-				// does not exists)
-				//
-				// This is the correct way to read the edge-directionality of
-				// non-cytoscape xgmml files as well.
-				directed = manager.currentNetworkIsDirected;
-			} else { // parse directedness flag
-				directed = ObjectTypeMap.fromXGMMLBoolean(isDirected);
-			}
-
-			//INetwork net = manager.getCurrentNetwork();
-			try {
-				Long edgeId = manager.addEdge(sourceId.toString(), interaction, targetId.toString());
-				manager.setCurrentElementId(edgeId);
-
-			} catch (ExecutionException e) {
-				e.printStackTrace();
-				throw new NdexException("not yet handling XLINK in XGMML");
-			}
+	//Long edgeId = 
+			manager.addEdge(sourceId.toString(), /*interaction,*/ targetId.toString());
+//	manager.setCurrentElementId(edgeId);
 
 
 		} else {

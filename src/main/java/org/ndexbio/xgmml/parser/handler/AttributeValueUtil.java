@@ -161,7 +161,6 @@ public class AttributeValueUtil {
     	//final boolean isEquation = ObjectTypeMap.fromXGMMLBoolean(atts.getValue("cy:equation"));
     	//final boolean isHidden = ObjectTypeMap.fromXGMMLBoolean(atts.getValue("cy:hidden"));
         
-		final Long curElementId = manager.getCurrentElementId();
 		
 		//INetwork network = manager.getCurrentNetwork();
 		ObjectType objType = typeMap.getType(type);
@@ -178,6 +177,7 @@ public class AttributeValueUtil {
 				if ( isNetworkAttribute) {
 					manager.addNetworkAttribute(name, value, type);
 				} else {
+					final Long curElementId = manager.getCurrentElementId();
 					manager.setElementProperty(curElementId, name, value, type);
 				}
 			} catch ( NdexException e) {

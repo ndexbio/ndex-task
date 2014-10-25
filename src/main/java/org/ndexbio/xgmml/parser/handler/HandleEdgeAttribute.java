@@ -24,8 +24,12 @@ package org.ndexbio.xgmml.parser.handler;
  * #L%
  */
 
+import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 
+import org.ndexbio.model.object.NdexPropertyValuePair;
+import org.ndexbio.model.object.SimplePropertyValuePair;
+import org.ndexbio.xgmml.parser.ObjectType;
 import org.ndexbio.xgmml.parser.ParseState;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -45,13 +49,18 @@ public class HandleEdgeAttribute extends AbstractHandler {
 
 		// Is this a graphics override?
 		String name = atts.getValue(NAME);
-      
-		if ( name.equals("interaction")) return current;
-		
-		// Check for blank attribute
 		final String value = atts.getValue(VALUE);
+    	String type = atts.getValue("type");
+
+    	// Check for blank attribute
 		if (name == null && value == null)
 			return current;
+      
+		if ( name.equals("interaction")) {
+			manager.getCurrentXGMMLEdge().setPredicate(value);
+			return current;
+		}
+		
 
 		if (manager.getDocumentVersion() < 3.0) {
 			// Writing locked visual properties as regular <att> tags is
@@ -59,15 +68,24 @@ public class HandleEdgeAttribute extends AbstractHandler {
 			if (name.startsWith("edge.")) {
 				// It is a bypass attribute...
 				name = name.replace(".", "").toLowerCase();
-				manager.addGraphicsAttribute(manager.getCurrentEdgeId(), name,
-						value);
+				manager.getCurrentXGMMLEdge().getPresentationProps().add(
+						new SimplePropertyValuePair(name,value));
+				return current;
 			}
 		}
 
-		ParseState nextState = attributeValueUtil.handleAttribute(atts,false);
+		ObjectType objType = typeMap.getType(type);
+		if (objType.equals(ObjectType.LIST)){
+			manager.currentAttributeID = name;
+			manager.setCurrentList(new ArrayList<String>());			
+			return ParseState.LIST_ATT;
+		}
 
-		if (nextState != ParseState.NONE)
-			return nextState;
+		
+		NdexPropertyValuePair prop = new NdexPropertyValuePair(name,value);
+		prop.setDataType(type);
+
+		manager.getCurrentXGMMLEdge().getProps().add(prop);
 
 		return current;
 	}
