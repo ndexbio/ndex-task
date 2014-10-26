@@ -171,7 +171,7 @@ public class BioPAXParser implements IParsingEngine {
 		for (BioPAXElement bpe : elementSet) {
 			if (bpe instanceof Xref) {
 				// Process Xrefs to create BaseTerm and Citation objects
-				this.processXREFElement(bpe);
+				this.processXREFElement((Xref)bpe);
 			} else {
 				// Process all Other Elements to create Node objects
 				this.processElementToNode(bpe);
@@ -197,11 +197,11 @@ public class BioPAXParser implements IParsingEngine {
 		String rdfId = bpe.getRDFId();
 		String className = bpe.getClass().getName();
 		String simpleName = bpe.getModelInterface().getSimpleName();
-		// System.out.println("Element To Node: " + rdfId + ": " + simpleName);
+		//System.out.println("Element To Node: " + rdfId + ": " + simpleName);
 		// this.persistenceService.
 		// create the node, map the id to the rdfId
 		// add a property to the node, setting bp:nodeType to the simpleName
-		Long nodeId = this.persistenceService.getNodeIdByBaseTerm(rdfId);
+		Long nodeId = this.persistenceService.getNodeIdByName(rdfId);
 		//Long nodeId = this.persistenceService.getNodeId();
 		this.mapRdfIdToElementId(rdfId, nodeId);
 	}
@@ -275,7 +275,7 @@ public class BioPAXParser implements IParsingEngine {
 		for (NdexPropertyValuePair pvp : literalProperties){
 			System.out.println("        Property: " + nodeId + " | " + pvp.getPredicateString() + " " + pvp.getValue());
 		}
-		literalProperties.add(new NdexPropertyValuePair("ndex:biopaxType", bpe.getModelInterface().getSimpleName()));
+		literalProperties.add(new NdexPropertyValuePair("ndex:bioPAXType", bpe.getModelInterface().getSimpleName()));
 		this.persistenceService.setNodeProperties(nodeId, literalProperties, null);
 
 	}
@@ -305,7 +305,6 @@ public class BioPAXParser implements IParsingEngine {
 			UnificationXref xref, 
 			Long nodeId) throws ExecutionException, NdexException {
 		Long termId = getElementIdByRdfId(xref.getRDFId());
-		//this.persistenceService.setNodeRepresentTerm(nodeId, termId);
 		System.out.println("       Alias: " + nodeId + " -> " + termId);
 		this.persistenceService.addAliasToNode(nodeId,termId);	
 	}
@@ -328,14 +327,14 @@ public class BioPAXParser implements IParsingEngine {
 		this.persistenceService.addCitationToElement(nodeId, citationId, NdexClasses.Node);
 	}
 
-	private void processXREFElement(BioPAXElement xref) throws NdexException,
+	private void processXREFElement(Xref xref) throws NdexException,
 			ExecutionException {
 		if (xref instanceof PublicationXref) {
 			processPublicationXref(xref);
 		} else if (xref instanceof UnificationXref) {
-			processUnificationXref(xref);
+			processXref(xref);
 		} else if (xref instanceof RelationshipXref) {
-			processRelationshipXref(xref);
+			processXref(xref);
 		} else {
 			// TBD: turn this into an exception?
 			String name = xref.getClass().getName();
@@ -343,19 +342,26 @@ public class BioPAXParser implements IParsingEngine {
 		}
 	}
 
-	private void processRelationshipXref(BioPAXElement xref) throws NdexException, ExecutionException {
+	
+	private void processXref(Xref xref) throws NdexException, ExecutionException {
 		String rdfId = xref.getRDFId();
-		String name = xref.getClass().getName();
-		RelationshipXref rXref = (RelationshipXref) xref;
+		String className = xref.getClass().getName();
+		String simpleName = xref.getModelInterface().getSimpleName();
+		
+		// Create a node to hold the mapping of the rdfId to a biopax type
+		Long nodeId = this.persistenceService.getNodeIdByName(rdfId);
+		List<NdexPropertyValuePair> literalProperties = new ArrayList<NdexPropertyValuePair>();
+		literalProperties.add(new NdexPropertyValuePair("ndex:bioPAXType", simpleName));
+			
 		// These are the Xref properties
 		// that we have available for the the BaseTerm and Namespace
 		//Map<String, Object> annotations = uXref.getAnnotations();
 		//Set<String> comments = uXref.getComment();
-		String xrefDb = rXref.getDb();
-		String xrefDbVersion = rXref.getDbVersion();
-		String xrefId = rXref.getId();
-		String xrefIdVersion = rXref.getIdVersion();
-		Set<XReferrable> refersTo = rXref.getXrefOf();
+		String xrefDb = xref.getDb();
+		String xrefDbVersion = xref.getDbVersion();
+		String xrefId = xref.getId();
+		String xrefIdVersion = xref.getIdVersion();
+		Set<XReferrable> refersTo = xref.getXrefOf();
 		
 		Long termId = null;
 		if (null != xrefId && null != xrefDb) {
@@ -367,43 +373,16 @@ public class BioPAXParser implements IParsingEngine {
 			termId = this.persistenceService.getBaseTermId(xrefId);
 		} else {
 			// bad xref with no id!
-			throw new NdexException("no id for UnificationXref " + rdfId);
+			throw new NdexException("no id for xref " + rdfId);
 		}
-		System.out.println("BaseTerm (r): " + rdfId + " (" + name + ") -> " + termId);
+		System.out.println("BaseTerm (" + className + "): " + rdfId + " -> " + termId);
+		// make the node represent the term
+		// This will allow reconstruction of the links to xrefs when outputting bioPAX
+		this.persistenceService.setNodeRepresentTerm(nodeId, termId);
+		this.persistenceService.setNodeProperties(nodeId, literalProperties, null);
+		System.out.println("XREF Node: " + nodeId + " -> " + rdfId + ": " + simpleName);
 		this.mapRdfIdToElementId(rdfId, termId);
 		
-	}
-
-	private void processUnificationXref(BioPAXElement xref) throws NdexException, ExecutionException {
-		String rdfId = xref.getRDFId();
-		String name = xref.getClass().getName();
-		
-		UnificationXref uXref = (UnificationXref) xref;
-		// These are the Xref properties
-		// that we have available for the the BaseTerm and Namespace
-		Map<String, Object> annotations = uXref.getAnnotations();
-		Set<String> comments = uXref.getComment();
-		String xrefDb = uXref.getDb();
-		String xrefDbVersion = uXref.getDbVersion();
-		String xrefId = uXref.getId();
-		String xrefIdVersion = uXref.getIdVersion();
-		Set<XReferrable> refersTo = uXref.getXrefOf();
-		
-		Long termId = null;
-		if (null != xrefId && null != xrefDb) {
-			// We have both an identifier string for a BaseTerm
-			// AND a prefix string for a Namespace
-			termId = this.persistenceService.getBaseTermId(xrefDb + ":" + xrefId);
-		} else if (null != xrefId) {
-			// We have an identifier string for a BaseTerm but no Namespace prefix
-			termId = this.persistenceService.getBaseTermId(xrefId);
-		} else {
-			// bad xref with no id!
-			throw new NdexException("no id for UnificationXref " + rdfId);
-		}
-		System.out.println("BaseTerm (u): " + rdfId + " (" + name + ") -> " + termId);
-		this.mapRdfIdToElementId(rdfId, termId);
-
 	}
 
 	private void processPublicationXref(BioPAXElement xref)
@@ -457,48 +436,38 @@ public class BioPAXParser implements IParsingEngine {
 		 * 
 		 * author - The authors of this publication, one per property value.
 		 * 
-		 * corresponds directly to Citation.contributors
+		 *         stored as Citation.contributors
 		 * 
-		 * title - The title of the publication.
-		 * 
-		 * corresponds directly to Citation.title
+		 * title - The title of the publication: stored as Citation.title
 		 * 
 		 * Store as pv pairs:
 		 * 
-		 * dbVersion idVersion source - The source in which the reference was
+		 * db (redundant, except in possible case where db is non-null, )
+		 * dbVersion 
+		 * id (redundant)
+		 * idVersion 
+		 * source - each source is a string indicating a source in which the reference was
 		 * published, such as: a book title, or a journal title and volume and
 		 * pages. url - The URL at which the publication can be found, if it is
-		 * available through the Web. y ear - The year in which this publication
+		 * available through the Web. 
+		 * y ear - The year in which this publication
 		 * was published. store as value with datatype "integer"
 		 */
 		
-		PropertyHelpers.addNdexProperty("db", xrefDb, citationProperties);
-		PropertyHelpers.addNdexProperty("dbVersion", xrefDbVersion, citationProperties);
-		PropertyHelpers.addNdexProperty("id", xrefId, citationProperties);
-		PropertyHelpers.addNdexProperty("idVersion", xrefIdVersion, citationProperties);
-		PropertyHelpers.addNdexProperty("year", year + "", citationProperties); // TODO encode with datatype
+
+
+		//
+		// TODO: handle annotations
+		// TODO: handle back references
+		//
 		for (String comment : comments){
 			PropertyHelpers.addNdexProperty("comment", comment, citationProperties);
 		}
-		// TODO: handle annotations
-		// TODO: handle back references
 		for (String source : sources){
 			PropertyHelpers.addNdexProperty("source", source, citationProperties);
 		}
 		for (String url : urls){
 			PropertyHelpers.addNdexProperty("url", url, citationProperties);
-		}
-
-		String identifier = "unspecified";
-		String idType = "unspecified";
-		if (null != xrefId && null != xrefDb) {
-			identifier = xrefId;
-			idType = xrefDb;
-		} else if (null != urls && urls.size() > 0) {
-			identifier = urls.toArray()[0].toString();
-
-		} else if (null != xrefId) {
-			identifier = xrefId;
 		}
 
 		List<String> contributors = new ArrayList<String>();
@@ -507,18 +476,29 @@ public class BioPAXParser implements IParsingEngine {
 				contributors.add(author);
 			}
 		}
-		// These are the Citation properties:
-		// "contributors",
-		// "identifier",
-		// "idType"
-		// "title"
+		
+		String identifier = "unspecified";
+		String idType = "unspecified";
+		if (null != xrefId && null != xrefDb) {
+			identifier = xrefId;
+			idType = xrefDb;
+		} else if (null != urls && urls.size() > 0) {
+			identifier = urls.toArray()[0].toString();
+			idType = "url";
 
-		// Other Xref properties can be stored as NdexPropertyValuePair objects
-		// "properties",
+		} else if (null != xrefId) {
+			identifier = xrefId;
+		}
+		
+		PropertyHelpers.addNdexProperty("db", xrefDb, citationProperties);
+		PropertyHelpers.addNdexProperty("dbVersion", xrefDbVersion, citationProperties);
+		PropertyHelpers.addNdexProperty("id", xrefId, citationProperties);
+		PropertyHelpers.addNdexProperty("idVersion", xrefIdVersion, citationProperties);
+		PropertyHelpers.addNdexProperty("year", year + "", citationProperties); // TODO encode with datatype
 
-		// At the moment, no BioPAX3 properties are mapped to ndex presentation
-		// properties
-		// "presentationProperties",
+
+
+		// no BioPAX3 properties are mapped to ndex presentation properties for citations
 
 		// Create the citation
 		
