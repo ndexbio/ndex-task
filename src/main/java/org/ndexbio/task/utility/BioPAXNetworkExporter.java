@@ -182,7 +182,7 @@ public class BioPAXNetworkExporter {
 			if (bioPAXClass != null && rdfId != null){
 				bpe = bioPAXModel.addNew(bioPAXClass, rdfId);
 			} else {
-				throw new NdexException("To process node to BioPAX eed both: bioPAXClass: " + bioPAXClass + " rdfId: " + rdfId);
+				throw new NdexException("Processing a node to a BioPAX element needs both: bioPAXClass: " + bioPAXClass + " rdfId: " + rdfId);
 			}
 			
 			EditorMap editorMap = SimpleEditorMap.L3;
@@ -201,12 +201,24 @@ public class BioPAXNetworkExporter {
 				}			
 			}
 			
-			// Process the node citations
+			this.elementIdToBioPAXElementMap.put(nodeId, bpe);
+			
+			// Check whether this Node has a represents
+			// If so, then the represented BaseTerm holds the db and id for the 
+			// the Xref BioPAX Element
+			// Furthermore, we want to map the base term Id to this XREF
+			
+
 			
 			// Process the node aliases
+			for (Long termId : node.getAliases()){
+				
+			}
 			
 			// Process the node relatedTerms
-			
+			for (Long termId : node.getRelatedTerms()){
+				
+			}
 		}
 		
 	}
