@@ -6,6 +6,8 @@ import java.lang.reflect.Field;
 import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 
 import javax.xml.bind.JAXBException;
 
@@ -18,7 +20,11 @@ import org.ndexbio.common.NdexClasses;
 import org.ndexbio.common.access.NdexAOrientDBConnectionPool;
 import org.ndexbio.common.access.NdexDatabase;
 import org.ndexbio.common.exceptions.NdexException;
+import org.ndexbio.common.models.dao.orientdb.NetworkDAO;
 import org.ndexbio.common.models.dao.orientdb.UserDAO;
+import org.ndexbio.common.persistence.orientdb.NdexNetworkCloneService;
+import org.ndexbio.model.object.network.Network;
+import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.task.Configuration;
 import org.ndexbio.task.utility.DatabaseInitializer;
 
@@ -44,7 +50,7 @@ public class xbelParserTest {
     	NdexAOrientDBConnectionPool.createOrientDBConnectionPool(
     			configuration.getDBURL(),
     			configuration.getDBUser(),
-    			configuration.getDBPasswd());
+    			configuration.getDBPasswd(),1);
 		
 	}
 
@@ -53,7 +59,26 @@ public class xbelParserTest {
 		NdexAOrientDBConnectionPool.close();
 		System.out.println("Connection pool closed.");
 	}
+	
+	@Test
+	public void test0() throws NdexException, ExecutionException {
+		
+		NdexDatabase db = new NdexDatabase(Configuration.getInstance().getHostURI());
+		ODatabaseDocumentTx conn = db.getAConnection();
+		NetworkDAO dao = new NetworkDAO(conn);
+		
+		Network n = dao.getNetworkById(UUID.fromString("14ee1740-5644-11e4-963e-90b11c72aefa"));
+		
+		n.setName(n.getName() + " - new name");
+		
+		
+		NdexNetworkCloneService service = new NdexNetworkCloneService(db, n, "cjtest");
 
+        NetworkSummary s = service.updateNetwork();
+
+	}
+	
+/*
 	@Test
 	public void test1() throws NdexException, JAXBException, URISyntaxException {
     	
@@ -78,7 +103,7 @@ public class xbelParserTest {
 		System.out.println("closing db.");
 		db.close();
 	}
-	
+*/	
 	
 	@Test
 	public void test2() throws NdexException, JAXBException, URISyntaxException {

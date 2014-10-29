@@ -29,7 +29,7 @@ public class NetworkFileLoader {
     	NdexAOrientDBConnectionPool.createOrientDBConnectionPool(
     			configuration.getDBURL(),
     			configuration.getDBUser(),
-    			configuration.getDBPasswd());
+    			configuration.getDBPasswd(), 1);
     	
     	
 		NdexDatabase db = new NdexDatabase(configuration.getHostURI());

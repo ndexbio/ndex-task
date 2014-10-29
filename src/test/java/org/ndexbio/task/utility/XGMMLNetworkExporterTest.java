@@ -40,7 +40,7 @@ public class XGMMLNetworkExporterTest {
     	NdexAOrientDBConnectionPool.createOrientDBConnectionPool(
     			configuration.getDBURL(),
     			configuration.getDBUser(),
-    			configuration.getDBPasswd());
+    			configuration.getDBPasswd(),1);
     	
 
 	}

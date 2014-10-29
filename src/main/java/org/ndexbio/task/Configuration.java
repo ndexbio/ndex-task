@@ -56,32 +56,15 @@ public class Configuration
         	_configurationProperties.load(reader);
         	reader.close();
             
-            dbURL = _configurationProperties.getProperty("OrientDB-URL");
-            
-            if ( dbURL == null) {
-            	throw new NdexException ("property " + "OrientDB-URL" + " not found in configuration.");
-            }
-            
-            hostURI = _configurationProperties.getProperty("HostURI");
-            if ( hostURI == null) {
-            	throw new NdexException ("property " +  "HostURI" + " not found in configuration.");
-            }
-            
-            this.ndexSystemUser = _configurationProperties.getProperty("NdexSystemUser");
-            if ( ndexSystemUser == null) {
-            	throw new NdexException ("property " +  "NdexSystemUser" + " not found in configuration.");
-            }
+            dbURL 	= getRequiredProperty("OrientDB-URL");
+            hostURI = getRequiredProperty("HostURI");
 
-            this.ndexSystemUserPassword = _configurationProperties.getProperty("NdexSystemUserPassword");
-            if ( ndexSystemUserPassword == null) {
-            	throw new NdexException ("property " +  "NdexSystemUserPassword" + " not found in configuration.");
-            }
+            this.ndexSystemUser = getRequiredProperty("NdexSystemUser");
+            this.ndexSystemUserPassword = getRequiredProperty("NdexSystemUserPassword");
 
-            this.ndexRoot = _configurationProperties.getProperty("NdexRoot");
-            if ( ndexRoot == null) {
-            	throw new NdexException ("property " +  "NdexRoot" + " not found in configuration.");
-            }
-
+            this.ndexRoot = getRequiredProperty("NdexRoot");
+            
+            
         }
         catch (Exception e)
         {
@@ -90,6 +73,14 @@ public class Configuration
         }
     }
     
+    
+    private String getRequiredProperty (String propertyName ) throws NdexException {
+    	String result = _configurationProperties.getProperty(propertyName);
+        if ( result == null) {
+        	throw new NdexException ("property " + propertyName + " not found in configuration.");
+        }
+        return result;
+    }
     
     
     /**************************************************************************
