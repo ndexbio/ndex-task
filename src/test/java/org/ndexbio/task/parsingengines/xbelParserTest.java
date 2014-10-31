@@ -59,7 +59,8 @@ public class xbelParserTest {
 		NdexAOrientDBConnectionPool.close();
 		System.out.println("Connection pool closed.");
 	}
-	
+
+	/*
 	@Test
 	public void test0() throws NdexException, ExecutionException {
 		
@@ -76,7 +77,7 @@ public class xbelParserTest {
 
         NetworkSummary s = service.updateNetwork();
 
-	}
+	} */
 	
 /*
 	@Test
@@ -115,12 +116,13 @@ public class xbelParserTest {
 
     	UserDAO dao = new UserDAO(conn);
     	
-    	DatabaseInitializer.createUserIfnotExist(dao, configuration.getSystmUserName(), "support@ndexbio.org", 
-    				configuration.getSystemUserPassword());
+ //   	DatabaseInitializer.createUserIfnotExist(dao, configuration.getSystmUserName(), "support@ndexbio.org", 
+ //   				configuration.getSystemUserPassword());
 
 		String user = configuration.getSystmUserName();
 		  XbelParser parser = new XbelParser(
-				  "/home/chenjing/git/ndex-task/src/test/resources/small_corpus.xbel"
+				  "/home/chenjing/Downloads/imported.xbel"
+				  //"/home/chenjing/git/ndex-task/src/test/resources/small_corpus.xbel"
 				    , user, db);
 		  parser.parseFile();
 		System.out.println("closing db.");

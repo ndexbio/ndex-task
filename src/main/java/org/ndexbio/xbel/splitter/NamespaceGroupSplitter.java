@@ -48,9 +48,6 @@ public class NamespaceGroupSplitter extends XBelSplitter {
 			// BEL namespace
 			RawNamespace belNamespace = new RawNamespace("BEL","http://belframework.org/schema/1.0/xbel");
 			this.networkService.getNamespace(belNamespace);
-			// TextLocation 
-			RawNamespace textLocation = new RawNamespace("TextLocation","http://belframework.org/schema/1.0/xbel/TextLocation");
-			this.networkService.getNamespace(textLocation);
 			
 		} catch (NdexException e) {
 			logger.error(e.getMessage());

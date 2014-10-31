@@ -25,7 +25,9 @@ public class AnnotationDefinitionGroupSplitter extends XBelSplitter {
 	public static final String external_annotation_def = "ExternalAnnotationDefinition";
 	public static final String desc = "description";
 	public static final String list_annotation = "listAnnotation";
-	
+
+	private static final String internalAnnotationDefPrefix = "http://belframework.org/schema/1.0/xbel/internalAnnotation/"; 
+
 	private static final Logger logger = LoggerFactory
 			.getLogger(AnnotationDefinitionGroupSplitter.class);
 
@@ -73,6 +75,7 @@ public class AnnotationDefinitionGroupSplitter extends XBelSplitter {
 	 * @see org.ndexbio.xbel.splitter.XBelSplitter#process()
 	 */
 	protected void process() throws JAXBException, ExecutionException {
+
 		AnnotationDefinitionGroup annotationDefinitionGroup = (AnnotationDefinitionGroup) unmarshallerHandler
 				.getResult();
 		logger.info("The XBEL document has "
@@ -83,7 +86,8 @@ public class AnnotationDefinitionGroupSplitter extends XBelSplitter {
 
 			try {
 				Namespace internalAnnotationNamespace = this.networkService.getNamespace(
-						new RawNamespace(internalAnnotationDefinition.getId(),null));
+						new RawNamespace(internalAnnotationDefinition.getId(),
+								  internalAnnotationDefPrefix + internalAnnotationDefinition.getId()));
 			
 				String attDataType = "String";
 				this.networkService.setElementProperty(internalAnnotationNamespace.getId(),

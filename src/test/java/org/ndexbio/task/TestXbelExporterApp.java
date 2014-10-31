@@ -20,7 +20,7 @@ public class TestXbelExporterApp {
 	private static final String XBEL_FILE_EXTENSION = ".xbel";
 	public static void main(String[] args) throws IOException, NdexException {
 
-		String networkId = "74377e1d-41e4-11e4-96ed-90b11c72aefa"; // is for small corpus
+		String networkId = "3ac35dd3-614f-11e4-86a4-90b11c72aefa"; // is for small corpus
 //		String networkId = "f003d77a-3f4e-11e4-bc7d-90b11c72aefa";
 		String userId =    "84443d6d-3dbf-11e4-a671-90b11c72aefa"; // dbowner
 		//add shutdown hook

@@ -294,6 +294,8 @@ public class XbelNetworkExporter {
 			}
 
 		}
+		
+		// process the remaineder ( statements that are not under any citation)
 	}
 
 	/*
