@@ -43,17 +43,6 @@ public class NamespaceGroupSplitter extends XBelSplitter {
 		logger.info("The XBEL document has " + ng.getNamespace().size()
 				+ " namespaces");
 
-		try {
-			// create a few default name spaces. 
-			// BEL namespace
-			RawNamespace belNamespace = new RawNamespace("BEL","http://belframework.org/schema/1.0/xbel");
-			this.networkService.getNamespace(belNamespace);
-			
-		} catch (NdexException e) {
-			logger.error(e.getMessage());
-			e.printStackTrace();
-		}
-
 		for (Namespace ns : ng.getNamespace()) {
 
 			try {

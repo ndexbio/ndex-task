@@ -2,12 +2,13 @@ package org.ndexbio.task.parsingengines;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.URISyntaxException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
+import java.util.Enumeration;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -16,8 +17,10 @@ import javax.xml.parsers.SAXParserFactory;
 
 import org.ndexbio.common.access.NdexDatabase;
 import org.ndexbio.common.exceptions.NdexException;
+import org.ndexbio.common.models.object.network.RawNamespace;
 import org.ndexbio.common.persistence.orientdb.NdexPersistenceService;
 import org.ndexbio.model.object.NdexPropertyValuePair;
+import org.ndexbio.xbel.model.Header;
 import org.ndexbio.model.object.ProvenanceEntity;
 import org.ndexbio.model.object.SimplePropertyValuePair;
 import org.ndexbio.model.object.network.NetworkSummary;
@@ -27,6 +30,7 @@ import org.ndexbio.xbel.splitter.AnnotationDefinitionGroupSplitter;
 import org.ndexbio.xbel.splitter.HeaderSplitter;
 import org.ndexbio.xbel.splitter.NamespaceGroupSplitter;
 import org.ndexbio.xbel.splitter.StatementGroupSplitter;
+import org.ndexbio.xbel.splitter.XBelSplitter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
@@ -59,7 +63,12 @@ public class XbelParser implements IParsingEngine
     private NdexPersistenceService networkService;
     private static final Logger logger = LoggerFactory.getLogger(XbelParser.class);
 
-    public static final String belPrefix = "BEL";
+    public static final String belPrefix = "bel";
+    public static final String elementContactInfo = "bel:contactInfo";
+    public static final String elementCopyright   = "bel:copyright";
+    public static final String elementDisclaimer  = "bel:disclaimer";
+    public static final String elementAuthor      = "bel:author";
+    public static final String elementLicense     = "bel:license";
     
     public XbelParser(String fn, String ownerName, NdexDatabase db) throws JAXBException, NdexException, URISyntaxException
     {
@@ -137,12 +146,63 @@ public class XbelParser implements IParsingEngine
             logger.error(e.getMessage());
             throw new Exception(e);
         }
-        String networkTitle = this.headerSplitter.getHeader().getName();
+        Header header = this.headerSplitter.getHeader();
+        
+        String networkTitle = header.getName();
         this.networkService.createNewNetwork(
         		this.getOwnerName(), 
         		networkTitle,
         		this.headerSplitter.getHeader().getVersion());
-        this.networkService.setNetworkTitleAndDescription(null, this.headerSplitter.getHeader().getDescription());
+        this.networkService.setNetworkTitleAndDescription(null, header.getDescription());
+        
+		try {
+				// create a few default name spaces. 
+				// BEL namespace
+				RawNamespace belNamespace = new RawNamespace(belPrefix,XBelSplitter.belURI);
+				this.networkService.getNamespace(belNamespace);
+				
+		} catch (NdexException ex) {
+				ex.printStackTrace();
+				logger.error(ex.getMessage());
+				throw new Exception ("Error occurred when creating default namespaces: " + ex.getMessage());
+		}
+		
+        // insert others as network properties.
+		List<NdexPropertyValuePair> propList = new ArrayList <> ();
+        String contact = header.getContactInfo();
+        if ( contact != null ) {
+        	NdexPropertyValuePair p = new NdexPropertyValuePair(elementContactInfo, contact);
+        	propList.add(p);
+        }
+
+        String copyright = header.getCopyright();
+        if ( copyright != null ) {
+        	NdexPropertyValuePair p = new NdexPropertyValuePair(elementCopyright, copyright);
+        	propList.add(p);
+        }
+
+        String disclaimer = header.getDisclaimer();
+        if ( disclaimer != null ) {
+        	NdexPropertyValuePair p = new NdexPropertyValuePair(elementDisclaimer, disclaimer);
+        	propList.add(p);
+        }
+        
+        if ( header.getAuthorGroup() !=null ) {
+        	for ( String author : header.getAuthorGroup().getAuthor()) {
+        		NdexPropertyValuePair p = new NdexPropertyValuePair(elementAuthor, author);
+            	propList.add(p);
+        	}
+        }
+
+        if ( header.getLicenseGroup() !=null ) {
+        	for ( String l : header.getLicenseGroup().getLicense()) {
+        		NdexPropertyValuePair p = new NdexPropertyValuePair(elementLicense, l);
+            	propList.add(p);
+        	}
+        }
+
+        
+        this.networkService.setNetworkProperties(propList, null);
 //        this.networkService.setFormat("BEL_DOCUMENT");
 
     }

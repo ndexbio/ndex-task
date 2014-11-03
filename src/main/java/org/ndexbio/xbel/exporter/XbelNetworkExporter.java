@@ -3,6 +3,8 @@ package org.ndexbio.xbel.exporter;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
@@ -34,6 +36,7 @@ import org.ndexbio.task.audit.NdexAuditService;
 import org.ndexbio.task.audit.NdexAuditServiceFactory;
 import org.ndexbio.task.audit.NdexAuditUtils;
 import org.ndexbio.task.audit.network.NdexObjectAuditor;
+import org.ndexbio.task.parsingengines.XbelParser;
 import org.ndexbio.task.service.NdexTaskModelService;
 import org.ndexbio.xbel.model.AnnotationDefinitionGroup;
 import org.ndexbio.xbel.model.AnnotationGroup;
@@ -72,10 +75,10 @@ public class XbelNetworkExporter {
 	private Network subNetwork;
 	private XbelStack<org.ndexbio.xbel.model.Term> xbelTermStack;
 	
-	private final static String copyright = "Copyright (c) 2011, Selventa. All Rights Reserved.";
-	private final static String contactInfo = "support@belframework.org";
+//	private final static String copyright = "Copyright (c) 2011, Selventa. All Rights Reserved.";
+//	private final static String contactInfo = "support@belframework.org";
 	private final static String author = "Selventa";
-	private final static String license = "Creative Commons Attribution-Non-Commercial-ShareAlike 3.0 Unported License";
+//	private final static String license = "Creative Commons Attribution-Non-Commercial-ShareAlike 3.0 Unported License";
 	
 	private XbelMarshaller xm;
 	private final ObjectFactory xbelFactory = new ObjectFactory();
@@ -244,6 +247,10 @@ public class XbelNetworkExporter {
 			if ( desc != null ) { 
   			    iad.setDescription(desc);
 			    iad.setUsage(desc);
+			}
+			String annotationPattern = ns.getPropertyAsString(AnnotationDefinitionGroupSplitter.patternAnnotation);
+			if ( annotationPattern != null ) { 
+  			    iad.setPatternAnnotation(annotationPattern);
 			}
 			iad.setListAnnotation(this.xbelFactory.createListAnnotation());
 			for ( NdexPropertyValuePair p : ns.getProperties()) {
@@ -776,13 +783,26 @@ public class XbelNetworkExporter {
 				this.network.getDescription(), "XBEL network");
 		header.setDescription(description);
 		header.setVersion(this.network.getVersion());
-		header.setCopyright(copyright);
-		header.setContactInfo(contactInfo);
+		
 		AuthorGroup ag = new AuthorGroup();
-		ag.getAuthor().add(author);
-		header.setAuthorGroup(ag);
 		LicenseGroup lg = new LicenseGroup();
-		lg.getLicense().add(license);
+		
+		for (NdexPropertyValuePair p : this.network.getProperties()) {
+			String predicateStr = p.getPredicateString();
+			if ( predicateStr.equals(XbelParser.elementAuthor)) {
+				ag.getAuthor().add(p.getValue());
+			} else if ( predicateStr.equals(XbelParser.elementLicense)) {
+				lg.getLicense().add(p.getValue());
+			} else if ( predicateStr.equals(XbelParser.elementContactInfo)) {
+				header.setContactInfo(p.getValue());
+			} else if ( predicateStr.equals(XbelParser.elementCopyright)) {
+				header.setCopyright(p.getValue());
+			} else if ( predicateStr.equals(XbelParser.elementDisclaimer)) {
+				header.setDisclaimer(p.getValue());
+			}
+		}
+
+		header.setAuthorGroup(ag);
 		header.setLicenseGroup(lg);
 		// document.setHeader(header);
 		try {
@@ -800,6 +820,7 @@ public class XbelNetworkExporter {
 	private void addNamespaceGroup(Iterable<Namespace> namespaces) {
 		NamespaceGroup nsg = new NamespaceGroup();
 		for (Namespace modelNamespace : namespaces) {
+		  if ( !modelNamespace.getPrefix().equals(XbelParser.belPrefix)) {  //ignore xbel	
 			org.ndexbio.xbel.model.Namespace xbelNamespace = this.xbelFactory.createNamespace();
 			xbelNamespace.setPrefix(modelNamespace.getPrefix());
 			xbelNamespace.setResourceLocation(modelNamespace.getUri());
@@ -809,6 +830,7 @@ public class XbelNetworkExporter {
 			}
 			//System.out.println("Namespace: "+modelNamespace.getPrefix() +" " +modelNamespace.getUri());
 			nsg.getNamespace().add(xbelNamespace);
+		  }
 		}
 		try {
 			xm.writeNamespaceGroup(nsg);

@@ -4,6 +4,7 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 
 import org.ndexbio.xbel.model.Header;
+import org.xml.sax.helpers.NamespaceSupport;
 
 public class HeaderSplitter extends XBelSplitter {
 
@@ -20,5 +21,6 @@ public class HeaderSplitter extends XBelSplitter {
 	}
 	
 	public Header getHeader() { return this.header;}
+	
 
 }

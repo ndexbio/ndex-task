@@ -9,7 +9,6 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.UnmarshallerHandler;
 
 import org.ndexbio.common.exceptions.NdexException;
-import org.ndexbio.xbel.model.NamespaceGroup;
 import org.xml.sax.Attributes;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
@@ -30,13 +29,13 @@ public abstract class XBelSplitter extends XMLFilterImpl {
 	protected final JAXBContext context;
 	protected final String xmlElement;
 
-	protected final String belURI = "http://belframework.org/schema/1.0/xbel";
+	public final static String belURI = "http://belframework.org/schema/1.0/xbel";
 	/**
 	 * Remembers the depth of the elements as we forward SAX events to a JAXB
 	 * unmarshaller.
 	 */
 	private int depth;
-
+	
 	/**
 	 * Reference to the unmarshaller which is unmarshalling an object.
 	 */
@@ -91,6 +90,7 @@ public abstract class XBelSplitter extends XMLFilterImpl {
 			unmarshallerHandler.startDocument();
 			unmarshallerHandler.setDocumentLocator(locator);
 
+			
 			Enumeration e = namespaces.getPrefixes();
 			while (e.hasMoreElements()) {
 				String prefix = (String) e.nextElement();
@@ -190,4 +190,5 @@ public abstract class XBelSplitter extends XMLFilterImpl {
 	}
 	
 	protected abstract void process() throws JAXBException, ExecutionException, NdexException;
+	
 }

@@ -25,6 +25,7 @@ public class AnnotationDefinitionGroupSplitter extends XBelSplitter {
 	public static final String external_annotation_def = "ExternalAnnotationDefinition";
 	public static final String desc = "description";
 	public static final String list_annotation = "listAnnotation";
+	public static final String patternAnnotation = "patternAnnotation";
 
 	private static final String internalAnnotationDefPrefix = "http://belframework.org/schema/1.0/xbel/internalAnnotation/"; 
 
@@ -99,12 +100,12 @@ public class AnnotationDefinitionGroupSplitter extends XBelSplitter {
 				}
 				if (null != internalAnnotationDefinition.getPatternAnnotation()){
 					this.networkService.setElementProperty(internalAnnotationNamespace.getId(),
-							"patternAnnotation", internalAnnotationDefinition.getPatternAnnotation(), attDataType);
+							patternAnnotation, internalAnnotationDefinition.getPatternAnnotation(), attDataType);
 				}
 				if (null != internalAnnotationDefinition.getListAnnotation()){
 					for (String annotation : internalAnnotationDefinition.getListAnnotation().getListValue()){
 						this.networkService.setElementProperty(internalAnnotationNamespace.getId(),
-								"listAnnotation", annotation, attDataType); 
+								list_annotation, annotation, attDataType); 
 						// Create a term in the namespace
 						this.networkService.getBaseTermId(internalAnnotationNamespace.getPrefix()+":"+ annotation);
 					}
