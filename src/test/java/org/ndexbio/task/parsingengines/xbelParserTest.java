@@ -38,7 +38,7 @@ import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 public class xbelParserTest {
 
 	static Configuration configuration ;
-	static String propertyFilePath = "/opt/ndex/conf/ndex.properties";
+	static String propertyFilePath = "c:/ndex/conf/ndex.properties";
 	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
@@ -121,7 +121,7 @@ public class xbelParserTest {
 
 		String user = configuration.getSystmUserName();
 		  XbelParser parser = new XbelParser(
-				  "/home/chenjing/Downloads/imported.xbel"
+				  "C:/Users/chenjing/Downloads/imported.xbel"
 				  //"/home/chenjing/git/ndex-task/src/test/resources/small_corpus.xbel"
 				    , user, db);
 		  parser.parseFile();

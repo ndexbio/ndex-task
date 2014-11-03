@@ -225,6 +225,20 @@ public class NdexJVMDataModelService implements NdexTaskModelService {
 		return btList;
 	}
 
+	@Override
+	public Network getNoCitationSubnetwork(String networkId) {
+		Preconditions.checkArgument(!Strings.isNullOrEmpty(networkId), 
+				"A network id is required");
+		try {
+			return dao.getNoCitationSubnetwork( networkId);
+		} catch (IllegalArgumentException | NdexException e) {
+			logger.error(e.getMessage());
+			e.printStackTrace();
+		}
+		
+		return null;
+	}
+
 	
 	
 }

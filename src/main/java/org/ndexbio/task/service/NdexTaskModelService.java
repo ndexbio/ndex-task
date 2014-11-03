@@ -21,6 +21,7 @@ public interface NdexTaskModelService {
 	
 	public Collection<Citation> getCitationsByNetworkId(String networkId);
 	public Network getSubnetworkByCitationId(String networkId, Long citationId); 
+	public Network getNoCitationSubnetwork(String networkId);
 	public Iterable<Edge> getEdgesBySupportId(String supportId);
 	public Iterable<Namespace> getNamespacesByNetworkId(String networkId);
 	// internal & external annotations are persisted as namespaces

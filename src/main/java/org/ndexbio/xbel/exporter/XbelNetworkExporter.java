@@ -289,13 +289,23 @@ public class XbelNetworkExporter {
 				xm.writeStatementGroup(sg);
 
 			} catch (JAXBException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
+				logger.error("Error occured when writing statement group: " + e.getMessage());
 			}
 
 		}
 		
-		// process the remaineder ( statements that are not under any citation)
+		// process the remainder ( statements that are not under any citation)
+		this.subNetwork = this.modelService.getNoCitationSubnetwork(this.networkId);
+		StatementGroup sg = this.processUnCitedStatementGroup();
+		try {
+			xm.writeStatementGroup(sg);
+		} catch (JAXBException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			logger.error("Error occured when writing statement group: " + e.getMessage());
+		}
+		
 	}
 
 	/*
@@ -331,6 +341,26 @@ public class XbelNetworkExporter {
 		return sg;
 	}
 
+	private StatementGroup processUnCitedStatementGroup() {
+		// clear the statement group stack
+//		StatementGroup sg = new StatementGroup();
+//		AnnotationGroup ag = new AnnotationGroup();
+//		sg.setName(this.createXbelCitation(ag, modelCitation));
+//		sg.setAnnotationGroup(ag);
+		
+		// a collection of edge ids that referenced by ReifiedEdgesTerm
+		TreeSet<Long> reifiedEdgeIds = new TreeSet<>();
+		for ( ReifiedEdgeTerm rt: this.subNetwork.getReifiedEdgeTerms().values()) {
+			reifiedEdgeIds.add(rt.getEdgeId());
+		}
+		
+		return processUncitedStatements(reifiedEdgeIds);
+		// increment the audit citation count
+//		this.auditService.incrementObservedMetricValue("citation count");
+		
+//		return sg;
+	}
+	
 	/*
 	 * Process the supports for a given citation Each support represents an
 	 * inner level statement group and contains a collection of edges
@@ -361,6 +391,48 @@ public class XbelNetworkExporter {
 
 	}
 
+	private StatementGroup processUncitedStatements( Set<Long> reifiedEdgeIds) {
+		
+		StatementGroup statementGroup = new StatementGroup();
+		AnnotationGroup ag = new AnnotationGroup();
+		
+		// increment audit support count
+		statementGroup.setAnnotationGroup(ag);
+
+//		processUnCitedStatementGroupInner(supportStatementGroup, reifiedEdgeIds);
+				
+		TreeSet<Long> processedNodes = new TreeSet<>();
+				
+		//edges
+		for (Map.Entry<Long, Edge> entry : this.subNetwork.getEdges()
+						.entrySet()) {
+			Edge edge = entry.getValue();
+			if ( (!reifiedEdgeIds.contains(edge.getId()))) {
+				// we've identified an Edge that belongs to this support
+				this.processSupportEdge(statementGroup, edge);
+				this.edgeAuditor.removeProcessedNdexObject(edge);
+				processedNodes.add(edge.getSubjectId());
+				processedNodes.add(edge.getObjectId());
+			}
+		}
+
+		// process orphan nodes
+		for (Map.Entry<Long, Node> entry : this.subNetwork.getNodes()
+						.entrySet()) {
+			Node node = entry.getValue();
+				if ( !processedNodes.contains(entry.getKey())) {
+						// we've identified a node that belongs to this support
+					this.processSupportNode(statementGroup, node);
+						
+					this.nodeAuditor.removeProcessedNdexObject(node);
+				}
+			}
+		
+		return statementGroup;
+
+	}
+	
+	
 	private void processSupportAnnotations(AnnotationGroup ag, Support support) {
 		//TODO: commented out by cj. need to review it.
 		// because we dont have annotations on support now. so we commented this function out. --cj
@@ -405,6 +477,39 @@ public class XbelNetworkExporter {
 		
 	}
 
+	private void processUnCitedStatementGroupInner(StatementGroup sg, Set<Long> reifiedEdgeIds) {
+
+		TreeSet<Long> processedNodes = new TreeSet<>();
+		
+		//edges
+		for (Map.Entry<Long, Edge> entry : this.subNetwork.getEdges()
+				.entrySet()) {
+			Edge edge = entry.getValue();
+			if ( (!reifiedEdgeIds.contains(edge.getId()))) {
+				// we've identified an Edge that belongs to this support
+				this.processSupportEdge(sg, edge);
+				this.edgeAuditor.removeProcessedNdexObject(edge);
+				processedNodes.add(edge.getSubjectId());
+				processedNodes.add(edge.getObjectId());
+			}
+		}
+
+		// process orphan nodes
+		for (Map.Entry<Long, Node> entry : this.subNetwork.getNodes()
+				.entrySet()) {
+			Node node = entry.getValue();
+			if ( !processedNodes.contains(entry.getKey())) {
+				// we've identified a node that belongs to this support
+				this.processSupportNode(sg, node);
+				
+				this.nodeAuditor.removeProcessedNdexObject(node);
+			}
+		}
+		
+		
+	}
+	
+	
 	/*
 	 * An NDEx Edge object is equivalent to an XBEL Statement object we need to
 	 * construct a new Statement, and complete its Subject, Predicate, and
