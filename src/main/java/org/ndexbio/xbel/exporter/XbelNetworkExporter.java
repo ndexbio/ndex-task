@@ -304,13 +304,15 @@ public class XbelNetworkExporter {
 		
 		// process the remainder ( statements that are not under any citation)
 		this.subNetwork = this.modelService.getNoCitationSubnetwork(this.networkId);
-		StatementGroup sg = this.processUnCitedStatementGroup();
-		try {
-			xm.writeStatementGroup(sg);
-		} catch (JAXBException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			logger.error("Error occured when writing statement group: " + e.getMessage());
+		if ( this.subNetwork.getNodeCount()>0 && this.subNetwork.getEdgeCount()>0 ) {
+			StatementGroup sg = this.processUnCitedStatementGroup();
+			try {
+				xm.writeStatementGroup(sg);
+			} catch (JAXBException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				logger.error("Error occured when writing statement group: " + e.getMessage());
+			}
 		}
 		
 	}
