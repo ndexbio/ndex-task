@@ -25,11 +25,14 @@ import org.biopax.paxtools.model.level3.PublicationXref;
 import org.biopax.paxtools.model.level3.RelationshipXref;
 import org.biopax.paxtools.model.level3.UnificationXref;
 import org.biopax.paxtools.model.level3.XReferrable;
+import org.biopax.paxtools.model.level3.Xref;
 import org.ndexbio.common.access.NdexAOrientDBConnectionPool;
 import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.models.dao.orientdb.NetworkDAO;
 import org.ndexbio.model.object.NdexPropertyValuePair;
+import org.ndexbio.model.object.network.BaseTerm;
 import org.ndexbio.model.object.network.Citation;
+import org.ndexbio.model.object.network.Edge;
 import org.ndexbio.model.object.network.Network;
 import org.ndexbio.model.object.network.Node;
 import org.ndexbio.model.tools.PropertyHelpers;
@@ -90,13 +93,11 @@ public class BioPAXNetworkExporter {
 			System.out.println("Citation: " + elementId + " rdfId: " + rdfId);
 			PublicationXref px = bioPAXModel.addNew(PublicationXref.class, rdfId);
 
-//			String xrefDb = pubXref.getDb();
-//			String xrefId = pubXref.getId();
 			String idType = citation.getIdType();
 			if (idType.equalsIgnoreCase("unspecified")) idType = null;
 			String identifier = citation.getIdentifier();
 			if (identifier.equalsIgnoreCase("unspecified")) identifier = null;
-			
+
 			String id = null;
 			String db = null;
 			if (null !=  idType && idType.equalsIgnoreCase("url")){
@@ -117,47 +118,47 @@ public class BioPAXNetworkExporter {
 				// id -> identifier
 				id = identifier;
 			}
-			
+
 			if (null != db) px.setDb(db);
 			if (null != id) px.setId(id);
-			
 
-//			String xrefTitle = pubXref.getTitle();
+
+			//			String xrefTitle = pubXref.getTitle();
 			if (null != citation.getTitle()){
 				px.setTitle(citation.getTitle());
 			}
 
-//
-// TBD: handle annotations, both for storing in NDEx and re-exporting
-//			Map<String, Object> annotations = pubXref.getAnnotations();
-//	
-// TBD: handle getXrefOf
-//			Set<XReferrable> refersTo = pubXref.getXrefOf();
-//
-			
-//			Set<String> authors = pubXref.getAuthor();
+			//
+			// TBD: handle annotations, both for storing in NDEx and re-exporting
+			//			Map<String, Object> annotations = pubXref.getAnnotations();
+			//	
+			// TBD: handle getXrefOf
+			//			Set<XReferrable> refersTo = pubXref.getXrefOf();
+			//
+
+			//			Set<String> authors = pubXref.getAuthor();
 			if (null != citation.getContributors()){
 				for (String author : citation.getContributors()){
 					px.addAuthor(author);
 				}			
 			}
-//			Set<String> comments = pubXref.getComment();
+			//			Set<String> comments = pubXref.getComment();
 			for (String comment : PropertyHelpers.getCitationPropertyValueStrings(network, citation, "comment")){
 				px.addComment(comment);
 			}
-//			Set<String> sources = pubXref.getSource();	
+			//			Set<String> sources = pubXref.getSource();	
 			for (String source : PropertyHelpers.getCitationPropertyValueStrings(network, citation, "source")){
 				px.addSource(source);
 			}
-//			String xrefDbVersion = pubXref.getDbVersion();
+			//			String xrefDbVersion = pubXref.getDbVersion();
 			String dbVersion = PropertyHelpers.getCitationPropertyValueString(network, citation, "dbVersion");
 			if (null != dbVersion) px.setDbVersion(dbVersion);
 
-//			String xrefIdVersion = pubXref.getIdVersion();
+			//			String xrefIdVersion = pubXref.getIdVersion();
 			String idVersion = PropertyHelpers.getCitationPropertyValueString(network, citation, "idVersion");
 			if (null != idVersion) px.setDbVersion(idVersion);
 
-//			int year = pubXref.getYear();
+			//			int year = pubXref.getYear();
 			String yearString = PropertyHelpers.getCitationPropertyValueString(network, citation, "year");
 			if (null != yearString){
 				// TODO: catch error. 
@@ -168,147 +169,178 @@ public class BioPAXNetworkExporter {
 
 			this.elementIdToBioPAXElementMap.put(elementId, px);
 		}
-		
+
 	}
 
 	private void processXREFNodes(Model bioPAXModel, Network network) throws NdexException {
-		/*
 		for (Entry<Long, Node> e : network.getNodes().entrySet()){
 			Node node = e.getValue();
 			Long nodeId = e.getKey();
-			
+
 			String bioPAXType = PropertyHelpers.getNodePropertyValueString(network, node, "ndex:bioPAXType");
-			if (bioPAXType.equals("UnificationXref")) processUnificationXREFNode(bioPAXModel, network);
-				
-			
-			Class<? extends BioPAXElement> bioPAXClass;
-			try {
-				bioPAXClass = (Class<? extends BioPAXElement>) Class.forName("org.biopax.paxtools.model.level3." + bioPAXType);
-			} catch (ClassNotFoundException e1) {
-				e1.printStackTrace();
-				throw new NdexException("Unknown BioPAX class " + bioPAXType);
+			if (bioPAXType != null){
+				if (bioPAXType.equals("UnificationXref")){
+					processUnificationXREFNode(bioPAXModel, network, node, nodeId);
+				} else if(bioPAXType.equals("RelationshipXref")){
+					processRelationshipXREFNode(bioPAXModel, network, node, nodeId);
+				}
 			}
-			BioPAXElement bpe;
-			String rdfId = node.getName();
-			if (bioPAXClass != null && rdfId != null){
-				bpe = bioPAXModel.addNew(bioPAXClass, rdfId);
-			} else {
-				throw new NdexException("Processing a node to a BioPAX element needs both: bioPAXClass: " + bioPAXClass + " rdfId: " + rdfId);
-			}
-
-			// Check whether this Node has a represents
-			// If so, then the represented BaseTerm holds the db and id for the 
-			// the Xref BioPAX Element
-			// Furthermore, we want to map the base term Id to the XREF BPE
-			// so when we later process a 
-			
-			EditorMap editorMap = SimpleEditorMap.L3;
-			
-			// Process the node properties 
-			for (NdexPropertyValuePair pvp : node.getProperties()){
-				String propertyString = pvp.getPredicateString();
-				if (! propertyString.equalsIgnoreCase("rdfId")){
-					String value = pvp.getValue();
-					PropertyEditor editor = editorMap.getEditorForProperty(propertyString, bioPAXClass);
-					if (editor != null){
-						editor.setValueToBean(value, bpe);
-					} else {
-						System.out.println("Can't export property " + propertyString + " to element class " + bioPAXClass);
-					}
-				}			
-			}
-			
-			this.elementIdToBioPAXElementMap.put(nodeId, bpe);
-
 		}
-		*/
-		
 	}
-		
-		// Process all Nodes that are not XREF nodes
-		// None of these will have a "represents" property
+
+	private void processUnificationXREFNode(Model bioPAXModel, Network network,
+			Node node, Long nodeId) throws NdexException {
+		String rdfId = node.getName();
+		UnificationXref bpe = bioPAXModel.addNew(UnificationXref.class, rdfId);
+		processProperties(bpe, node.getProperties(), UnificationXref.class);
+		Long termId = node.getRepresents();
+		System.out.println("UnificationXref: " + termId + " rdfId: " + rdfId);
+		this.termIdToUnificationXrefMap.put(termId, bpe);
+	}
+
+	private void processRelationshipXREFNode(Model bioPAXModel, Network network,
+			Node node, Long nodeId) throws NdexException {
+		String rdfId = node.getName();
+		RelationshipXref bpe = bioPAXModel.addNew(RelationshipXref.class, rdfId);
+		processProperties(bpe, node.getProperties(),RelationshipXref.class);
+		Long termId = node.getRepresents();
+		System.out.println("RelationshipXref: " + termId + " rdfId: " + rdfId);
+		this.termIdToRelationshipXrefMap.put(termId, bpe);
+	}
+
+	private void processProperties(BioPAXElement bpe,
+			List<NdexPropertyValuePair> properties, 
+			Class<? extends BioPAXElement> bioPAXClass
+			) throws NdexException {
+		System.out.println("Properties for " + bpe.getRDFId());
+		EditorMap editorMap = SimpleEditorMap.L3;
+		for (NdexPropertyValuePair pvp : properties){
+			String propertyString = pvp.getPredicateString();
+			if (! propertyString.equalsIgnoreCase("rdfId") && ! propertyString.equalsIgnoreCase("ndex:bioPAXType")){
+				String value = pvp.getValue();
+				PropertyEditor editor = editorMap.getEditorForProperty(propertyString, bioPAXClass);
+				if (editor != null){
+					System.out.println("    Property: " + propertyString + " value: " + value);
+					editor.setValueToBean(value, bpe);
+				} else {
+					throw new NdexException("Can't export property " + propertyString + " to element class " + bioPAXClass);
+				}
+			}			
+		}
+	}
+
+
+	// Process all Nodes that are *not* XREF nodes
+	// None of these will have a "represents" property
 	private void processNodes(Model bioPAXModel, Network network) throws NdexException {
-		/*
 		for (Entry<Long, Node> e : network.getNodes().entrySet()){
 			Node node = e.getValue();
 			Long nodeId = e.getKey();
-			
+
 			String bioPAXType = PropertyHelpers.getNodePropertyValueString(network, node, "ndex:bioPAXType");
-			Class<? extends BioPAXElement> bioPAXClass;
-			try {
-				bioPAXClass = (Class<? extends BioPAXElement>) Class.forName("org.biopax.paxtools.model.level3." + bioPAXType);
-			} catch (ClassNotFoundException e1) {
-				e1.printStackTrace();
-				throw new NdexException("Unknown BioPAX class " + bioPAXType);
-			}
-			BioPAXElement bpe;
-			String rdfId = node.getName();
-			if (bioPAXClass != null && rdfId != null){
-				bpe = bioPAXModel.addNew(bioPAXClass, rdfId);
-			} else {
-				throw new NdexException("Processing a node to a BioPAX element needs both: bioPAXClass: " + bioPAXClass + " rdfId: " + rdfId);
-			}
-			
-			EditorMap editorMap = SimpleEditorMap.L3;
-			
-			// Process the node properties 
-			for (NdexPropertyValuePair pvp : node.getProperties()){
-				String propertyString = pvp.getPredicateString();
-				if (! propertyString.equalsIgnoreCase("rdfId")){
-					String value = pvp.getValue();
-					PropertyEditor editor = editorMap.getEditorForProperty(propertyString, bioPAXClass);
-					if (editor != null){
-						editor.setValueToBean(value, bpe);
-					} else {
-						System.out.println("Can't export property " + propertyString + " to element class " + bioPAXClass);
+			if (bioPAXType != null){
+				if (!bioPAXType.equals("UnificationXref") && !bioPAXType.equals("RelationshipXref")){
+
+
+					Class<? extends BioPAXElement> bioPAXClass;
+					try {
+						bioPAXClass = (Class<? extends BioPAXElement>) Class.forName("org.biopax.paxtools.model.level3." + bioPAXType);
+					} catch (ClassNotFoundException e1) {
+						e1.printStackTrace();
+						throw new NdexException("Unknown BioPAX class " + bioPAXType);
 					}
-				}			
-			}
-			
-			this.elementIdToBioPAXElementMap.put(nodeId, bpe);
-			
-			// Process the node aliases
-			// Each termId should map to a UnificationXREF
-			// that was created during the processXREFNodes phase
-			PropertyEditor xrefPropertyEditor = editorMap.getEditorForProperty("xref", Xref);
-			for (Long termId : node.getAliases()){
-				UnificationXref xref = this.getUnificationXREF(termId);
-				if (null == xref) throw new NdexException("Expected to find UnificationXREF corresponding to termId " + termId);
-				xrefPropertyEditor.setValueToBean(bpe, xref);
-				
-			}
-			
-			// Process the node relatedTerms
-			// Each termId should map to a RelationshipXREF
-			// that was created during the processXREFNodes phase
-			for (Long termId : node.getRelatedTerms()){
-				RelationshipXref xref = this.getRelationshipXREF(termId);
-				if (null == xref) throw new NdexException("Expected to find RelationshipXREF corresponding to termId " + termId);
-				xrefPropertyEditor.setValueToBean(bpe, xref);
+					BioPAXElement bpe;
+					String rdfId = node.getName();
+					if (bioPAXClass != null && rdfId != null){
+						bpe = bioPAXModel.addNew(bioPAXClass, rdfId);
+					} else {
+						throw new NdexException("Processing a node to a BioPAX element needs both: bioPAXClass: " + bioPAXClass + " rdfId: " + rdfId);
+					}
+
+					EditorMap editorMap = SimpleEditorMap.L3;
+
+					processProperties(bpe, node.getProperties(),bioPAXClass);
+
+					this.elementIdToBioPAXElementMap.put(nodeId, bpe);
+
+					// Process the node aliases
+					// Each termId should map to a UnificationXREF
+					// that was created during the processXREFNodes phase
+					PropertyEditor xrefPropertyEditor = editorMap.getEditorForProperty("xref", bioPAXClass);
+					
+					for (Long termId : node.getAliases()){
+						UnificationXref xref = this.getUnificationXREF(termId);
+						if (null == xref) throw new NdexException("Expected to find UnificationXREF corresponding to termId " + termId);
+						xrefPropertyEditor.setValueToBean(xref, bpe);
+
+					}
+
+					// Process the node relatedTerms
+					// Each termId should map to a RelationshipXREF
+					// that was created during the processXREFNodes phase
+					for (Long termId : node.getRelatedTerms()){
+						RelationshipXref xref = this.getRelationshipXREF(termId);
+						if (null == xref) throw new NdexException("Expected to find RelationshipXREF corresponding to termId " + termId);
+						xrefPropertyEditor.setValueToBean(xref, bpe);
+					}
+				}
 			}
 		}
-		*/
 	}
-	
-	private void processEdges(Model bioPAXModel, Network network) {
-		// TODO Auto-generated method stub
-		
+
+	private RelationshipXref getRelationshipXREF(Long termId) {
+		return this.termIdToRelationshipXrefMap.get(termId);
 	}
-	
+
+	private UnificationXref getUnificationXREF(Long termId) {
+		return this.termIdToUnificationXrefMap.get(termId);
+	}
+
+	private void processEdges(Model bioPAXModel, Network network) throws NdexException {
+		EditorMap editorMap = SimpleEditorMap.L3;
+
+		for (Edge edge : network.getEdges().values()){
+			Long subjectId = edge.getSubjectId();
+			if (subjectId == null || subjectId == 0) throw new NdexException("Malformed BioPAX Edge with subjectId = " + subjectId);
+			BioPAXElement subjectBPE = this.elementIdToBioPAXElementMap.get(subjectId);
+			if (subjectBPE == null) throw new NdexException("Malformed BioPAX Edge, no BioPAX Element found for subjectId = " + subjectId);
+
+			Long objectId = edge.getObjectId();
+			if (objectId == null || objectId == 0) throw new NdexException("Malformed BioPAX Edge with objectId = " + objectId);
+			BioPAXElement objectBPE = this.elementIdToBioPAXElementMap.get(objectId);
+			if (objectBPE == null) throw new NdexException("Malformed BioPAX Edge, no BioPAX Element found for objectId = " + objectId);
+
+			Long predicateId = edge.getPredicateId();
+			BaseTerm predicateTerm = network.getBaseTerms().get(predicateId);
+			if (predicateTerm == null) throw new NdexException("Malformed BioPAX Edge, no BaseTerm found for predicateId = " + predicateId);
+
+			String predicate = predicateTerm.getName();
+			Class<? extends BioPAXElement> subjectClass = subjectBPE.getModelInterface();
+			PropertyEditor editor = editorMap.getEditorForProperty(predicate, subjectClass);
+			
+			if (null == editor){
+				throw new NdexException("Malformed BioPAX Edge, no PropertyEditor found for predicate = " + predicate);
+			}
+			editor.setValueToBean(subjectBPE, objectBPE);
+
+		}
+
+	}
+
 	// 4b91eadb-5c84-11e4-9ec0-040ccee25000
 
 	public static  void main (String[] args) throws NdexException, ParserConfigurationException, TransformerException, ClassCastException, SAXException, IOException {
 		ODatabaseDocumentTx db = NdexAOrientDBConnectionPool.getInstance().acquire();
-		
+
 		BioPAXNetworkExporter exporter = new BioPAXNetworkExporter(db);
 		/*
 		FileOutputStream fo = new FileOutputStream("C:/tmp/galout.xgmml");
 		exporter.exportNetwork(UUID.fromString("4b91eadb-5c84-11e4-9ec0-040ccee25000"),
 				fo);
 		fo.close();
-		*/
+		 */
 		exporter.exportNetwork(UUID.fromString("4b91eadb-5c84-11e4-9ec0-040ccee25000"), System.out);
-		
+
 		db.close();
 
 	}
@@ -317,5 +349,5 @@ public class BioPAXNetworkExporter {
 
 
 
-	
+
 }
