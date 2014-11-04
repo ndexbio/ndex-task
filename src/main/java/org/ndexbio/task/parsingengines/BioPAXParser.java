@@ -54,6 +54,13 @@ public class BioPAXParser implements IParsingEngine {
 	private final File bioPAXFile;
 	private final String bioPAXURI;
 	private List<String> msgBuffer;
+	public String networkUUID;
+	public int entityCount;
+	public int pubXrefCount;
+	public int uXrefCount;
+	public int rXrefCount;
+	public int literalPropertyCount;
+	public int referencePropertyCount;
 
 	private static Logger logger = Logger.getLogger("BioPAXParser");
 	
@@ -97,6 +104,13 @@ public class BioPAXParser implements IParsingEngine {
 
 	@Override
 	public void parseFile() throws NdexException {
+		this.entityCount = 0;
+		this.pubXrefCount = 0;
+		this.uXrefCount = 0;
+		this.rXrefCount = 0;
+		this.literalPropertyCount = 0;
+		this.referencePropertyCount = 0;
+		
 		BufferedReader bufferedReader = null;
 		try {
 
@@ -131,6 +145,7 @@ public class BioPAXParser implements IParsingEngine {
 			this.persistenceService.persistNetwork();
 			
 			System.out.println("Network UUID: " + currentNetwork.getExternalId());
+			this.networkUUID = currentNetwork.getExternalId().toString();
 
 		} catch (Exception e) {
 			// delete network and close the database connection
@@ -169,6 +184,7 @@ public class BioPAXParser implements IParsingEngine {
 		// objects
 		//
 		for (BioPAXElement bpe : elementSet) {
+			this.entityCount++;
 			if (bpe instanceof Xref) {
 				// Process Xrefs to create BaseTerm and Citation objects
 				this.processXREFElement((Xref)bpe);
@@ -261,6 +277,7 @@ public class BioPAXParser implements IParsingEngine {
 				} else if (val instanceof BioPAXElement){
 					// create the edge
 					processEdge(editor, (BioPAXElement) val, nodeId);
+					this.referencePropertyCount++;
 				} else if (null != val){
 					// queue up a property to be in the set to add
 					String propertyName = editor.getProperty();
@@ -268,6 +285,7 @@ public class BioPAXParser implements IParsingEngine {
 					
 					NdexPropertyValuePair pvp = new NdexPropertyValuePair(propertyName, valueString);
 					literalProperties.add(pvp);
+					this.literalPropertyCount++;
 				}
 			}
 
@@ -333,8 +351,10 @@ public class BioPAXParser implements IParsingEngine {
 			processPublicationXref(xref);
 		} else if (xref instanceof UnificationXref) {
 			processXref(xref);
+			this.uXrefCount++;
 		} else if (xref instanceof RelationshipXref) {
 			processXref(xref);
+			this.rXrefCount++;
 		} else {
 			// TBD: turn this into an exception?
 			String name = xref.getClass().getName();
@@ -363,6 +383,11 @@ public class BioPAXParser implements IParsingEngine {
 		String xrefIdVersion = xref.getIdVersion();
 		Set<XReferrable> refersTo = xref.getXrefOf();
 		
+		if (null != xrefDb) PropertyHelpers.addNdexProperty("db", xrefDb, literalProperties);
+		if (null != xrefDbVersion) PropertyHelpers.addNdexProperty("dbVersion", xrefDbVersion, literalProperties);
+		if (null != xrefId) PropertyHelpers.addNdexProperty("id", xrefId, literalProperties);
+		if (null != xrefIdVersion) PropertyHelpers.addNdexProperty("idVersion", xrefIdVersion, literalProperties);
+		
 		Long termId = null;
 		if (null != xrefId && null != xrefDb) {
 			// We have both an identifier string for a BaseTerm
@@ -387,6 +412,7 @@ public class BioPAXParser implements IParsingEngine {
 
 	private void processPublicationXref(BioPAXElement xref)
 			throws NdexException, ExecutionException {
+		this.pubXrefCount++;
 		String rdfId = xref.getRDFId();
 		String name = xref.getClass().getName();
 		
@@ -537,6 +563,34 @@ public class BioPAXParser implements IParsingEngine {
 		this.rdfIdToElementIdMap.put(rdfId, elementId);
 
 	}
+
+	public String getNetworkUUID() {
+		return networkUUID;
+	}
+
+	public int getEntityCount() {
+		return entityCount;
+	}
+
+	public int getPubXrefCount() {
+		return pubXrefCount;
+	}
+
+	public int getuXrefCount() {
+		return uXrefCount;
+	}
+
+	public int getrXrefCount() {
+		return rXrefCount;
+	}
+
+	public int getLiteralPropertyCount() {
+		return literalPropertyCount;
+	}
+
+	public int getReferencePropertyCount() {
+		return referencePropertyCount;
+	}
 	
 	// fragments
 	/*
@@ -589,5 +643,7 @@ public class BioPAXParser implements IParsingEngine {
 	 * this.persistenceService.createNamespace2("UniProt",
 	 * "http://identifiers.org/uniprot/");
 	 */
+	
+	
 
 }
