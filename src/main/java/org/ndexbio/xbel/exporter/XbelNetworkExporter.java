@@ -252,12 +252,19 @@ public class XbelNetworkExporter {
 			if ( annotationPattern != null ) { 
   			    iad.setPatternAnnotation(annotationPattern);
 			}
-			iad.setListAnnotation(this.xbelFactory.createListAnnotation());
+			List<String> listAnno = new LinkedList<>();
+			
 			for ( NdexPropertyValuePair p : ns.getProperties()) {
 				if (p.getPredicateString().equals(AnnotationDefinitionGroupSplitter.list_annotation)) {
-					iad.getListAnnotation().getListValue().add(p.getValue());
+					listAnno.add(p.getValue());
 				}
 			}
+			
+			if ( !listAnno.isEmpty() ) {
+				iad.setListAnnotation(this.xbelFactory.createListAnnotation());
+				for ( String s : listAnno)
+					iad.getListAnnotation().getListValue().add(s);
+			}	
 		}
 	}
 
