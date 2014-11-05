@@ -719,7 +719,7 @@ public class XbelNetworkExporter {
 				 */
 			//	if ( ns == null)
 			//	   System.out.println("Namespace is null");
-				if ( ns != null && ns.getId() >0 && !ns.getPrefix().equals("BEL")) {
+				if ( ns != null && ns.getId() >0 && !ns.getPrefix().equals(XbelParser.belPrefix)) {
 					// this.xbelTermStack.peek().getParameterOrTerm().add(xbelParameter);
 					xbelParameter.setNs(ns.getPrefix());
 				}
