@@ -321,7 +321,7 @@ public class BioPAXNetworkExporter {
 			if (null == editor){
 				throw new NdexException("Malformed BioPAX Edge, no PropertyEditor found for predicate = " + predicate);
 			}
-			editor.setValueToBean(subjectBPE, objectBPE);
+			editor.setValueToBean(objectBPE, subjectBPE);
 
 		}
 
