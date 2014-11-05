@@ -768,7 +768,7 @@ public class XbelNetworkExporter {
 		} else {
 			xbelCitation.setType(CitationType.fromValue(modelCitation.getIdType()));
 		}
-		if (null != modelCitation.getContributors()) {
+		if (null != modelCitation.getContributors() && !modelCitation.getContributors().isEmpty()) {
 			org.ndexbio.xbel.model.Citation.AuthorGroup authors = new org.ndexbio.xbel.model.Citation.AuthorGroup();
 			for (String contributor : modelCitation.getContributors()) {
 				authors.getAuthor().add(contributor);
