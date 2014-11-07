@@ -336,6 +336,9 @@ public class XbelNetworkExporter {
 		sg.setName(this.createXbelCitation(ag, modelCitation));
 		sg.setAnnotationGroup(ag);
 		
+		// Setup tracker so that we can tell which nodes are orphan nodes
+		TreeSet<Long> processedNodeIds = new TreeSet<>();
+		
 		// a collection of edge ids that referenced by ReifiedEdgesTerm
 		TreeSet<Long> reifiedEdgeIds = new TreeSet<>();
 		for ( ReifiedEdgeTerm rt: this.subNetwork.getReifiedEdgeTerms().values()) {
@@ -344,13 +347,25 @@ public class XbelNetworkExporter {
 		
 		for ( Edge e : this.subNetwork.getEdges().values()) {
 			if(  e.getSupportIds().size() == 0 && (! reifiedEdgeIds.contains(e.getId())) ) {
-				this.processSupportEdge(sg, e);
+				this.processSupportEdge(sg, e, processedNodeIds);
 				this.edgeAuditor.removeProcessedNdexObject(e);
 			}
 		}
 		
-		processCitationSupports(sg, modelCitation, reifiedEdgeIds);
+		processCitationSupports(sg, modelCitation, reifiedEdgeIds,processedNodeIds);
 		
+		// process orphan nodes in this Citation
+		for (Map.Entry<Long, Node> entry : this.subNetwork.getNodes()
+					.entrySet()) {
+			Node node = entry.getValue();
+			if (node.getCitationIds().contains(modelCitation.getId()) && !processedNodeIds.contains(entry.getKey())) {
+					// we've identified a node that belongs to this support
+				this.processSupportNode(sg, node);
+					
+				this.nodeAuditor.removeProcessedNdexObject(node);
+			}
+		}
+
 		// increment the audit citation count
 		this.auditService.incrementObservedMetricValue("citation count");
 		
@@ -382,7 +397,7 @@ public class XbelNetworkExporter {
 	 * inner level statement group and contains a collection of edges
 	 */
 	private void processCitationSupports(StatementGroup outerSG,
-			org.ndexbio.model.object.network.Citation modelCitation, Set<Long> reifiedEdgeIds) {
+			org.ndexbio.model.object.network.Citation modelCitation, Set<Long> reifiedEdgeIds, Set<Long> processedNodeIds) {
 		
 		for ( Support support : this.subNetwork.getSupports().values()) {
 			if ( support.getCitationId() == modelCitation.getId()) {
@@ -401,7 +416,7 @@ public class XbelNetworkExporter {
 				this.auditService.incrementObservedMetricValue("support count");
 				this.supportAuditor.removeProcessedNdexObject(support);
 
-				this.processSupportStatementGroup(supportStatementGroup, support.getId(), reifiedEdgeIds);
+				this.processSupportStatementGroup(supportStatementGroup, support.getId(), reifiedEdgeIds, processedNodeIds);
 			}
 		}
 
@@ -425,10 +440,8 @@ public class XbelNetworkExporter {
 			Edge edge = entry.getValue();
 			if ( (!reifiedEdgeIds.contains(edge.getId()))) {
 				// we've identified an Edge that belongs to this support
-				this.processSupportEdge(statementGroup, edge);
+				this.processSupportEdge(statementGroup, edge,processedNodes);
 				this.edgeAuditor.removeProcessedNdexObject(edge);
-				processedNodes.add(edge.getSubjectId());
-				processedNodes.add(edge.getObjectId());
 			}
 		}
 
@@ -466,47 +479,16 @@ public class XbelNetworkExporter {
 	 * represent an inner level statement group wrt to the outer level citation
 	 * statement group
 	 */
-	private void processSupportStatementGroup(StatementGroup sg, Long supportId, Set<Long> reifiedEdgeIds) {
+	private void processSupportStatementGroup(StatementGroup sg, Long supportId, Set<Long> reifiedEdgeIds, Set<Long> processedNodeIds) {
 
-		// process orphan nodes
-		for (Map.Entry<Long, Node> entry : this.subNetwork.getNodes()
-				.entrySet()) {
-			Node node = entry.getValue();
-			if (node.getSupportIds().contains(supportId)) {
-				// we've identified a node that belongs to this support
-				this.processSupportNode(sg, node);
-				
-				this.nodeAuditor.removeProcessedNdexObject(node);
-			}
-		}
-		
 		//edges
 		for (Map.Entry<Long, Edge> entry : this.subNetwork.getEdges()
 				.entrySet()) {
 			Edge edge = entry.getValue();
 			if ( (!reifiedEdgeIds.contains(edge.getId())) && edge.getSupportIds().contains(supportId)) {
 				// we've identified an Edge that belongs to this support
-				this.processSupportEdge(sg, edge);
+				this.processSupportEdge(sg, edge, processedNodeIds);
 				this.edgeAuditor.removeProcessedNdexObject(edge);
-			}
-		}
-		
-	}
-
-	private void processUnCitedStatementGroupInner(StatementGroup sg, Set<Long> reifiedEdgeIds) {
-
-		TreeSet<Long> processedNodes = new TreeSet<>();
-		
-		//edges
-		for (Map.Entry<Long, Edge> entry : this.subNetwork.getEdges()
-				.entrySet()) {
-			Edge edge = entry.getValue();
-			if ( (!reifiedEdgeIds.contains(edge.getId()))) {
-				// we've identified an Edge that belongs to this support
-				this.processSupportEdge(sg, edge);
-				this.edgeAuditor.removeProcessedNdexObject(edge);
-				processedNodes.add(edge.getSubjectId());
-				processedNodes.add(edge.getObjectId());
 			}
 		}
 
@@ -514,17 +496,17 @@ public class XbelNetworkExporter {
 		for (Map.Entry<Long, Node> entry : this.subNetwork.getNodes()
 				.entrySet()) {
 			Node node = entry.getValue();
-			if ( !processedNodes.contains(entry.getKey())) {
+			if (node.getSupportIds().contains(supportId) && !processedNodeIds.contains(entry.getKey())) {
 				// we've identified a node that belongs to this support
 				this.processSupportNode(sg, node);
 				
 				this.nodeAuditor.removeProcessedNdexObject(node);
 			}
 		}
-		
-		
+
 	}
-	
+
+
 	
 	/*
 	 * An NDEx Edge object is equivalent to an XBEL Statement object we need to
@@ -533,7 +515,7 @@ public class XbelNetworkExporter {
 	 * Since we are starting processing for a new Support we can clear the
 	 * Statement stack
 	 */
-	private void processSupportEdge(StatementGroup sg, Edge edge) {
+	private void processSupportEdge(StatementGroup sg, Edge edge, Set<Long> processedNodeIds) {
 		// we're at the outer level so clear the Statement stack
 //		this.stmtStack.clear();
 		Statement stmt = new Statement();
@@ -541,6 +523,8 @@ public class XbelNetworkExporter {
 //		this.sgStack.peek().getStatement().add(stmt);
 		
 		this.processStatement(stmt, edge);
+		processedNodeIds.add(edge.getObjectId());
+		processedNodeIds.add(edge.getSubjectId());
 	}
 
 	private void processSupportNode(StatementGroup sg, Node node) {

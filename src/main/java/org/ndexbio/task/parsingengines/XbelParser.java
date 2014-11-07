@@ -64,13 +64,13 @@ public class XbelParser implements IParsingEngine
     private static final Logger logger = LoggerFactory.getLogger(XbelParser.class);
 
     public static final String belPrefix = "bel";
-    public static final String elementContactInfo = "bel:contactInfo";
-    public static final String elementCopyright   = "bel:copyright";
-    public static final String elementDisclaimer  = "bel:disclaimer";
-    public static final String elementAuthor      = "bel:author";
-    public static final String elementLicense     = "bel:license";
+    public static final String elementContactInfo = belPrefix + ":contactInfo";
+    public static final String elementCopyright   = belPrefix + ":copyright";
+    public static final String elementDisclaimer  = belPrefix + ":disclaimer";
+    public static final String elementAuthor      = belPrefix + ":author";
+    public static final String elementLicense     = belPrefix + ":license";
     
-    public XbelParser(String fn, String ownerName, NdexDatabase db) throws JAXBException, NdexException, URISyntaxException
+    public XbelParser(String fn, String ownerName, NdexDatabase db) throws JAXBException, NdexException
     {
         Preconditions.checkArgument(!Strings.isNullOrEmpty(fn), "A filename is required");
         Preconditions.checkArgument(!Strings.isNullOrEmpty(ownerName),

@@ -9,7 +9,6 @@ import java.util.concurrent.ExecutionException;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 
-import org.ndexbio.common.NdexClasses;
 import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.persistence.orientdb.NdexPersistenceService;
 import org.ndexbio.task.parsingengines.XbelParser;
@@ -232,6 +231,14 @@ public class StatementGroupSplitter extends XBelSplitter {
 			}
 		}
 		
+		Long localCitationId = citationFromAnnotationGroup(annotationGroup);
+		if ( localCitationId == null)
+			localCitationId = citationId;
+		Long localSupportId  = supportFromAnnotationGroup (annotationGroup, localCitationId);
+		if ( localSupportId == null)
+			localSupportId = supportId;
+		
+		
 		if (null != statement.getSubject()) {
 
 			// All statements are expected to have a subject.
@@ -250,14 +257,14 @@ public class StatementGroupSplitter extends XBelSplitter {
 						XbelParser.belPrefix + ":"+statement.getRelationship().name());
 
 				Long objectNodeId = this.processStatementObject(statement
-						.getObject(), supportId, citationId, annotations, level);
+						.getObject(), localSupportId, localCitationId, annotations, level);
 
 				return this.networkService.createEdge(subjectNodeId, objectNodeId,
-						predicateId, supportId, citationId, annotations);
+						predicateId, localSupportId, localCitationId, annotations);
 			} 
 			
 			//System.out.println("Handling subject-only statement for node: " + subjectNode.getJdexId() );
-			this.networkService.addMetaDataToNode(subjectNodeId, supportId, citationId, annotations);
+			this.networkService.addMetaDataToNode(subjectNodeId, localSupportId, localCitationId, annotations);
 			return null;
 
 		} 
