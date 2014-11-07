@@ -795,8 +795,10 @@ public class XbelNetworkExporter {
 			}
 		}
 
-		header.setAuthorGroup(ag);
-		header.setLicenseGroup(lg);
+		if ( ag.getAuthor().size() > 0 )
+			header.setAuthorGroup(ag);
+		if ( lg.getLicense().size() > 0 )
+			header.setLicenseGroup(lg);
 		// document.setHeader(header);
 		try {
 			xm.writeHeader(header);
