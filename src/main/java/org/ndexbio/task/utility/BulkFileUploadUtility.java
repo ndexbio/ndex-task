@@ -29,6 +29,7 @@ import com.orientechnologies.orient.core.id.ORID;
  * The input parameter is a directory location. All regular files within the specified directory 
  * are processed
  */
+@Deprecated
 public class BulkFileUploadUtility {
 	
 	private final Path uploadDir;
