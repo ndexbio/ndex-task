@@ -499,7 +499,7 @@ public class XbelNetworkExporter {
 			if (node.getSupportIds().contains(supportId) && !processedNodeIds.contains(entry.getKey())) {
 				// we've identified a node that belongs to this support
 				this.processSupportNode(sg, node);
-				
+				processedNodeIds.add(node.getId());
 				this.nodeAuditor.removeProcessedNdexObject(node);
 			}
 		}
