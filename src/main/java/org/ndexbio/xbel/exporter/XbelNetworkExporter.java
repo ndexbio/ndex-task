@@ -775,7 +775,7 @@ public class XbelNetworkExporter {
 		String description = Objects.firstNonNull(
 				this.network.getDescription(), "XBEL network");
 		header.setDescription(description);
-		header.setVersion(this.network.getVersion());
+		header.setVersion(this.network.getVersion() == null? "N/A" : this.network.getVersion());
 		
 		AuthorGroup ag = new AuthorGroup();
 		LicenseGroup lg = new LicenseGroup();
