@@ -156,7 +156,7 @@ public class XbelParser implements IParsingEngine
         		networkTitle,
         		this.headerSplitter.getHeader().getVersion());
         this.networkService.setNetworkTitleAndDescription(null, header.getDescription());
-        
+        this.networkService.setNetworkSourceFormat(NetworkSourceFormat.BEL);
 		try {
 				// create a few default name spaces. 
 				// BEL namespace
@@ -171,9 +171,6 @@ public class XbelParser implements IParsingEngine
 		
         // insert others as network properties.
 		List<NdexPropertyValuePair> propList = new ArrayList <> ();
-		
-		// set the source format
-		propList.add(new NdexPropertyValuePair (NdexClasses.Prop_source_format, NetworkSourceFormat.BEL.toString()));
 		
         String contact = header.getContactInfo();
         if ( contact != null ) {

@@ -129,10 +129,7 @@ public class ExcelParser implements IParsingEngine
             // persist the network domain model, commit the transaction, close
             // database connection
 			// set the source format
-			List<NdexPropertyValuePair> c = new ArrayList<>(1);
-			NdexPropertyValuePair p = new NdexPropertyValuePair (NdexClasses.Prop_source_format, NetworkSourceFormat.EXCEL.toString());
-			c.add(p);
-			this.networkService.setNetworkProperties(c, null);
+			this.networkService.setNetworkSourceFormat(NetworkSourceFormat.EXCEL);
 
             this.networkService.persistNetwork();
         }

@@ -125,10 +125,7 @@ public class SifParser implements IParsingEngine {
 			NetworkSummary currentNetwork = this.persistenceService.getCurrentNetwork();
 			
 			// set the source format
-			List<NdexPropertyValuePair> c = new ArrayList<>(1);
-			NdexPropertyValuePair p = new NdexPropertyValuePair (NdexClasses.Prop_source_format, NetworkSourceFormat.SIF.toString());
-			c.add(p);
-			this.persistenceService.setNetworkProperties(c, null);
+			this.persistenceService.setNetworkSourceFormat(NetworkSourceFormat.SIF);
 			
 			String uri = NdexDatabase.getURIPrefix();
 

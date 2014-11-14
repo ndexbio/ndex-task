@@ -125,10 +125,7 @@ public class BioPAXParser implements IParsingEngine {
 					.getCurrentNetwork();
 
 			// set the source format
-			List<NdexPropertyValuePair> c = new ArrayList<>(1);
-			NdexPropertyValuePair p = new NdexPropertyValuePair (NdexClasses.Prop_source_format, NetworkSourceFormat.BIOPAX.toString());
-			c.add(p);
-			this.persistenceService.setNetworkProperties(c, null);
+			this.persistenceService.setNetworkSourceFormat(NetworkSourceFormat.BIOPAX);
 
 			String uri = NdexDatabase.getURIPrefix();
 
@@ -180,7 +177,7 @@ public class BioPAXParser implements IParsingEngine {
 		
 		String xmlBase = model.getXmlBase();
 		NdexPropertyValuePair xmlBaseProp = new NdexPropertyValuePair("xmlBase", xmlBase);
-		List<NdexPropertyValuePair> networkProperties = new ArrayList<NdexPropertyValuePair>();
+		List<NdexPropertyValuePair> networkProperties = new ArrayList<>();
 		networkProperties.add(xmlBaseProp);	
 		this.persistenceService.setNetworkProperties(networkProperties, null);
 		addBioPAXNamespaces(model);
@@ -216,7 +213,7 @@ public class BioPAXParser implements IParsingEngine {
 		
 	}
 
-	private void processElementToNode(BioPAXElement bpe) throws ExecutionException, NdexException {
+	private void processElementToNode(BioPAXElement bpe) throws NdexException {
 		String rdfId = bpe.getRDFId();
 		String className = bpe.getClass().getName();
 		String simpleName = bpe.getModelInterface().getSimpleName();

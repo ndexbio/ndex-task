@@ -44,17 +44,17 @@ public class XgmmlParser implements IParsingEngine {
     private NdexPersistenceService networkService;
     private static final Logger logger = LoggerFactory.getLogger(XgmmlParser.class);
 
-	public XgmmlParser(String fn, String ownerName, NdexDatabase db) throws Exception {
+	public XgmmlParser(String fn, String ownerAccountName, NdexDatabase db) throws Exception {
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(fn),
 				"A filename is required");
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(fn),
 				"A network owner name is required");
-		this.ownerName = ownerName;
+		this.ownerName = ownerAccountName;
 		this.xgmmlFile = new File(fn);
 		this.networkService = new NdexPersistenceService(db);
 	}  
 	
-	private void log (String string){
+	private static void log (String string){
 		System.out.println(string);
 	}
     
@@ -67,61 +67,50 @@ public class XgmmlParser implements IParsingEngine {
 	@Override
 	public void parseFile() throws NdexException {
         
-		FileInputStream xgmmlFileStream = null;
-        try
-        {
-            xgmmlFileStream = new FileInputStream(this.getXgmmlFile());
-        }
-        catch (FileNotFoundException e1)
-        {
-            e1.printStackTrace();
-            log("Could not read " + this.getXgmmlFile());
-            this.networkService.abortTransaction();  //TODO: close connection to database
-            throw new NdexException("File not found: " + this.xgmmlFile.getName());
-        }
+		try (FileInputStream xgmmlFileStream = new FileInputStream(this.getXgmmlFile())) { 
 
-        try
-        {
+			try
+			{
         	
-            setNetwork();
-            readXGMML(xgmmlFileStream);
+				setNetwork();
+				readXGMML(xgmmlFileStream);
 
-			//add provenance to network
-			NetworkSummary currentNetwork = this.networkService.getCurrentNetwork();
+				this.networkService.setNetworkSourceFormat(NetworkSourceFormat.XGMML);
+
+				//add provenance to network
+				NetworkSummary currentNetwork = this.networkService.getCurrentNetwork();
 			
-			String uri = NdexDatabase.getURIPrefix();
+				String uri = NdexDatabase.getURIPrefix();
 
-			// set the source format
-			List<NdexPropertyValuePair> c = new ArrayList<>(1);
-			NdexPropertyValuePair p = new NdexPropertyValuePair (NdexClasses.Prop_source_format, NetworkSourceFormat.XGMML.toString());
-			c.add(p);
-			this.networkService.setNetworkProperties(c, null);
-
+				// set the source format
 			
-			ProvenanceEntity provEntity = ProvenanceHelpers.createProvenanceHistory(currentNetwork,
+				ProvenanceEntity provEntity = ProvenanceHelpers.createProvenanceHistory(currentNetwork,
 					uri, "FILE_UPLOAD", currentNetwork.getCreationTime(), (ProvenanceEntity)null);
-			provEntity.getCreationEvent().setEndedAtTime(new Timestamp(Calendar.getInstance().getTimeInMillis()));
+				provEntity.getCreationEvent().setEndedAtTime(new Timestamp(Calendar.getInstance().getTimeInMillis()));
 			
-			List<SimplePropertyValuePair> l = provEntity.getCreationEvent().getProperties();
-			l.add(	new SimplePropertyValuePair ( "filename",this.xgmmlFile.getName()) );
+				List<SimplePropertyValuePair> l = provEntity.getCreationEvent().getProperties();
+				l.add(	new SimplePropertyValuePair ( "filename",this.xgmmlFile.getName()) );
 			
-			this.networkService.setNetworkProvenance(provEntity);
+				this.networkService.setNetworkProvenance(provEntity);
 
             
-            // close database connection
-         	this.networkService.persistNetwork();
-        }
-        catch (Exception e)
-        {
-            // rollback current transaction and close the database connection
-            this.networkService.abortTransaction();
-            e.printStackTrace();
-            throw new NdexException("Error occurred when loading "
+				// close database connection
+				this.networkService.persistNetwork();
+			}
+			catch (Exception e)
+			{
+				// rollback current transaction and close the database connection
+				this.networkService.abortTransaction();
+				e.printStackTrace();
+				throw new NdexException("Error occurred when loading "
             		+ this.xgmmlFile.getName() + ". " + e.getMessage());
-        } finally {
-        	try {
-				xgmmlFileStream.close();
-			} catch (IOException e) {}
+			} 
+		}	catch (IOException e1) {
+        
+            e1.printStackTrace();
+            log("Could not read " + this.getXgmmlFile() + ": " + e1.getMessage());
+            this.networkService.abortTransaction();  //TODO: close connection to database
+            throw new NdexException("File not found: " + this.xgmmlFile.getName());
         }
 		
 	}
