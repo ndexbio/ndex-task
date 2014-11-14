@@ -15,6 +15,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;
 
 import org.ndexbio.common.NdexClasses;
+import org.ndexbio.common.NetworkSourceFormat;
 import org.ndexbio.common.access.NdexDatabase;
 import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.model.object.NdexPropertyValuePair;
@@ -122,6 +123,12 @@ public class SifParser implements IParsingEngine {
 
 			//add provenance to network
 			NetworkSummary currentNetwork = this.persistenceService.getCurrentNetwork();
+			
+			// set the source format
+			List<NdexPropertyValuePair> c = new ArrayList<>(1);
+			NdexPropertyValuePair p = new NdexPropertyValuePair (NdexClasses.Prop_source_format, NetworkSourceFormat.SIF.toString());
+			c.add(p);
+			this.persistenceService.setNetworkProperties(c, null);
 			
 			String uri = NdexDatabase.getURIPrefix();
 

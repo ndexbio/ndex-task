@@ -15,6 +15,8 @@ import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
 
+import org.ndexbio.common.NdexClasses;
+import org.ndexbio.common.NetworkSourceFormat;
 import org.ndexbio.common.access.NdexDatabase;
 import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.models.object.network.RawNamespace;
@@ -169,6 +171,10 @@ public class XbelParser implements IParsingEngine
 		
         // insert others as network properties.
 		List<NdexPropertyValuePair> propList = new ArrayList <> ();
+		
+		// set the source format
+		propList.add(new NdexPropertyValuePair (NdexClasses.Prop_source_format, NetworkSourceFormat.BEL.toString()));
+		
         String contact = header.getContactInfo();
         if ( contact != null ) {
         	NdexPropertyValuePair p = new NdexPropertyValuePair(elementContactInfo, contact);
@@ -203,7 +209,6 @@ public class XbelParser implements IParsingEngine
 
         
         this.networkService.setNetworkProperties(propList, null);
-//        this.networkService.setFormat("BEL_DOCUMENT");
 
     }
 

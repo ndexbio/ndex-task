@@ -30,6 +30,7 @@ import org.biopax.paxtools.model.level3.UnificationXref;
 import org.biopax.paxtools.model.level3.XReferrable;
 import org.biopax.paxtools.model.level3.Xref;
 import org.ndexbio.common.NdexClasses;
+import org.ndexbio.common.NetworkSourceFormat;
 import org.ndexbio.common.access.NdexDatabase;
 import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.persistence.orientdb.NdexPersistenceService;
@@ -122,6 +123,12 @@ public class BioPAXParser implements IParsingEngine {
 			// add provenance to network
 			NetworkSummary currentNetwork = this.persistenceService
 					.getCurrentNetwork();
+
+			// set the source format
+			List<NdexPropertyValuePair> c = new ArrayList<>(1);
+			NdexPropertyValuePair p = new NdexPropertyValuePair (NdexClasses.Prop_source_format, NetworkSourceFormat.BIOPAX.toString());
+			c.add(p);
+			this.persistenceService.setNetworkProperties(c, null);
 
 			String uri = NdexDatabase.getURIPrefix();
 
