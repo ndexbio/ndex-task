@@ -16,7 +16,7 @@ import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
 
 public class TestXbelExporterApp {
 
-	private static final String NETWORK_EXPORT_PATH = "C:/ndex/exported-networks/";
+	private static final String NETWORK_EXPORT_PATH = "/opt/ndex/exported-networks/";
 	private static final String XBEL_FILE_EXTENSION = ".xbel";
 	public static void main(String[] args) throws IOException, NdexException {
 
@@ -29,15 +29,15 @@ public class TestXbelExporterApp {
     			configuration.getDBPasswd(),1);
 		
 		
-		String networkId = "1614759c-6315-11e4-bc77-001f3bca188f"; // is for small corpus
-//		String networkId = "f003d77a-3f4e-11e4-bc7d-90b11c72aefa";
-		String userId =    "50302cb3-54ac-11e4-8ccc-001f3bca188f"; // dbowner
+//		String networkId = "5c5fa4a7-6376-11e4-98cb-90b11c72aefa"; // is for small corpus
+		String networkId = "02221e14-6ae6-11e4-b14b-000c29873918";
+		String userId =    "29969f4f-5e02-11e4-bac2-000c29873918"; // dbowner
 		//add shutdown hook
-		Runtime.getRuntime().addShutdownHook(new Thread() {
+/*		Runtime.getRuntime().addShutdownHook(new Thread() {
 			public void run() {
 				System.out.println("TextXbelExporter completed.");
 			}
-		});
+		}); */
 		
 		ODatabaseDocumentTx db = null;
 		try {

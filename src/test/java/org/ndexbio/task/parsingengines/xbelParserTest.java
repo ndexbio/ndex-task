@@ -23,11 +23,14 @@ import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.models.dao.orientdb.NetworkDAO;
 import org.ndexbio.common.models.dao.orientdb.UserDAO;
 import org.ndexbio.common.persistence.orientdb.NdexNetworkCloneService;
+import org.ndexbio.common.persistence.orientdb.PropertyGraphLoader;
 import org.ndexbio.model.object.network.Network;
 import org.ndexbio.model.object.network.NetworkSummary;
+import org.ndexbio.model.object.network.PropertyGraphNetwork;
 import org.ndexbio.task.Configuration;
 import org.ndexbio.task.utility.DatabaseInitializer;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
 import com.orientechnologies.orient.core.record.impl.ODocument;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
@@ -38,7 +41,7 @@ import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 public class xbelParserTest {
 
 	static Configuration configuration ;
-	static String propertyFilePath = "c:/ndex/conf/ndex.properties";
+	static String propertyFilePath = "/opt/ndex/conf/ndex.properties";
 	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
@@ -60,24 +63,30 @@ public class xbelParserTest {
 		System.out.println("Connection pool closed.");
 	}
 
-	/*
+	
 	@Test
-	public void test0() throws NdexException, ExecutionException {
+	public void test0() throws Exception {
 		
 		NdexDatabase db = new NdexDatabase(Configuration.getInstance().getHostURI());
 		ODatabaseDocumentTx conn = db.getAConnection();
 		NetworkDAO dao = new NetworkDAO(conn);
 		
-		Network n = dao.getNetworkById(UUID.fromString("14ee1740-5644-11e4-963e-90b11c72aefa"));
+		PropertyGraphNetwork pg = dao.getProperytGraphNetworkById(UUID.fromString("40127714-6b8d-11e4-87d2-90b11c72aefa"));
+		//Network n = dao.getNetworkById(UUID.fromString("14ee1740-5644-11e4-963e-90b11c72aefa"));
 		
-		n.setName(n.getName() + " - new name");
+		System.out.println(pg.getName());
+		pg.setName(pg.getName() + " - new name");
 		
 		
-		NdexNetworkCloneService service = new NdexNetworkCloneService(db, n, "cjtest");
+		PropertyGraphLoader pgl = new PropertyGraphLoader(db);
+        NetworkSummary s = pgl.insertNetwork( pg, "cjtest");
+		//NetworkSummary s = pgl.updateNetwork(pg);
 
-        NetworkSummary s = service.updateNetwork();
+        System.out.println(s);
 
-	} */
+    //    NetworkSummary s = service.updateNetwork();
+
+	} 
 	
 /*
 	@Test
@@ -119,10 +128,12 @@ public class xbelParserTest {
  //   	DatabaseInitializer.createUserIfnotExist(dao, configuration.getSystmUserName(), "support@ndexbio.org", 
  //   				configuration.getSystemUserPassword());
 
-		String user = configuration.getSystmUserName();
+		String user = "cjtest"; //configuration.getSystmUserName();
 		  XbelParser parser = new XbelParser(
-				  "C:/Users/chenjing/Downloads/imported.xbel"
-				  //"/home/chenjing/git/ndex-task/src/test/resources/small_corpus.xbel"
+				  "/home/chenjing/Downloads/foo.xbel"
+				//  "/home/chenjing/Downloads/wiki-pain.xbel"
+				//  "/opt/ndex/exported-networks/157f410b-6539-11e4-9955-90b11c72aefa.xbel"
+				 //  "/home/chenjing/git/ndex-task/src/test/resources/small_corpus.xbel"
 				    , user, db);
 		  parser.parseFile();
 		System.out.println("closing db.");
