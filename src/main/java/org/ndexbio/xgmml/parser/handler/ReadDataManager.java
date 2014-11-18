@@ -384,8 +384,8 @@ public class ReadDataManager {
 		return null;
 	}
 
-	public void addEdge(String subjectId,  String objectId) {
-		this.currentXGMMLEdge = new XGMMLEdge(subjectId, objectId);
+	public void addEdge(String subjectId, String predicateStr, String objectId) {
+		this.currentXGMMLEdge = new XGMMLEdge(subjectId, predicateStr, objectId);
 		
 
 	}

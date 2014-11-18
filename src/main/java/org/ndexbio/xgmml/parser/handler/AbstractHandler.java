@@ -39,6 +39,8 @@ public abstract class AbstractHandler implements Handler {
 	protected ReadDataManager manager;
 	protected AttributeValueUtil attributeValueUtil;
 	
+	protected static final String LABEL = "label";
+	
 	ObjectTypeMap typeMap;
 	
 	protected static final Logger logger = LoggerFactory.getLogger(AbstractHandler.class);
@@ -61,7 +63,7 @@ public abstract class AbstractHandler implements Handler {
 	}
 	
 	protected String getLabel(Attributes atts) {
-		String label = atts.getValue("label");
+		String label = atts.getValue(LABEL);
 		
 		if (label == null || label.isEmpty())
 			label = atts.getValue("id");
@@ -86,7 +88,7 @@ public abstract class AbstractHandler implements Handler {
 		}
 		
 		if (id == null || id.toString().isEmpty())
-			id = atts.getValue("label");
+			id = atts.getValue(LABEL);
 		
 		return id;
 	}
