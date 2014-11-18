@@ -8,6 +8,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.UUID;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -173,6 +174,15 @@ public class XgmmlParser implements IParsingEngine {
 
 	public File getXgmmlFile() {
 		return xgmmlFile;
+	}
+	
+	public UUID getUUIDOfUploadedNetwork() {
+		try { 
+			return networkService.getCurrentNetwork().getExternalId();
+		} catch ( Exception e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 }

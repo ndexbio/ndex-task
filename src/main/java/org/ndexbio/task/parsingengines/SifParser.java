@@ -5,11 +5,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;
@@ -41,7 +39,6 @@ import com.google.common.io.Files;
  * see: http://wiki.cytoscape.org/Cytoscape_User_Manual/Network_Formats
  */
 
-//TODO: need to load format and source later. -- cj
 public class SifParser implements IParsingEngine {
 	private final File sifFile;
 	private final String sifURI;
@@ -56,7 +53,7 @@ public class SifParser implements IParsingEngine {
 	
 //	private TreeSet<String> pubmedIdSet;
 
-	public SifParser(String fn, String ownerName, NdexDatabase db) throws Exception {
+	public SifParser(String fn, String ownerName, NdexDatabase db, String networkName) throws Exception {
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(fn),
 				"A filename is required");
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(ownerName),
@@ -69,14 +66,14 @@ public class SifParser implements IParsingEngine {
 		this.sifURI = sifFile.toURI().toString();
 		this.persistenceService = new NdexPersistenceService(db);
 		
-		String title =  Files.getNameWithoutExtension(this.sifFile.getName());
+		String title = networkName;
+		if ( title == null) 
+			title = Files.getNameWithoutExtension(this.sifFile.getName());
 
 		persistenceService.createNewNetwork(ownerName, title, null);
 
 		addSystemDefaultNamespaces();
 		
-		
-//		pubmedIdSet = new TreeSet<String> ();
 	}
 
 	public List<String> getMsgBuffer() {
@@ -104,13 +101,12 @@ public class SifParser implements IParsingEngine {
 	 **************************************************************************/
 	@Override
 	public void parseFile() throws  NdexException {
-		BufferedReader bufferedReader = null;
-		try {
+
+		try (BufferedReader bufferedReader = 
+				new BufferedReader(new FileReader(this.getSifFile()))){
 
 			this.getMsgBuffer().add("Parsing lines from " + this.getSIFURI());
 
-			bufferedReader = new BufferedReader(new FileReader(
-						this.getSifFile()));
 			boolean extendedBinarySIF = checkForExtendedFormat();
 			if (extendedBinarySIF) {
 				this.processExtendedBinarySIF(bufferedReader);
@@ -147,19 +143,12 @@ public class SifParser implements IParsingEngine {
 			this.persistenceService.abortTransaction();
 			throw new NdexException("Error occurred when loading file " +
 					this.sifFile.getName() + ". " + e.getMessage() );
-		} finally {
-			if ( bufferedReader != null )
-				try {
-					bufferedReader.close();
-				} catch (IOException e) {}
-		}
+		} 
 	}
 
 	private boolean checkForExtendedFormat() throws IOException {
-		BufferedReader bufferedReader = null;
-		try {
-			bufferedReader = new BufferedReader(new FileReader(
-					this.getSifFile()));
+		try (BufferedReader bufferedReader = 
+				new BufferedReader(new FileReader(this.getSifFile()))){
 			String line = bufferedReader.readLine();
 			// Check the first line for the EBS header
 			if (extendedBinarySIFEdgeHeader.equals(line)) {
@@ -167,23 +156,15 @@ public class SifParser implements IParsingEngine {
 				return true;
 			}
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} finally {
-			bufferedReader.close();
-		}
-
+			throw new IOException(e);
+		} 
 		return false;
 	}
 
 	private boolean scanForTabs() throws IOException {
-		BufferedReader bufferedReader = null;
-		try {
-			bufferedReader = new BufferedReader(new FileReader(
-					this.getSifFile()));
+		try (BufferedReader bufferedReader
+					= new BufferedReader(new FileReader(this.getSifFile()))){
 			String line;
 			int counter = 0;
 			// Check the first 20 lines for tabs
@@ -194,14 +175,9 @@ public class SifParser implements IParsingEngine {
 					return false;
 			}
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} finally {
-			bufferedReader.close();
-		}
+			throw new IOException(e);
+		} 
 
 		return false;
 	}
@@ -228,11 +204,8 @@ public class SifParser implements IParsingEngine {
 			}
 		} catch (IOException e) {
 			this.getMsgBuffer().add(e.getMessage());
-		} /*catch (ExecutionException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			this.getMsgBuffer().add(e.getMessage());
-		} */finally {
+			throw e;
+		} finally {
 			bufferedReader.close();
 		}
 	}
@@ -307,11 +280,8 @@ public class SifParser implements IParsingEngine {
 			}
 		} catch (IOException e) {
 			this.getMsgBuffer().add(e.getMessage());
-		} /*catch (ExecutionException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			this.getMsgBuffer().add(e.getMessage());
-		} */finally {
+			throw e;
+		} finally {
 			bufferedReader.close();
 		}
 	}
@@ -389,7 +359,7 @@ public class SifParser implements IParsingEngine {
 						values[0], null);
 			}
 			
-			List<NdexPropertyValuePair> props = new ArrayList<NdexPropertyValuePair>();
+			List<NdexPropertyValuePair> props = new ArrayList<>();
 			
 			if (values.length > 1 && values[1] != null) {
                 NdexPropertyValuePair p = new NdexPropertyValuePair ("ORGANISM", values[1]);

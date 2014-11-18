@@ -130,7 +130,7 @@ public class xbelParserTest {
 
 		String user = "cjtest"; //configuration.getSystmUserName();
 		  XbelParser parser = new XbelParser(
-				  "/home/chenjing/Downloads/foo.xbel"
+				  "/home/chenjing/Dropbox/Network_test_files/pdmap130712.xgmml"
 				//  "/home/chenjing/Downloads/wiki-pain.xbel"
 				//  "/opt/ndex/exported-networks/157f410b-6539-11e4-9955-90b11c72aefa.xbel"
 				 //  "/home/chenjing/git/ndex-task/src/test/resources/small_corpus.xbel"

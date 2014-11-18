@@ -10,6 +10,8 @@ import org.ndexbio.task.parsingengines.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.io.Files;
+
 /*
  * This class represents a NdexTask subclass that is responsible
  * for uploading a specified data file into a new NDEx network in
@@ -68,8 +70,9 @@ public class FileUploadTask extends NdexTask {
 		switch (fileExtension) {
 		case ("SIF"):
 			try {
+				String networkName = Files.getNameWithoutExtension(this.getTask().getDescription());
 				final SifParser sifParser = new SifParser(
-						file.getAbsolutePath(), this.getTaskOwnerAccount(),db);
+						file.getAbsolutePath(), this.getTaskOwnerAccount(),db, networkName);
 				sifParser.parseFile();
 				this.taskStatus = Status.COMPLETED;
 			} catch (Exception e) {

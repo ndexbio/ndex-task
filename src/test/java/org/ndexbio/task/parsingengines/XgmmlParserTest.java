@@ -9,13 +9,14 @@ import java.util.Map;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.ndexbio.common.NetworkSourceFormat;
 import org.ndexbio.common.access.NdexAOrientDBConnectionPool;
 import org.ndexbio.common.access.NdexDatabase;
 import org.ndexbio.task.Configuration;
 
 public class XgmmlParserTest {
 
-	static Configuration configuration ;
+/*	static Configuration configuration ;
 	static String propertyFilePath = "/opt/ndex/conf/ndex.properties";
 
 	@BeforeClass
@@ -36,7 +37,7 @@ public class XgmmlParserTest {
 		NdexDatabase db = new NdexDatabase(configuration.getHostURI());
 		
 		String user = "cjtest";
-		XgmmlParser parser = new XgmmlParser("/home/chenjing/Downloads/Hox.xgmml", user, 
+		XgmmlParser parser = new XgmmlParser("/home/chenjing/Dropbox/Network_test_files/pdmap130712.xgmml", user, 
 				db);
 		parser.parseFile();
 //		XbelParser 
@@ -50,13 +51,21 @@ public class XgmmlParserTest {
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
 	}
-
+*/
 	@Test
-	public void test() {
-		//fail("Not yet implemented");
+	public void test() throws Exception {
+
+		for ( TestMeasurement m : AllTests.testList) {
+		  if ( m.srcFormat == NetworkSourceFormat.XGMML) {
+			  	XgmmlParser parser = new XgmmlParser(AllTests.testFileDirectory + m.fileName, AllTests.testUser, 
+			  			AllTests.db);
+			  	parser.parseFile();
+			  	
+		  }	  	
+		}
 	}
 
-	private static void setEnv()
+/*	private static void setEnv()
 	{
 	  try
 	    {
@@ -95,5 +104,5 @@ public class XgmmlParserTest {
 	        e1.printStackTrace();
 	    } 
 	}
-	
+	*/
 }

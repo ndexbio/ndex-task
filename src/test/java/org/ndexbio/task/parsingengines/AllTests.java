@@ -1,14 +1,25 @@
 package org.ndexbio.task.parsingengines;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
+import org.ndexbio.common.NetworkSourceFormat;
 import org.ndexbio.common.access.NdexAOrientDBConnectionPool;
 import org.ndexbio.common.access.NdexDatabase;
 import org.ndexbio.common.exceptions.NdexException;
@@ -22,11 +33,14 @@ public class AllTests {
 	
 	static Configuration configuration ;
 	static String propertyFilePath = "/opt/ndex/conf/ndex.properties";
+	static String testFileDirectory = "/home/chenjing/Dropbox/Network_test_files/";
 	public static Configuration confituration;
 	public static NdexDatabase db ;
+	public static String testUser = "cjtest";
+	public static List<TestMeasurement> testList;
 
 	  @BeforeClass 
-	    public static void setUpClass() throws NdexException {      
+	    public static void setUpClass() throws NdexException, IOException {      
 			setEnv();
 
 	    	// read configuration
@@ -39,14 +53,48 @@ public class AllTests {
 	    			configuration.getDBPasswd(),1);
 	    	
 	    	db = new NdexDatabase(configuration.getHostURI());
+	    	
+	    	testList = new ArrayList<> (100);
+
+	    	try (Reader in = new FileReader(testFileDirectory + "network_test_file_list.csv")) {
+	    	  CSVParser parser = CSVFormat.EXCEL.parse(in);
+	    	  for (CSVRecord record : parser) {
+	    		if ( parser.getCurrentLineNumber() > 1) {
+	    			TestMeasurement t = new TestMeasurement();
+	    			t.fileName = record.get(0);
+	    			t.srcFormat = NetworkSourceFormat.valueOf(record.get(1));
+	    			t.nameSpaceCnt = getIntValueFromRec(record,2);
+	    			t.basetermCnt  = getIntValueFromRec(record,3);
+	    			t.nodeCnt  	   = getIntValueFromRec(record,4);
+	    			t.funcTermCnt  = getIntValueFromRec(record,5);
+	    			t.reifiedEdgeCnt = getIntValueFromRec(record,6);
+	    			t.edgeCnt      = getIntValueFromRec(record,7);
+	    		}
+	    	  }
+	    	  parser.close();
+	    	}
+	    	
+	    	
+	    	
 
 	    }
 
-	  @AfterClass public static void tearDownClass() { 
+	  
+	  @AfterClass 
+	  public static void tearDownClass() { 
 			db.close();
 			NdexAOrientDBConnectionPool.close();
       }
 
+	  
+	  private static int getIntValueFromRec(CSVRecord r, int idx) {
+		  try { 
+			  return Integer.parseInt(r.get(idx));
+		  } catch ( NumberFormatException e) {
+			  return -1;
+		  }
+	  }
+	  
 	  
 		private static void setEnv()
 		{

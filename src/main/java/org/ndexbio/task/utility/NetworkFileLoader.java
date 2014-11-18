@@ -45,7 +45,8 @@ public class NetworkFileLoader {
       				XbelParser parser = new XbelParser(path.toString(), args[0], db);
       				parser.parseFile();
       			} else if ( type.equals("sif")) {
-      				SifParser parser2 = new SifParser(path.toString(),args[0], db);
+      				SifParser parser2 = new SifParser(path.toString(),args[0], db, 
+      						com.google.common.io.Files.getNameWithoutExtension(path.toString()));
       				parser2.parseFile();
       			} else if ( type.equals("xgmml")) {
       				XgmmlParser parser = new XgmmlParser(path.toString(), args[0], db);
