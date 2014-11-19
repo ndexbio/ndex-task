@@ -42,10 +42,11 @@ import com.google.common.io.Files;
 public class XgmmlParser implements IParsingEngine {
     private final File xgmmlFile;
     private String ownerName;
+    private String networkTitle;
     private NdexPersistenceService networkService;
     private static final Logger logger = LoggerFactory.getLogger(XgmmlParser.class);
 
-	public XgmmlParser(String fn, String ownerAccountName, NdexDatabase db) throws Exception {
+	public XgmmlParser(String fn, String ownerAccountName, NdexDatabase db, String defaultNetworkName) throws Exception {
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(fn),
 				"A filename is required");
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(fn),
@@ -53,6 +54,8 @@ public class XgmmlParser implements IParsingEngine {
 		this.ownerName = ownerAccountName;
 		this.xgmmlFile = new File(fn);
 		this.networkService = new NdexPersistenceService(db);
+		this.networkTitle = defaultNetworkName;
+		
 	}  
 	
 	private static void log (String string){
@@ -62,7 +65,7 @@ public class XgmmlParser implements IParsingEngine {
     
 	private void setNetwork() throws Exception {
 		String title = Files.getNameWithoutExtension(this.xgmmlFile.getName());
-		this.networkService.createNewNetwork(this.getOwnerName(), title, null);
+		this.networkService.createNewNetwork(this.getOwnerName(), title, networkTitle);
 	}
 
 	@Override

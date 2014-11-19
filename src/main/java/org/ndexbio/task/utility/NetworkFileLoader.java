@@ -49,7 +49,7 @@ public class NetworkFileLoader {
       						com.google.common.io.Files.getNameWithoutExtension(path.toString()));
       				parser2.parseFile();
       			} else if ( type.equals("xgmml")) {
-      				XgmmlParser parser = new XgmmlParser(path.toString(), args[0], db);
+      				XgmmlParser parser = new XgmmlParser(path.toString(), args[0], db, path.toString());
       				parser.parseFile();
       			} else {
       				System.out.println ("Error: " + type + " is not a supported file type of this loader.");

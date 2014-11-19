@@ -67,10 +67,10 @@ public class FileUploadTask extends NdexTask {
 		String fileExtension = com.google.common.io.Files
 				.getFileExtension(this.getFilename()).toUpperCase().trim();
 		logger.info("File extension = " + fileExtension);
+		String networkName = Files.getNameWithoutExtension(this.getTask().getDescription());
 		switch (fileExtension) {
 		case ("SIF"):
 			try {
-				String networkName = Files.getNameWithoutExtension(this.getTask().getDescription());
 				final SifParser sifParser = new SifParser(
 						file.getAbsolutePath(), this.getTaskOwnerAccount(),db, networkName);
 				sifParser.parseFile();
@@ -83,7 +83,7 @@ public class FileUploadTask extends NdexTask {
 		case ("XGMML"):
 			try {
 				final XgmmlParser xgmmlParser = new XgmmlParser(
-						file.getAbsolutePath(), this.getTaskOwnerAccount(),db);
+						file.getAbsolutePath(), this.getTaskOwnerAccount(),db, networkName);
 				xgmmlParser.parseFile();
 				this.taskStatus = Status.COMPLETED;
 			} catch (Exception e) {
