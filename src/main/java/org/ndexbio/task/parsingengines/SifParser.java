@@ -9,6 +9,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;
 
@@ -427,4 +428,15 @@ public class SifParser implements IParsingEngine {
 		
 		
 	}
+	
+	@Override
+	public UUID getUUIDOfUploadedNetwork() {
+		try { 
+			return persistenceService.getCurrentNetwork().getExternalId();
+		} catch ( Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
 }

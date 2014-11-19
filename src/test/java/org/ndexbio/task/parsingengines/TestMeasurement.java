@@ -17,5 +17,5 @@ public class TestMeasurement {
    public int netPresPropCnt;	
    public int elmtPropCnt;
    public int elmtPresPropCnt;
-	
+   public String networkName;	
 }

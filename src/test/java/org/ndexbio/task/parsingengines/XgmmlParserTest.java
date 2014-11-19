@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.Map;
+import java.util.UUID;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -12,7 +13,14 @@ import org.junit.Test;
 import org.ndexbio.common.NetworkSourceFormat;
 import org.ndexbio.common.access.NdexAOrientDBConnectionPool;
 import org.ndexbio.common.access.NdexDatabase;
+import org.ndexbio.common.models.dao.orientdb.NetworkDAO;
+import org.ndexbio.model.object.network.Network;
 import org.ndexbio.task.Configuration;
+
+import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
+
+import static org.junit.Assert.*;
+
 
 public class XgmmlParserTest {
 
@@ -57,10 +65,31 @@ public class XgmmlParserTest {
 
 		for ( TestMeasurement m : AllTests.testList) {
 		  if ( m.srcFormat == NetworkSourceFormat.XGMML) {
-			  	XgmmlParser parser = new XgmmlParser(AllTests.testFileDirectory + m.fileName, AllTests.testUser, 
-			  			AllTests.db);
+			  // load to db	
+			  XgmmlParser parser = new XgmmlParser(AllTests.testFileDirectory + m.fileName, AllTests.testUser, 
+			  			AllTests.db,m.fileName);
 			  	parser.parseFile();
 			  	
+			  	
+			 // get the UUID of the new test network
+			 UUID networkID = parser.getUUIDOfUploadedNetwork();
+			
+			 // verify the uploaded network
+			 ODatabaseDocumentTx conn = AllTests.db.getAConnection();
+			 NetworkDAO dao = new NetworkDAO(conn);
+			 Network n = dao.getNetworkById(networkID);
+			 assertEquals(n.getName(), m.networkName);
+			 assertEquals(n.getNodeCount(), n.getNodes().size());
+			 assertEquals(n.getNodeCount(), m.nodeCnt);
+			 assertEquals(n.getEdgeCount(), m.edgeCnt);
+			 assertEquals(n.getEdges().size(), m.edgeCnt);
+			 if (m.basetermCnt >=0 )
+				 assertEquals(n.getBaseTerms().size(), m.basetermCnt);
+			 
+			 conn.close();
+			 
+			 //export the uploaded network.
+			 
 		  }	  	
 		}
 	}

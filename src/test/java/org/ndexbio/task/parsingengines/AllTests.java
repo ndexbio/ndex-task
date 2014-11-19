@@ -69,6 +69,7 @@ public class AllTests {
 	    			t.funcTermCnt  = getIntValueFromRec(record,5);
 	    			t.reifiedEdgeCnt = getIntValueFromRec(record,6);
 	    			t.edgeCnt      = getIntValueFromRec(record,7);
+	    			t.networkName = record.get(14);
 	    		}
 	    	  }
 	    	  parser.close();

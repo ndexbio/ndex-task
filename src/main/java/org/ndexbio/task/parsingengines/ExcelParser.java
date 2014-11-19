@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
 import org.apache.poi.hssf.usermodel.HSSFSheet;
@@ -263,4 +264,15 @@ public class ExcelParser implements IParsingEngine
 	private void setOwnerName(String ownerName) {
 		this.ownerName = ownerName;
 	}
+	
+	@Override
+	public UUID getUUIDOfUploadedNetwork() {
+		try { 
+			return networkService.getCurrentNetwork().getExternalId();
+		} catch ( Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
 }

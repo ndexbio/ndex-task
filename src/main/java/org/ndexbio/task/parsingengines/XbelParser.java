@@ -9,6 +9,7 @@ import java.util.Calendar;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -292,6 +293,14 @@ public class XbelParser implements IParsingEngine
 		this.ownerName = ownerName;
 	}
 
-
+	@Override
+	public UUID getUUIDOfUploadedNetwork() {
+		try { 
+			return networkService.getCurrentNetwork().getExternalId();
+		} catch ( Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
 
 }

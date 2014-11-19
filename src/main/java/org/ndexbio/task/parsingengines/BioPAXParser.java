@@ -12,6 +12,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -595,6 +596,17 @@ public class BioPAXParser implements IParsingEngine {
 	public int getReferencePropertyCount() {
 		return referencePropertyCount;
 	}
+	
+	@Override
+	public UUID getUUIDOfUploadedNetwork() {
+		try { 
+			return persistenceService.getCurrentNetwork().getExternalId();
+		} catch ( Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
 	
 	// fragments
 	/*

@@ -2,10 +2,8 @@ package org.ndexbio.task.parsingengines;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.UUID;
@@ -14,12 +12,10 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import org.ndexbio.common.NdexClasses;
 import org.ndexbio.common.NetworkSourceFormat;
 import org.ndexbio.common.access.NdexDatabase;
 import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.persistence.orientdb.NdexPersistenceService;
-import org.ndexbio.model.object.NdexPropertyValuePair;
 import org.ndexbio.model.object.ProvenanceEntity;
 import org.ndexbio.model.object.SimplePropertyValuePair;
 import org.ndexbio.model.object.network.NetworkSummary;
@@ -37,7 +33,6 @@ import org.xml.sax.helpers.ParserAdapter;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
-import com.google.common.io.Files;
 
 public class XgmmlParser implements IParsingEngine {
     private final File xgmmlFile;
@@ -64,8 +59,8 @@ public class XgmmlParser implements IParsingEngine {
     
     
 	private void setNetwork() throws Exception {
-		String title = Files.getNameWithoutExtension(this.xgmmlFile.getName());
-		this.networkService.createNewNetwork(this.getOwnerName(), title, networkTitle);
+	//	String title = Files.getNameWithoutExtension(this.xgmmlFile.getName());
+		this.networkService.createNewNetwork(this.getOwnerName(), networkTitle, null);
 	}
 
 	@Override
@@ -179,6 +174,7 @@ public class XgmmlParser implements IParsingEngine {
 		return xgmmlFile;
 	}
 	
+	@Override
 	public UUID getUUIDOfUploadedNetwork() {
 		try { 
 			return networkService.getCurrentNetwork().getExternalId();
