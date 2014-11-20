@@ -36,11 +36,11 @@ public class AllTests {
 	
 	static Configuration configuration ;
 	static String propertyFilePath = 
-			"C/ndex/conf/ndex.properties";
-			//"/opt/ndex/conf/ndex.properties";
+			//"C/ndex/conf/ndex.properties";
+			"/opt/ndex/conf/ndex.properties";
 	static String testFileDirectory = 
-			"C:/Users/chenjing/Dropbox/Network_test_files/";
-		//	"/home/chenjing/Dropbox/Network_test_files/";
+			//"C:/Users/chenjing/Dropbox/Network_test_files/";
+			"/home/chenjing/Dropbox/Network_test_files/";
 	public static Configuration confituration;
 	public static NdexDatabase db ;
 	public static String testUser = "cjtest";

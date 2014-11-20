@@ -3,24 +3,16 @@ package org.ndexbio.task.parsingengines;
 import static org.junit.Assert.*;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.reflect.Field;
-import java.util.Collections;
-import java.util.Map;
 import java.util.UUID;
+import java.util.logging.Logger;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.ndexbio.common.NetworkSourceFormat;
-import org.ndexbio.common.access.NdexAOrientDBConnectionPool;
-import org.ndexbio.common.access.NdexDatabase;
 import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.models.dao.orientdb.NetworkDAO;
 import org.ndexbio.model.object.network.Network;
-import org.ndexbio.task.Configuration;
 import org.ndexbio.task.event.NdexNetworkState;
 import org.ndexbio.task.service.NdexJVMDataModelService;
 import org.ndexbio.task.service.NdexTaskModelService;
@@ -30,62 +22,80 @@ import org.xml.sax.SAXException;
 
 import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
 
-import java.nio.file.Files;
-
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 
+
+
 public class ImportExportTest {
+
+	static Logger logger = Logger.getLogger(ImportExportTest.class.getName());
 
 	@Test
 	public void test() throws Exception {
 
 		for ( TestMeasurement m : AllTests.testList) {
 		  
-		  // load to db
+			
+		  logger.info("Testting " +m.fileName+ "\nFirst round import start.");
 		  IParsingEngine parser = importFile(AllTests.testFileDirectory + m.fileName, m);
 			  	
 		 // get the UUID of the new test network
 		 UUID networkID = parser.getUUIDOfUploadedNetwork();
 			
-			 // verify the uploaded network
+		 logger.info("Verifying loaded content.");
 		 assertEquivalence(networkID, m);
-			 
-		 //export the uploaded network.
+		
+		 logger.info("First round import passed. Start exporting ...");
+		 
 		 ODatabaseDocumentTx conn = AllTests.db.getAConnection();
-	 
 		 exportNetwork(m, conn, networkID);
 
-		 if ( m.srcFormat == NetworkSourceFormat.SIF) 
+		 logger.info("First export done.");
+		 if ( m.srcFormat == NetworkSourceFormat.SIF) { 
+			 System.out.println("Ignore the rest of test for " + m.fileName);
 			 continue;
-		  
+		 }
+		 conn.close();
+		 
+		 conn = AllTests.db.getAConnection();
+		 logger.info("Deleting network test network " + networkID.toString() + " from db.");
 		  NetworkDAO dao = new NetworkDAO (conn);
 		  dao.deleteNetwork(networkID.toString());
+
+		  conn.commit();
 		  
-		  // import the second round.
+		  logger.info("Started importing exported network.");
 		  parser = importFile ( networkID.toString(), m);
 		  
-		  // delete exported network file
+		  logger.info("Deleting exported network document.");
 		  File file = new File(networkID.toString());
   		  file.delete();
+  		  
 
+  		logger.info("Verifying network loaded from exported file.");
   		  networkID = parser.getUUIDOfUploadedNetwork();
  		  assertEquivalence(networkID, m);
           
- 		  //export the second round
+ 		  
+ 		 logger.info("Exporting the re-imported file.");
  		  exportNetwork(m, conn, networkID);
  		  
+ 		 logger.info("All tests on " + m.fileName + " passed. Deleteing test network " + networkID.toString()); 
  		  dao.deleteNetwork(networkID.toString());
- 		  
+ 		  conn.commit();
  		  conn.close();
 
+ 		 logger.info("Deleteing network document exported from network " + networkID.toString());
 		  file = new File(networkID.toString());
  		  assertTrue( file.exists());
  		  file.delete();
+ 		  
+ 		 logger.info("All done for "+ m.fileName);
 		}	  
 	}
 
-	private void exportNetwork(TestMeasurement m, ODatabaseDocumentTx conn,
+	private static void exportNetwork(TestMeasurement m, ODatabaseDocumentTx conn,
 			UUID networkID) throws ParserConfigurationException, ClassCastException, NdexException, TransformerException, SAXException, IOException {
 		  if ( m.srcFormat == NetworkSourceFormat.XGMML) {
 			  XGMMLNetworkExporter exporter = new XGMMLNetworkExporter(conn);
@@ -97,8 +107,7 @@ public class ImportExportTest {
 				NdexTaskModelService  modelService = new NdexJVMDataModelService(conn);
 
 				// initiate the network state
-				initiateStateForMonitoring(modelService, AllTests.testUser,
-						networkID.toString());
+				initiateStateForMonitoring(modelService,networkID.toString());
 				XbelNetworkExporter exporter = 
 						new XbelNetworkExporter(AllTests.testUser, networkID.toString(), 
 					modelService,networkID.toString());
@@ -110,7 +119,7 @@ public class ImportExportTest {
 
 	}
 	
-	private IParsingEngine importFile (String fileName, TestMeasurement m) throws Exception {
+	private static IParsingEngine importFile (String fileName, TestMeasurement m) throws Exception {
 		  IParsingEngine parser;	
 		  String testFile = fileName;
 		  if ( m.srcFormat == NetworkSourceFormat.XGMML) {
@@ -128,26 +137,25 @@ public class ImportExportTest {
 		  return parser;
 
 	}	
-    private void assertEquivalence(UUID networkID, TestMeasurement m) throws NdexException {
+    private static void assertEquivalence(UUID networkID, TestMeasurement m) throws NdexException {
 
     	// verify a uploaded network
-		 ODatabaseDocumentTx conn = AllTests.db.getAConnection();
-		 NetworkDAO dao = new NetworkDAO(conn);
-		 Network n = dao.getNetworkById(networkID);
-		 assertEquals(n.getName(), m.networkName);
-		 assertEquals(n.getNodeCount(), n.getNodes().size());
-		 assertEquals(n.getNodeCount(), m.nodeCnt);
-		 assertEquals(n.getEdgeCount(), m.edgeCnt);
-		 assertEquals(n.getEdges().size(), m.edgeCnt);
-		 if (m.basetermCnt >=0 )
-			 assertEquals(n.getBaseTerms().size(), m.basetermCnt);
+		 try (ODatabaseDocumentTx conn = AllTests.db.getAConnection()) {
+			 NetworkDAO dao = new NetworkDAO(conn);
+			 Network n = dao.getNetworkById(networkID);
+			 assertEquals(n.getName(), m.networkName);
+			 assertEquals(n.getNodeCount(), n.getNodes().size());
+			 assertEquals(n.getNodeCount(), m.nodeCnt);
+			 assertEquals(n.getEdgeCount(), m.edgeCnt);
+			 assertEquals(n.getEdges().size(), m.edgeCnt);
+			 if (m.basetermCnt >=0 )
+				 assertEquals(n.getBaseTerms().size(), m.basetermCnt);
 		 
-		 conn.close();
+		 }
    
     }
     
 	private static void initiateStateForMonitoring(NdexTaskModelService  modelService, 
-			String userId,
 			String networkId) {
 		NdexNetworkState.INSTANCE.setNetworkId(networkId);
 		NdexNetworkState.INSTANCE.setNetworkName(modelService.getNetworkById( networkId).getName());

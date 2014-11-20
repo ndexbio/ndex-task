@@ -62,7 +62,7 @@ public abstract class AbstractHandler implements Handler {
 		this.attributeValueUtil = attributeValueUtil;
 	}
 	
-	protected String getLabel(Attributes atts) {
+	protected static String getLabel(Attributes atts) {
 		String label = atts.getValue(LABEL);
 		
 		if (label == null || label.isEmpty())
@@ -70,8 +70,8 @@ public abstract class AbstractHandler implements Handler {
 
 		return label;
 	}
-	
-	protected Object getId(Attributes atts) {
+/*	
+	protected static String getId(Attributes atts) {
 		Object id = atts.getValue("id");
 
 		if (id != null) {
@@ -91,5 +91,5 @@ public abstract class AbstractHandler implements Handler {
 			id = atts.getValue(LABEL);
 		
 		return id;
-	}
+	} */
 }
