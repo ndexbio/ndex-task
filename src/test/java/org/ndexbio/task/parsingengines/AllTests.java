@@ -26,14 +26,21 @@ import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.task.Configuration;
 
 @RunWith(Suite.class)
-@SuiteClasses({ BioPAXParserTest.class, SifParserTest.class,
-		xbelParserTest.class, XgmmlParserTest.class })
+@SuiteClasses({
+	ImportExportTest.class
+	//BioPAXParserTest.class, SifParserTest.class,
+	//	xbelParserTest.class, XgmmlParserTest.class 
+		})
 public class AllTests {
 
 	
 	static Configuration configuration ;
-	static String propertyFilePath = "/opt/ndex/conf/ndex.properties";
-	static String testFileDirectory = "/home/chenjing/Dropbox/Network_test_files/";
+	static String propertyFilePath = 
+			"C/ndex/conf/ndex.properties";
+			//"/opt/ndex/conf/ndex.properties";
+	static String testFileDirectory = 
+			"C:/Users/chenjing/Dropbox/Network_test_files/";
+		//	"/home/chenjing/Dropbox/Network_test_files/";
 	public static Configuration confituration;
 	public static NdexDatabase db ;
 	public static String testUser = "cjtest";
@@ -70,6 +77,8 @@ public class AllTests {
 	    			t.reifiedEdgeCnt = getIntValueFromRec(record,6);
 	    			t.edgeCnt      = getIntValueFromRec(record,7);
 	    			t.networkName = record.get(14);
+	    			
+	    			testList.add(t);
 	    		}
 	    	  }
 	    	  parser.close();
