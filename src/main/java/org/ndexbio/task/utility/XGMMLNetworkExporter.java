@@ -16,6 +16,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import org.ndexbio.common.NdexClasses;
 import org.ndexbio.common.access.NdexAOrientDBConnectionPool;
 import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.models.dao.orientdb.NetworkDAO;
@@ -29,7 +30,6 @@ import org.ndexbio.model.object.network.Network;
 import org.ndexbio.model.object.network.Node;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-
 import org.xml.sax.SAXException;
 
 import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
@@ -105,6 +105,7 @@ public class XGMMLNetworkExporter {
 		
 		//network properties
 		for ( NdexPropertyValuePair p : network.getProperties() ) {
+		  if ( !p.getPredicateString().equals(NdexClasses.Network_P_source_format)) {	
 			if ( ! p.getPredicateString().contains(":")) {
 				networkElement.setAttribute(p.getPredicateString(),p.getValue());	
 			} else {
@@ -112,6 +113,7 @@ public class XGMMLNetworkExporter {
 				rdfElement.appendChild(metaData);
 				metaData.setTextContent(p.getValue());
 			}
+		  }
 		}
 
 		Element title = doc.createElement("dc:title");

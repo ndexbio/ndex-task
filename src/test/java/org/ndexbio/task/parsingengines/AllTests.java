@@ -1,7 +1,5 @@
 package org.ndexbio.task.parsingengines;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
@@ -76,6 +74,12 @@ public class AllTests {
 	    			t.funcTermCnt  = getIntValueFromRec(record,5);
 	    			t.reifiedEdgeCnt = getIntValueFromRec(record,6);
 	    			t.edgeCnt      = getIntValueFromRec(record,7);
+	    			t.citationCnt  = getIntValueFromRec(record,8);
+	    			t.support      = getIntValueFromRec(record,9);
+	    			t.netPropCnt   = getIntValueFromRec(record,10);
+	    			t.netPresPropCnt = getIntValueFromRec(record,11);
+	    			t.elmtPropCnt   = getIntValueFromRec(record,12);
+	    			t.elmtPresPropCnt = getIntValueFromRec(record,13);
 	    			t.networkName = record.get(14);
 	    			
 	    			testList.add(t);

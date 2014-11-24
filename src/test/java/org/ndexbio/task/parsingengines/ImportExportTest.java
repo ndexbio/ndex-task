@@ -56,14 +56,8 @@ public class ImportExportTest {
 			 System.out.println("Ignore the rest of test for " + m.fileName);
 			 continue;
 		 }
-		 conn.close();
-		 
-		 conn = AllTests.db.getAConnection();
-		 logger.info("Deleting network test network " + networkID.toString() + " from db.");
-		  NetworkDAO dao = new NetworkDAO (conn);
-		  dao.deleteNetwork(networkID.toString());
 
-		  conn.commit();
+		 String oldNetworkID = networkID.toString();
 		  
 		  logger.info("Started importing exported network.");
 		  parser = importFile ( networkID.toString(), m);
@@ -80,7 +74,13 @@ public class ImportExportTest {
  		  
  		 logger.info("Exporting the re-imported file.");
  		  exportNetwork(m, conn, networkID);
- 		  
+ 
+ 		 logger.info("Deleting first round test network " + oldNetworkID + " from db.");
+		  NetworkDAO dao = new NetworkDAO (conn);
+		  dao.deleteNetwork(oldNetworkID);
+
+		  conn.commit();
+		  
  		 logger.info("All tests on " + m.fileName + " passed. Deleteing test network " + networkID.toString()); 
  		  dao.deleteNetwork(networkID.toString());
  		  conn.commit();
@@ -92,7 +92,10 @@ public class ImportExportTest {
  		  file.delete();
  		  
  		 logger.info("All done for "+ m.fileName);
-		}	  
+		}
+		
+		logger.info("All tests passed.");
+
 	}
 
 	private static void exportNetwork(TestMeasurement m, ODatabaseDocumentTx conn,
@@ -150,7 +153,24 @@ public class ImportExportTest {
 			 assertEquals(n.getEdges().size(), m.edgeCnt);
 			 if (m.basetermCnt >=0 )
 				 assertEquals(n.getBaseTerms().size(), m.basetermCnt);
-		 
+			 if ( m.citationCnt >= 0 )
+				 assertEquals(n.getCitations().size(), m.citationCnt);
+	//		 if ( m.elmtPresPropCnt >= 0 )
+	//			 assertEquals(n.getBaseTerms().size(), m.basetermCnt);
+	//		 if ( m.elmtPropCnt >=0)
+	//			 assertEquals(n.getBaseTerms().size(), m.basetermCnt);
+			 if ( m.funcTermCnt >=0 )
+				 assertEquals(n.getFunctionTerms().size(), m.funcTermCnt);
+			 if ( m.nameSpaceCnt >=0 )
+				 assertEquals(n.getNamespaces().size(), m.nameSpaceCnt);
+			 if ( m.netPresPropCnt >=0 )
+				 assertEquals(n.getPresentationProperties().size(), m.netPresPropCnt);
+			 if ( m.netPropCnt >=0 )
+				 assertEquals(n.getProperties().size(), m.netPropCnt+1);
+			 if ( m.reifiedEdgeCnt >=0 )
+				 assertEquals(n.getReifiedEdgeTerms().size(), m.reifiedEdgeCnt);
+			 if ( m.support >=0 )
+				 assertEquals(n.getSupports().size(), m.support);
 		 }
    
     }
