@@ -53,7 +53,8 @@ public class HandleGraphAttribute extends AbstractHandler {
 		} else if (attName.matches("backgroundColor|GRAPH_VIEW_ZOOM|GRAPH_VIEW_CENTER_[XY]|NODE_SIZE_LOCKED|__layoutAlgorithm")) {
 			
 		//	String attValue = attributeValueUtil.getAttributeValue(atts, attName);
-			
+		
+		/*  CJ: commented out for now until we decide how to handle presentation property.	
 			StringBuilder sb = new StringBuilder ();
 			sb.append("<"+qName );
 			for ( int i = 0 ; i < atts.getLength(); i++) {
@@ -61,6 +62,7 @@ public class HandleGraphAttribute extends AbstractHandler {
 			}
 			sb.append("/>");
 			manager.addNetworkGraphicsAttribute( attName, sb.toString());
+		*/	
 			
 		} else {
 			//TODO: this line is removed by cj. need to review it.

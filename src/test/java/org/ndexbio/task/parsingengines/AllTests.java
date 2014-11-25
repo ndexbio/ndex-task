@@ -81,6 +81,7 @@ public class AllTests {
 	    			t.elmtPropCnt   = getIntValueFromRec(record,12);
 	    			t.elmtPresPropCnt = getIntValueFromRec(record,13);
 	    			t.networkName = record.get(14);
+	    			t.runTest  = Boolean.valueOf(record.get(15).toLowerCase());
 	    			
 	    			testList.add(t);
 	    		}

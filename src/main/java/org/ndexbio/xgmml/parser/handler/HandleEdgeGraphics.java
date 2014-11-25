@@ -41,7 +41,7 @@ public class HandleEdgeGraphics extends AbstractHandler {
 			manager.resetCurrentGraphicsString();
 		} 
 		
-		StringBuilder sb = new StringBuilder ();
+	/*	StringBuilder sb = new StringBuilder ();
 		sb.append("<"+qName );
 		for ( int i = 0 ; i < atts.getLength(); i++) {
 				sb.append(" " + atts.getQName(i) + "=\"" +StringEscapeUtils.escapeXml(atts.getValue(i)) + "\""); 
@@ -49,7 +49,7 @@ public class HandleEdgeGraphics extends AbstractHandler {
 		sb.append(">\n");
 
 		manager.appendCurrentGraphicsString(sb.toString());
-		
+		*/
 		return current;
 	}
 }

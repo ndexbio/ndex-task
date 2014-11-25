@@ -41,7 +41,9 @@ public class HandleNodeGraphics extends AbstractHandler {
 
 	@Override
     public ParseState handle(final String namespace, final String tag, final String qName,  Attributes atts, ParseState current) throws SAXException, ExecutionException {
-			StringBuilder sb = new StringBuilder ();
+
+		/* 
+		StringBuilder sb = new StringBuilder ();
 			sb.append("<"+qName );
 			for ( int i = 0 ; i < atts.getLength(); i++) {
 				sb.append(" " + atts.getQName(i) + "=\"" +  StringEscapeUtils.escapeXml(atts.getValue(i)) + "\""); 
@@ -49,7 +51,7 @@ public class HandleNodeGraphics extends AbstractHandler {
 			sb.append(">\n");
         	
         	manager.appendCurrentGraphicsString(sb.toString());
-        
+        */
         return current;
     }
 }
