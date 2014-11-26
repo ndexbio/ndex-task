@@ -64,7 +64,7 @@ public class AllTests {
 	    	try (Reader in = new FileReader(testFileDirectory + "network_test_file_list.csv")) {
 	    	  CSVParser parser = CSVFormat.EXCEL.parse(in);
 	    	  for (CSVRecord record : parser) {
-	    		if ( parser.getCurrentLineNumber() > 1) {
+	    		if ( parser.getCurrentLineNumber() > 1 && Boolean.valueOf(record.get(15).toLowerCase()) ) {
 	    			TestMeasurement t = new TestMeasurement();
 	    			t.fileName = record.get(0);
 	    			t.srcFormat = NetworkSourceFormat.valueOf(record.get(1));
@@ -81,7 +81,7 @@ public class AllTests {
 	    			t.elmtPropCnt   = getIntValueFromRec(record,12);
 	    			t.elmtPresPropCnt = getIntValueFromRec(record,13);
 	    			t.networkName = record.get(14);
-	    			t.runTest  = Boolean.valueOf(record.get(15).toLowerCase());
+	    			//t.runTest  = ;
 	    			
 	    			testList.add(t);
 	    		}

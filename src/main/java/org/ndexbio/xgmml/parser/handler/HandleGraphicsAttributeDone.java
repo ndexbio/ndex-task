@@ -12,9 +12,9 @@ public class HandleGraphicsAttributeDone extends AbstractHandler {
 			Attributes atts, ParseState current) throws SAXException,
 			NdexException, Exception {
 		
-		this.manager.appendCurrentGraphicsString("</");
+/*		this.manager.appendCurrentGraphicsString("</");
 		this.manager.appendCurrentGraphicsString(tag);
-		this.manager.appendCurrentGraphicsString(">\n");
+		this.manager.appendCurrentGraphicsString(">\n"); */
 		return current;
 	}
 

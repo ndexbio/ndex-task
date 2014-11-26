@@ -191,11 +191,11 @@ public class AttributeValueUtil {
 		
     }
     
-    public static void setAttribute(final PropertiedObject element, final String key, final String value){
+    public static void setAttribute(final PropertiedObject element, final String key, final String value, String type){
     	if (null == element.getProperties()){
     		element.setProperties(new ArrayList<NdexPropertyValuePair>());
     	}
-    	setProperty(element.getProperties(), key, value);   	
+    	setProperty(element.getProperties(), key, value, type);   	
     }
     
     // TODO - not used at the moment, determine role - are we going to support XLINKs?
@@ -205,7 +205,7 @@ public class AttributeValueUtil {
 	}
 
 	public static void setProperty(List<NdexPropertyValuePair> props, String key,
-			String value) {
+			String value, String type) {
 		for (NdexPropertyValuePair prop : props){
     		if (key.equalsIgnoreCase(prop.getPredicateString())){
     			prop.setValue(value);
@@ -215,7 +215,10 @@ public class AttributeValueUtil {
     	NdexPropertyValuePair prop = new NdexPropertyValuePair();
     	prop.setPredicateString(key);
     	prop.setValue(value);
-    	prop.setDataType(NdexPropertyValuePair.STRING);
+    	if ( type != null ) {
+    		prop.setDataType(type);
+    	} else 
+    		prop.setDataType(NdexPropertyValuePair.STRING);
     	props.add(prop);
 		
 	}

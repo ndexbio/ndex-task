@@ -18,5 +18,5 @@ public class TestMeasurement {
    public int elmtPropCnt;
    public int elmtPresPropCnt;
    public String networkName;
-   public boolean runTest;
+  // public boolean runTest;
 }

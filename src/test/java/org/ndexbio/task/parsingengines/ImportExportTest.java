@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.TreeSet;
 import java.util.UUID;
 import java.util.logging.Logger;
 
@@ -12,6 +13,7 @@ import org.junit.Test;
 import org.ndexbio.common.NetworkSourceFormat;
 import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.models.dao.orientdb.NetworkDAO;
+import org.ndexbio.model.object.network.BaseTerm;
 import org.ndexbio.model.object.network.Network;
 import org.ndexbio.task.event.NdexNetworkState;
 import org.ndexbio.task.service.NdexJVMDataModelService;
@@ -29,6 +31,7 @@ import javax.xml.transform.TransformerException;
 
 public class ImportExportTest {
 
+	private static final boolean BaseTerm = false;
 	static Logger logger = Logger.getLogger(ImportExportTest.class.getName());
 
 	@Test
@@ -47,7 +50,8 @@ public class ImportExportTest {
 		 assertEquivalence(networkID, m);
 		
 		 logger.info("First round import passed. Start exporting ...");
-		 
+
+		 System.out.println("Working Directory = " + System.getProperty("user.dir"));
 		 ODatabaseDocumentTx conn = AllTests.db.getAConnection();
 		 exportNetwork(m, conn, networkID);
 
@@ -62,9 +66,6 @@ public class ImportExportTest {
 		  logger.info("Started importing exported network.");
 		  parser = importFile ( networkID.toString(), m);
 		  
-		  logger.info("Deleting exported network document.");
-		  File file = new File(networkID.toString());
-  		  file.delete();
   		  
 
   		logger.info("Verifying network loaded from exported file.");
@@ -86,7 +87,12 @@ public class ImportExportTest {
  		  conn.commit();
  		  conn.close();
 
- 		 logger.info("Deleteing network document exported from network " + networkID.toString());
+		  logger.info("Deleting network document exported in first round.");
+		  File file = new File(oldNetworkID.toString());
+  		  file.delete();
+
+ 		  
+ 		 logger.info("Deleteing network document exported in second round " + networkID.toString());
 		  file = new File(networkID.toString());
  		  assertTrue( file.exists());
  		  file.delete();
@@ -151,8 +157,20 @@ public class ImportExportTest {
 			 assertEquals(n.getNodeCount(), m.nodeCnt);
 			 assertEquals(n.getEdgeCount(), m.edgeCnt);
 			 assertEquals(n.getEdges().size(), m.edgeCnt);
-			 if (m.basetermCnt >=0 )
+			 if (m.basetermCnt >=0 ) {
+/*				 TreeSet<String> s = new TreeSet<>();
+
+				 for ( BaseTerm ss : n.getBaseTerms().values()) {
+					 s.add(ss.getName());
+					 
+				 }
+				 int i =0;
+				 for(String si : s) { 
+				   System.out.println(i + "\t" + si);
+				   i++;
+				 }  */
 				 assertEquals(n.getBaseTerms().size(), m.basetermCnt);
+			 }
 			 if ( m.citationCnt >= 0 )
 				 assertEquals(n.getCitations().size(), m.citationCnt);
 	//		 if ( m.elmtPresPropCnt >= 0 )

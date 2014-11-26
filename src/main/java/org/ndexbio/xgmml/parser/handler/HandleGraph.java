@@ -152,7 +152,7 @@ public class HandleGraph extends AbstractHandler {
 			
 		//	System.out.println(name + ","+qname+","+type+","+uri+","+v);
 
-			AttributeValueUtil.setAttribute(manager.getCurrentNetwork(), qname, v);
+			AttributeValueUtil.setAttribute(manager.getCurrentNetwork(), qname, v, null);
 	
 		}
 		

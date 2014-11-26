@@ -57,7 +57,7 @@ public class HandleRDFNetworkAttribute extends AbstractHandler {
 			// 	Find or create the namespace
 		
 			Namespace ns = manager.findOrCreateNamespace(namespace, prefix);
-			System.out.println(namespace+":"+prefix);
+		//	System.out.println(namespace+":"+prefix);
 		
 			// Find or create the term for the attribute
 			// In the case of a typical XGMML network, this will result in a dublin core namespace
@@ -67,7 +67,7 @@ public class HandleRDFNetworkAttribute extends AbstractHandler {
 		
 			// set the network metadata with the qName as the property and the currentCData as the value
 		
-			AttributeValueUtil.setAttribute(manager.getCurrentNetwork(), qName, manager.getCurrentCData().trim());
+			AttributeValueUtil.setAttribute(manager.getCurrentNetwork(), qName, manager.getCurrentCData().trim(), null);
 		}
 
 		manager.resetCurrentCData();

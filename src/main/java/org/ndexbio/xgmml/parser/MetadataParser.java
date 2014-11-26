@@ -121,7 +121,7 @@ public class MetadataParser {
 
 					java.util.Date now = new java.util.Date();
 					DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-					AttributeValueUtil.setProperty(props, entries[i].toString(), df.format(now));
+					AttributeValueUtil.setProperty(props, entries[i].toString(), df.format(now),null);
 					//dataMap.put(entries[i].toString(), df.format(now));
 
 					break;
@@ -134,10 +134,10 @@ public class MetadataParser {
 				case SOURCE:
 
 					if (defSource == null) {
-						AttributeValueUtil.setProperty(props, entries[i].toString(), DEF_URI);
+						AttributeValueUtil.setProperty(props, entries[i].toString(), DEF_URI,null);
 						//dataMap.put(entries[i].toString(), DEF_URI);
 					} else {
-						AttributeValueUtil.setProperty(props, entries[i].toString(), defSource);
+						AttributeValueUtil.setProperty(props, entries[i].toString(), defSource, null);
 						//dataMap.put(entries[i].toString(), defSource);
 					}
 
@@ -146,10 +146,10 @@ public class MetadataParser {
 				case TYPE:
 
 					if (defType == null) {
-						AttributeValueUtil.setProperty(props, entries[i].toString(), DEF_TYPE);
+						AttributeValueUtil.setProperty(props, entries[i].toString(), DEF_TYPE,null);
 						//dataMap.put(entries[i].toString(), DEF_TYPE);
 					} else {
-						AttributeValueUtil.setProperty(props, entries[i].toString(), defType);
+						AttributeValueUtil.setProperty(props, entries[i].toString(), defType, null);
 						//dataMap.put(entries[i].toString(), defType);
 					}
 
@@ -158,17 +158,17 @@ public class MetadataParser {
 				case FORMAT:
 
 					if (defFormat == null) {
-						AttributeValueUtil.setProperty(props, entries[i].toString(), DEF_FORMAT);
+						AttributeValueUtil.setProperty(props, entries[i].toString(), DEF_FORMAT, null);
 						//dataMap.put(entries[i].toString(), DEF_FORMAT);
 					} else {
-						AttributeValueUtil.setProperty(props, entries[i].toString(), defFormat);
+						AttributeValueUtil.setProperty(props, entries[i].toString(), defFormat, null);
 						// dataMap.put(entries[i].toString(), defFormat);
 					}
 
 					break;
 
 				default:
-					AttributeValueUtil.setProperty(props, entries[i].toString(), "N/A");
+					AttributeValueUtil.setProperty(props, entries[i].toString(), "N/A", null);
 					//dataMap.put(entries[i].toString(), "N/A");
 
 					break;
@@ -194,7 +194,7 @@ public class MetadataParser {
 
 	public void setMetadata(MetadataEntries entryName, String value) {
 
-		AttributeValueUtil.setAttribute(network, entryName.toString(), value);
+		AttributeValueUtil.setAttribute(network, entryName.toString(), value, null);
 
 		rdfAsNdexProperties = network.getProperties();
 	}

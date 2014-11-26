@@ -42,8 +42,9 @@ public class HandleGraphAttribute extends AbstractHandler {
 		ParseState nextState = current;
 
 		String attName = atts.getValue(AttributeValueUtil.ATTR_NAME);
+		String value = atts.getValue("value");
 		
-		if (attName == null && atts.getValue("value") == null)
+		if (attName == null && value == null)
 			return current;
 
 		// Look for "special" network attributes
@@ -67,7 +68,9 @@ public class HandleGraphAttribute extends AbstractHandler {
 		} else {
 			//TODO: this line is removed by cj. need to review it.
 		//	manager.setCurrentElement(manager.getCurrentNetwork());
-			nextState = attributeValueUtil.handleAttribute(atts, true);
+			AttributeValueUtil.setAttribute(manager.getCurrentNetwork(), attName, value, atts.getValue("type"));
+
+			nextState = ParseState.NONE; // attributeValueUtil.handleAttribute(atts, true);
 		}
 
 		if (nextState != ParseState.NONE)
