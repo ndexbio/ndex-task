@@ -25,11 +25,9 @@ package org.ndexbio.xgmml.parser.handler;
  */
 
 
-import org.ndexbio.model.object.network.Network;
 import org.ndexbio.xgmml.parser.ObjectTypeMap;
 import org.ndexbio.xgmml.parser.ParseState;
 import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
 
 public class HandleGraph extends AbstractHandler {
 	
@@ -141,7 +139,7 @@ public class HandleGraph extends AbstractHandler {
 	 * @throws Exception 
 	 */
 	private ParseState handleGenericXGMMLGraph(String tag, Attributes atts, ParseState current) throws Exception {
-		final Network currentNet;
+		//final Network currentNet;
 
 		for (int i = 0 ; i < atts.getLength() ; i++ ) {
 	//		String name = atts.getLocalName(i);
@@ -151,7 +149,10 @@ public class HandleGraph extends AbstractHandler {
 			String v = atts.getValue(i);
 			
 		//	System.out.println(name + ","+qname+","+type+","+uri+","+v);
+			if ( qname.equals(""))
+			manager.setNetworkTitle(manager.getCurrentCData().trim());
 
+			
 			AttributeValueUtil.setAttribute(manager.getCurrentNetwork(), qname, v, null);
 	
 		}

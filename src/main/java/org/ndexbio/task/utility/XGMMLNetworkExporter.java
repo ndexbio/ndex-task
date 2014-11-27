@@ -44,6 +44,7 @@ public class XGMMLNetworkExporter {
 	static final private String attTag = "att";
 	static final private String nodeTag = "node";
 	static final private String edgeTag = "edge";
+	static final private String documentVersion = "1.1";   // this is the default Document version for xgmml file exported from NDEx
 	
 	private DocumentBuilder docBuilder;
 	public XGMMLNetworkExporter (ODatabaseDocumentTx db) throws ParserConfigurationException {
@@ -234,7 +235,7 @@ public class XGMMLNetworkExporter {
 
 		Element docVersion = doc.createElement(attTag);
 		networkElement.appendChild(docVersion);
-		docVersion.setAttribute("documentVersion", "1.0");
+		docVersion.setAttribute("documentVersion", documentVersion);
 		
 		Element metadata = doc.createElement(attTag);
 		networkElement.appendChild(metadata);
@@ -257,6 +258,7 @@ public class XGMMLNetworkExporter {
 		return e2;
 	}
 	
+/*	
 	public static  void main (String[] args) throws NdexException, ParserConfigurationException, TransformerException, ClassCastException, SAXException, IOException {
 		ODatabaseDocumentTx db = NdexAOrientDBConnectionPool.getInstance().acquire();
 		
@@ -271,5 +273,5 @@ public class XGMMLNetworkExporter {
 		db.close();
 
 	}
-	
+*/	
 }

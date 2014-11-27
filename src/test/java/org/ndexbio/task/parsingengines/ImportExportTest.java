@@ -87,15 +87,17 @@ public class ImportExportTest {
  		  conn.commit();
  		  conn.close();
 
+ 		  logger.info("checking if the 2 exported files have the same size");
+ 		  File file1 = new File(oldNetworkID.toString());
+		  File file2 = new File(networkID.toString());
+ 		  assertTrue( file2.exists());
+ 		  assertEquals(file1.length(), file2.length()); 
+ 		  	 		  
 		  logger.info("Deleting network document exported in first round.");
-		  File file = new File(oldNetworkID.toString());
-  		  file.delete();
-
+		  file1.delete();
  		  
  		 logger.info("Deleteing network document exported in second round " + networkID.toString());
-		  file = new File(networkID.toString());
- 		  assertTrue( file.exists());
- 		  file.delete();
+ 		  file2.delete();
  		  
  		 logger.info("All done for "+ m.fileName);
 		}
@@ -158,7 +160,7 @@ public class ImportExportTest {
 			 assertEquals(n.getEdgeCount(), m.edgeCnt);
 			 assertEquals(n.getEdges().size(), m.edgeCnt);
 			 if (m.basetermCnt >=0 ) {
-/*				 TreeSet<String> s = new TreeSet<>();
+				 TreeSet<String> s = new TreeSet<>();
 
 				 for ( BaseTerm ss : n.getBaseTerms().values()) {
 					 s.add(ss.getName());
@@ -168,7 +170,7 @@ public class ImportExportTest {
 				 for(String si : s) { 
 				   System.out.println(i + "\t" + si);
 				   i++;
-				 }  */
+				 }  
 				 assertEquals(n.getBaseTerms().size(), m.basetermCnt);
 			 }
 			 if ( m.citationCnt >= 0 )
