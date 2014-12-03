@@ -27,6 +27,7 @@ package org.ndexbio.xgmml.parser.handler;
 
 import java.util.concurrent.ExecutionException;
 
+import org.ndexbio.task.utility.XGMMLNetworkExporter;
 import org.ndexbio.xgmml.parser.ParseState;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -51,6 +52,10 @@ public class HandleGraphAttribute extends AbstractHandler {
 		if (attName.equals("documentVersion")) {
 			// Old format only!
 			manager.setDocumentVersion(attributeValueUtil.getAttributeValue(atts, attName));
+		} else if ( attName.equals("name")) { 
+			manager.setNetworkTitle(value);	
+		} else if ( attName.equals(XGMMLNetworkExporter.descAttr)) {
+			manager.setNetworkDesc(value);
 		} else if (attName.matches("backgroundColor|GRAPH_VIEW_ZOOM|GRAPH_VIEW_CENTER_[XY]|NODE_SIZE_LOCKED|__layoutAlgorithm")) {
 			
 		//	String attValue = attributeValueUtil.getAttributeValue(atts, attName);
@@ -66,10 +71,10 @@ public class HandleGraphAttribute extends AbstractHandler {
 		*/	
 			
 		} else {
-			//TODO: this line is removed by cj. need to review it.
-		//	manager.setCurrentElement(manager.getCurrentNetwork());
-			AttributeValueUtil.setAttribute(manager.getCurrentNetwork(), attName, value, atts.getValue("type"));
 
+			if ( ! (attName.equals("networkMetadata") && namespace.equals("http://www.cs.rpi.edu/XGMML"))) 	
+				AttributeValueUtil.setAttribute(manager.getCurrentNetwork(), attName, value, atts.getValue("type"));
+				
 			nextState = ParseState.NONE; // attributeValueUtil.handleAttribute(atts, true);
 		}
 

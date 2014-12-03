@@ -14,7 +14,9 @@ import org.ndexbio.common.NetworkSourceFormat;
 import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.models.dao.orientdb.NetworkDAO;
 import org.ndexbio.model.object.network.BaseTerm;
+import org.ndexbio.model.object.network.Edge;
 import org.ndexbio.model.object.network.Network;
+import org.ndexbio.model.object.network.Node;
 import org.ndexbio.task.event.NdexNetworkState;
 import org.ndexbio.task.service.NdexJVMDataModelService;
 import org.ndexbio.task.service.NdexTaskModelService;
@@ -26,6 +28,8 @@ import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
+
+import org.apache.commons.io.FilenameUtils;
 
 
 
@@ -73,26 +77,29 @@ public class ImportExportTest {
  		  assertEquivalence(networkID, m);
           
  		  
- 		 logger.info("Exporting the re-imported file.");
+ 		 logger.info("Exporting the re-imported network.");
  		  exportNetwork(m, conn, networkID);
  
- 		 logger.info("Deleting first round test network " + oldNetworkID + " from db.");
-		  NetworkDAO dao = new NetworkDAO (conn);
-		  dao.deleteNetwork(oldNetworkID);
-
-		  conn.commit();
-		  
- 		 logger.info("All tests on " + m.fileName + " passed. Deleteing test network " + networkID.toString()); 
- 		  dao.deleteNetwork(networkID.toString());
- 		  conn.commit();
- 		  conn.close();
 
  		  logger.info("checking if the 2 exported files have the same size");
  		  File file1 = new File(oldNetworkID.toString());
 		  File file2 = new File(networkID.toString());
  		  assertTrue( file2.exists());
- 		  assertEquals(file1.length(), file2.length()); 
- 		  	 		  
+ 		  double sizeDiff = Math.abs(file1.length()-file2.length());
+ 		  assertTrue ( sizeDiff/file1.length() < 0.005 || sizeDiff <100);
+ 		  //assertEquals(file1.length(), file2.length()); 
+
+  		 logger.info("Deleting first round test network " + oldNetworkID + " from db.");
+ 		  NetworkDAO dao = new NetworkDAO (conn);
+ 		  dao.deleteNetwork(oldNetworkID);
+
+ 		  conn.commit();
+ 		  
+  		 logger.info("All tests on " + m.fileName + " passed. Deleteing test network " + networkID.toString()); 
+  		  dao.deleteNetwork(networkID.toString());
+  		  conn.commit();
+  		  conn.close();
+		  
 		  logger.info("Deleting network document exported in first round.");
 		  file1.delete();
  		  
@@ -139,7 +146,7 @@ public class ImportExportTest {
 		  } else if ( m.srcFormat == NetworkSourceFormat.BEL) {
 			  parser = new XbelParser(testFile,AllTests.testUser, AllTests.db);
 		  } else if (m.srcFormat == NetworkSourceFormat.SIF) {
-			  parser = new SifParser(testFile,AllTests.testUser, AllTests.db, m.fileName);
+			  parser = new SifParser(testFile,AllTests.testUser, AllTests.db, FilenameUtils.getBaseName( m.fileName) );
 		  } else
 			  throw new Exception ("unsupported source format " + m.srcFormat);
 		  
@@ -191,6 +198,21 @@ public class ImportExportTest {
 				 assertEquals(n.getReifiedEdgeTerms().size(), m.reifiedEdgeCnt);
 			 if ( m.support >=0 )
 				 assertEquals(n.getSupports().size(), m.support);
+			 if ( m.nodePropCnt >=0 ) {
+				 int i = 0 ;
+				 for ( Node node : n.getNodes().values() ) {
+					 i += node.getProperties().size();
+				 }
+				 assertEquals(i, m.nodePropCnt);
+			 }
+			 if ( m.edgePropCnt >=0 ) {
+				 int i = 0 ;
+				 for ( Edge edge : n.getEdges().values() ) {
+					 i += edge.getProperties().size();
+				 }
+				 assertEquals(i, m.edgePropCnt);
+			 }
+				 
 		 }
    
     }

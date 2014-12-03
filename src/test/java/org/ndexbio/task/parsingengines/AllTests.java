@@ -78,8 +78,8 @@ public class AllTests {
 	    			t.support      = getIntValueFromRec(record,9);
 	    			t.netPropCnt   = getIntValueFromRec(record,10);
 	    			t.netPresPropCnt = getIntValueFromRec(record,11);
-	    			t.elmtPropCnt   = getIntValueFromRec(record,12);
-	    			t.elmtPresPropCnt = getIntValueFromRec(record,13);
+	    			t.nodePropCnt   = getIntValueFromRec(record,12);
+	    			t.edgePropCnt = getIntValueFromRec(record,13);
 	    			t.networkName = record.get(14);
 	    			//t.runTest  = ;
 	    			

@@ -28,6 +28,7 @@ import org.ndexbio.model.object.network.Edge;
 import org.ndexbio.model.object.network.Namespace;
 import org.ndexbio.model.object.network.Network;
 import org.ndexbio.model.object.network.Node;
+import org.ndexbio.xgmml.parser.handler.HandleGraph;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
@@ -45,6 +46,12 @@ public class XGMMLNetworkExporter {
 	static final private String nodeTag = "node";
 	static final private String edgeTag = "edge";
 	static final private String documentVersion = "1.1";   // this is the default Document version for xgmml file exported from NDEx
+	static final private String nameAttr = "name";
+	static final private String valueAttr = "value";
+	static final private String typeAttr = "type";
+	static final private String labelAttr = "label";
+	static final public String descAttr = "description";
+	static final private String docVersionAttr = "documentVersion";
 	
 	private DocumentBuilder docBuilder;
 	public XGMMLNetworkExporter (ODatabaseDocumentTx db) throws ParserConfigurationException {
@@ -91,6 +98,9 @@ public class XGMMLNetworkExporter {
 		Element networkElement = doc.createElement(networkTag);
 		doc.appendChild(networkElement);
 		
+		// set label
+		networkElement.setAttribute(HandleGraph.label, network.getName());
+		
 		//namespaces
 		for ( Namespace ns : network.getNamespaces().values()) {
 			if ( ns.getPrefix().equals("xmlns")) {
@@ -106,9 +116,19 @@ public class XGMMLNetworkExporter {
 		
 		//network properties
 		for ( NdexPropertyValuePair p : network.getProperties() ) {
-		  if ( !p.getPredicateString().equals(NdexClasses.Network_P_source_format)) {	
-			if ( ! p.getPredicateString().contains(":")) {
-				networkElement.setAttribute(p.getPredicateString(),p.getValue());	
+			
+		  if ( !p.getPredicateString().equals(NdexClasses.Network_P_source_format) && 
+			   !p.getPredicateString().matches( "(.+:)?" + docVersionAttr + "$") ) {	
+			if ( ! p.getPredicateString().contains(":") ) {
+				if( p.getPredicateString().equals("directed"))
+					networkElement.setAttribute(p.getPredicateString(),p.getValue());
+				else  {
+					Element networkAttr = doc.createElement(attTag);
+					networkElement.appendChild(networkAttr);
+					networkAttr.setAttribute(nameAttr, p.getPredicateString());
+					networkAttr.setAttribute(valueAttr, p.getValue());
+					networkAttr.setAttribute(typeAttr, p.getDataType().toLowerCase());
+				}
 			} else {
 				Element metaData = doc.createElement(p.getPredicateString());
 				rdfElement.appendChild(metaData);
@@ -117,23 +137,42 @@ public class XGMMLNetworkExporter {
 		  }
 		}
 
+
+		//set name attribute for the network
+		Element networkAttr = doc.createElement(attTag);
+		networkElement.appendChild(networkAttr);
+		networkAttr.setAttribute(nameAttr, nameAttr);
+		networkAttr.setAttribute(valueAttr, network.getName());
+		networkAttr.setAttribute(typeAttr, "string");
+
+		
+		//set description attribute for the network
+		if ( network.getDescription() != null && !network.getDescription().equals("N/A")) {
+			Element descElt = doc.createElement(attTag);
+			networkElement.appendChild(descElt);
+			descElt.setAttribute(nameAttr, descAttr);
+			descElt.setAttribute(valueAttr, network.getDescription());
+			descElt.setAttribute(typeAttr, "string");
+	    }
+		
 		Element title = doc.createElement("dc:title");
 		rdfElement.appendChild(title);
 		title.setTextContent(network.getName());
 		
+		// set dc:description to N/A so that it is consistent with Cytoscape.
 		Element desc = doc.createElement("dc:description");
 		rdfElement.appendChild(desc);
 		desc.setTextContent(network.getDescription());
 		
 		//network presentation property
-		for ( SimplePropertyValuePair p : network.getPresentationProperties()) {
+/*		for ( SimplePropertyValuePair p : network.getPresentationProperties()) {
 			if ( isXGMMLGraph ) {
 				org.w3c.dom.Node e = getElementFromString(doc,p.getValue());
 				networkElement.appendChild(e);
 			} else { 
 				//TODO: for non XGMML graphs, just treat them as properties.
 			}	
-		}
+		} */
 		
 		//Nodes
 		for (Node node : network.getNodes().values()) {
@@ -197,6 +236,7 @@ public class XGMMLNetworkExporter {
 	
 	private void addPropertiesToElement(PropertiedObject obj, Element parent, Document doc) throws SAXException, IOException {
 		for ( NdexPropertyValuePair p : obj.getProperties() ) {
+		  if ( ! p.getPredicateString().equals(labelAttr)) {
 			Element metaData = doc.createElement(attTag);
 			parent.appendChild(metaData);
 			metaData.setAttribute("label", p.getPredicateString());
@@ -214,16 +254,18 @@ public class XGMMLNetworkExporter {
                 	valElement.setAttribute("type", "string");
                 }
 	        }
+		  }
 		}
-		
+
+/*		Ignore graphics properties for now.
 		for ( SimplePropertyValuePair p : obj.getPresentationProperties() ) {
 		  if ( p.getName().equals("graphics") ) {
 			  org.w3c.dom.Node n = getElementFromString(doc, p.getValue());
 			  parent.appendChild(n);
 		  } else {
-			//TODO: handles other graphics property
+			
 		  }	  
-		}
+		}  */
 	}
 	
 	/**
@@ -231,11 +273,11 @@ public class XGMMLNetworkExporter {
 	 * @param graph
 	 * @return The "RDF" element which network metadata can be inserted under.
 	 */
-	private Element addBuiltInAttributesInGraph(Document doc, Element networkElement, String networkURI) {
+	private static Element addBuiltInAttributesInGraph(Document doc, Element networkElement, String networkURI) {
 
 		Element docVersion = doc.createElement(attTag);
 		networkElement.appendChild(docVersion);
-		docVersion.setAttribute("documentVersion", documentVersion);
+		docVersion.setAttribute(docVersionAttr, documentVersion);
 		
 		Element metadata = doc.createElement(attTag);
 		networkElement.appendChild(metadata);

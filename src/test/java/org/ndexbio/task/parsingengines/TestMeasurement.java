@@ -15,8 +15,8 @@ public class TestMeasurement {
    public int support;
    public int netPropCnt;
    public int netPresPropCnt;	
-   public int elmtPropCnt;
-   public int elmtPresPropCnt;
+   public int nodePropCnt;
+   public int edgePropCnt;
    public String networkName;
   // public boolean runTest;
 }

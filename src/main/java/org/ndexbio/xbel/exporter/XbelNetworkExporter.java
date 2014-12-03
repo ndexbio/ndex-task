@@ -75,11 +75,6 @@ public class XbelNetworkExporter {
 	private Network subNetwork;
 	private XbelStack<org.ndexbio.xbel.model.Term> xbelTermStack;
 	
-//	private final static String copyright = "Copyright (c) 2011, Selventa. All Rights Reserved.";
-//	private final static String contactInfo = "support@belframework.org";
-	private final static String author = "Selventa";
-//	private final static String license = "Creative Commons Attribution-Non-Commercial-ShareAlike 3.0 Unported License";
-	
 	private XbelMarshaller xm;
 	private final ObjectFactory xbelFactory = new ObjectFactory();
 	// incorporate operation auditing
