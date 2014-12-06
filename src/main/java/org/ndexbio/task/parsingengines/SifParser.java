@@ -199,9 +199,14 @@ public class SifParser implements IParsingEngine {
 
 				if (tokens.length == 1)
 					addNode(tokens[0]); 
-				if (tokens.length == 3)
-					addEdge(tokens[0], tokens[1], tokens[2]);  
-				// TODO: handle case of multiple object nodes
+//				if (tokens.length == 3)
+//					addEdge(tokens[0], tokens[1], tokens[2]);  
+				else if ( tokens.length ==2 ) 
+					throw new NdexException ("Invalid data format found in line: " + line);
+				else {
+				  for ( int i = 2 ; i < tokens.length; i++ )
+					  addEdge ( tokens[0], tokens[1],tokens[i]);
+				}
 			}
 		} catch (IOException e) {
 			this.getMsgBuffer().add(e.getMessage());

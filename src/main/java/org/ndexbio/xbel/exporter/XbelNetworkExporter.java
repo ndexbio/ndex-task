@@ -20,6 +20,7 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
+import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.persistence.orientdb.NdexPersistenceService;
 import org.ndexbio.model.object.NdexPropertyValuePair;
 import org.ndexbio.model.object.network.Edge;
@@ -164,7 +165,7 @@ public class XbelNetworkExporter {
 	 * XML file
 	 */
 
-	public void exportNetwork() {
+	public void exportNetwork() throws NdexException{
 
 		
 		xm.open();
@@ -268,7 +269,7 @@ public class XbelNetworkExporter {
 	 * outer-level statement group. A subnetwork is obtained from the database
 	 * for the NDEx objects that belong to that Citation
 	 */
-	private void processCitationSubnetworks() {
+	private void processCitationSubnetworks() throws NdexException{
 		Collection<org.ndexbio.model.object.network.Citation> modelCitations = this
 				.getCitationsByNetworkId();
 		for (org.ndexbio.model.object.network.Citation citation : modelCitations) {
@@ -303,6 +304,12 @@ public class XbelNetworkExporter {
 			}
 
 		}
+		
+		// process orphan supports
+		this.subNetwork = this.modelService.getOrphanSupportNetwork(this.networkId);
+		StatementGroup stmtGrp = this.processOrphanSupportsStatementGroup();
+		
+		
 		
 		// process the remainder ( statements that are not under any citation)
 		this.subNetwork = this.modelService.getNoCitationSubnetwork(this.networkId);
@@ -367,6 +374,53 @@ public class XbelNetworkExporter {
 		return sg;
 	}
 
+	
+	private StatementGroup processOrphanSupportsStatementGroup() {
+		// clear the statement group stack
+		StatementGroup sg = new StatementGroup();
+		AnnotationGroup ag = new AnnotationGroup();
+	//	sg.setName(this.createXbelCitation(ag, modelCitation));
+		sg.setAnnotationGroup(ag);
+		
+		// Setup tracker so that we can tell which nodes are orphan nodes
+		TreeSet<Long> processedNodeIds = new TreeSet<>();
+		
+		// a collection of edge ids that referenced by ReifiedEdgesTerm
+		TreeSet<Long> reifiedEdgeIds = new TreeSet<>();
+		for ( ReifiedEdgeTerm rt: this.subNetwork.getReifiedEdgeTerms().values()) {
+			reifiedEdgeIds.add(rt.getEdgeId());
+		}
+		
+		for ( Edge e : this.subNetwork.getEdges().values()) {
+			if(  e.getSupportIds().size() == 0 && (! reifiedEdgeIds.contains(e.getId())) ) {
+				this.processSupportEdge(sg, e, processedNodeIds);
+				this.edgeAuditor.removeProcessedNdexObject(e);
+			}
+		}
+		
+//		processCitationSupports(sg, modelCitation, reifiedEdgeIds,processedNodeIds);
+		
+		// process orphan nodes in this Citation
+		for (Map.Entry<Long, Node> entry : this.subNetwork.getNodes()
+					.entrySet()) {
+			Node node = entry.getValue();
+	//		if (node.getCitationIds().contains(modelCitation.getId()) && !processedNodeIds.contains(entry.getKey())) {
+					// we've identified a node that belongs to this support
+				this.processSupportNode(sg, node);
+					
+				this.nodeAuditor.removeProcessedNdexObject(node);
+//			}
+		}
+
+		// increment the audit citation count
+		this.auditService.incrementObservedMetricValue("citation count");
+		
+		return sg;
+	}
+	
+	
+	
+	
 	private StatementGroup processUnCitedStatementGroup() {
 		// clear the statement group stack
 //		StatementGroup sg = new StatementGroup();

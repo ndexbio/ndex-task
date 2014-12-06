@@ -226,17 +226,30 @@ public class NdexJVMDataModelService implements NdexTaskModelService {
 	}
 
 	@Override
-	public Network getNoCitationSubnetwork(String networkId) {
+	public Network getNoCitationSubnetwork(String networkId) throws NdexException {
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(networkId), 
 				"A network id is required");
 		try {
-			return dao.getNoCitationSubnetwork( networkId);
+			return dao.getOrphanStatementsSubnetwork( networkId);
 		} catch (IllegalArgumentException | NdexException e) {
 			logger.error(e.getMessage());
 			e.printStackTrace();
+			throw new NdexException ("Error occurred when getting orphan statement subnetwork: " + e.getMessage());
 		}
 		
-		return null;
+	}
+
+	@Override
+	public Network getOrphanSupportNetwork(String networkID) throws NdexException {
+		Preconditions.checkArgument(!Strings.isNullOrEmpty(networkID), 
+				"A network id is required");
+		try {
+			return dao.getOrphanSupportsNetwork( networkID);
+		} catch (IllegalArgumentException | NdexException e) {
+			logger.error(e.getMessage());
+			e.printStackTrace();
+			throw new NdexException ("Error occurred when getting orphanSupport subnetwork: " + e.getMessage());
+		}
 	}
 
 	

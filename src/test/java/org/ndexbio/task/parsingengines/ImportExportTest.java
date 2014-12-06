@@ -81,7 +81,7 @@ public class ImportExportTest {
  		  exportNetwork(m, conn, networkID);
  
 
- 		  logger.info("checking if the 2 exported files have the same size");
+ 		  logger.info("checking if the 2 exported files have similar sizes");
  		  File file1 = new File(oldNetworkID.toString());
 		  File file2 = new File(networkID.toString());
  		  assertTrue( file2.exists());
