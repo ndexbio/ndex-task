@@ -92,7 +92,7 @@ public class HandleGraph extends AbstractHandler {
 			
 		//	System.out.println(name + ","+qname+","+type+","+uri+","+v);
 			if ( qname.equals(label))
-				manager.setNetworkTitle(manager.getCurrentCData().trim());
+				manager.setNetworkTitle(v);
 
 			else if ( !qname.equals(docVersionStr))
 				AttributeValueUtil.setAttribute(manager.getCurrentNetwork(), qname, v, null);
