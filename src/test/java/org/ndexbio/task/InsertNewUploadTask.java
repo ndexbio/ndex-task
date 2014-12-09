@@ -11,6 +11,7 @@ import java.util.Date;
 import java.util.UUID;
 
 import org.ndexbio.common.exceptions.*;
+import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.object.*;
 import org.ndexbio.common.models.dao.orientdb.TaskDAO;
 import org.ndexbio.common.persistence.orientdb.OrientDBNoTxConnectionService;

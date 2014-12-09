@@ -24,7 +24,7 @@ package org.ndexbio.xgmml.parser;
  * #L%
  */
 
-import org.ndexbio.common.exceptions.NdexException;
+import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.xgmml.parser.handler.AttributeValueUtil;
 import org.ndexbio.xgmml.parser.handler.ReadDataManager;
 import org.xml.sax.Attributes;

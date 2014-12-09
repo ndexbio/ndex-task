@@ -36,7 +36,7 @@ public class XgmmlParserSingleTest {
 		NdexDatabase db = new NdexDatabase(configuration.getHostURI());
 		
 		String user = "cjtest";
-		XgmmlParser parser = new XgmmlParser("/home/chenjing/Dropbox/Network_test_files/pdmap130712.xgmml", user, 
+		XgmmlParser parser = new XgmmlParser("/home/chenjing/Dropbox/Network_test_files/Test_file_for_dcTitle_dumping.xgmml", user, 
 				db, "pdmap13");
 		parser.parseFile();
 //		XbelParser 

@@ -20,7 +20,7 @@ import org.junit.runners.Suite.SuiteClasses;
 import org.ndexbio.common.NetworkSourceFormat;
 import org.ndexbio.common.access.NdexAOrientDBConnectionPool;
 import org.ndexbio.common.access.NdexDatabase;
-import org.ndexbio.common.exceptions.NdexException;
+import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.task.Configuration;
 
 @RunWith(Suite.class)

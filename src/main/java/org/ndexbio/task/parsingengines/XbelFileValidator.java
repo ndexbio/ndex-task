@@ -5,7 +5,7 @@ import java.io.IOException;
 
 import com.google.common.base.Strings;
 
-import org.ndexbio.common.exceptions.NdexException;
+import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.task.Configuration;
 import org.openbel.framework.common.xbel.parser.XBELValidator;
 import org.xml.sax.SAXException;

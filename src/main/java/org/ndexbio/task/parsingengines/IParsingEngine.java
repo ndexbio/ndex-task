@@ -2,7 +2,7 @@ package org.ndexbio.task.parsingengines;
 
 import java.util.UUID;
 
-import org.ndexbio.common.exceptions.NdexException;
+import org.ndexbio.model.exceptions.NdexException;
 
 public interface IParsingEngine
 {

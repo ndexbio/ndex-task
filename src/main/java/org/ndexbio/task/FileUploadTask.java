@@ -3,7 +3,7 @@ package org.ndexbio.task;
 import java.io.File;
 
 import org.ndexbio.common.access.NdexDatabase;
-import org.ndexbio.common.exceptions.NdexException;
+import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.object.Task;
 import org.ndexbio.model.object.Status;
 import org.ndexbio.task.parsingengines.*;

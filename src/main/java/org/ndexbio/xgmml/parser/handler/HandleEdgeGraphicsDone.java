@@ -1,6 +1,6 @@
 package org.ndexbio.xgmml.parser.handler;
 
-import org.ndexbio.common.exceptions.NdexException;
+import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.object.SimplePropertyValuePair;
 import org.ndexbio.xgmml.parser.HandlerFactory;
 import org.ndexbio.xgmml.parser.ParseState;

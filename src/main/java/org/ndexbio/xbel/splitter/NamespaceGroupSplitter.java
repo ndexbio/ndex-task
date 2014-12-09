@@ -3,9 +3,9 @@ package org.ndexbio.xbel.splitter;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 
-import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.models.object.network.RawNamespace;
 import org.ndexbio.common.persistence.orientdb.NdexPersistenceService;
+import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.xbel.model.Namespace;
 import org.ndexbio.xbel.model.NamespaceGroup;
 import org.slf4j.Logger;

@@ -25,7 +25,7 @@ package org.ndexbio.xgmml.parser.handler;
  */
 
 
-import org.ndexbio.common.exceptions.NdexException;
+import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.xgmml.parser.Handler;
 import org.ndexbio.xgmml.parser.ObjectTypeMap;
 import org.ndexbio.xgmml.parser.ParseState;

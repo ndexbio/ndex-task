@@ -18,8 +18,8 @@ import javax.xml.transform.stream.StreamResult;
 
 import org.ndexbio.common.NdexClasses;
 import org.ndexbio.common.access.NdexAOrientDBConnectionPool;
-import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.models.dao.orientdb.NetworkDAO;
+import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.object.NdexPropertyValuePair;
 import org.ndexbio.model.object.PropertiedObject;
 import org.ndexbio.model.object.SimplePropertyValuePair;

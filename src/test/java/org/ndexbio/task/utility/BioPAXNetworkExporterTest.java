@@ -15,9 +15,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.ndexbio.common.access.NdexAOrientDBConnectionPool;
 import org.ndexbio.common.access.NdexDatabase;
-import org.ndexbio.common.exceptions.NdexException;
+import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.task.Configuration;
-
 
 import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
 

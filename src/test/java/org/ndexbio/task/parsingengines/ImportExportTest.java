@@ -11,8 +11,8 @@ import java.util.logging.Logger;
 
 import org.junit.Test;
 import org.ndexbio.common.NetworkSourceFormat;
-import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.models.dao.orientdb.NetworkDAO;
+import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.object.network.BaseTerm;
 import org.ndexbio.model.object.network.Edge;
 import org.ndexbio.model.object.network.Network;

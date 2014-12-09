@@ -7,7 +7,7 @@ import java.util.Properties;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 
-import org.ndexbio.common.exceptions.NdexException;
+import org.ndexbio.model.exceptions.NdexException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

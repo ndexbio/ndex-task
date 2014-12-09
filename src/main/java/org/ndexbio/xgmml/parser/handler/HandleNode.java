@@ -27,7 +27,7 @@ package org.ndexbio.xgmml.parser.handler;
 
 import java.util.concurrent.ExecutionException;
 
-import org.ndexbio.common.exceptions.NdexException;
+import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.xgmml.parser.ParseState;
 import org.xml.sax.Attributes;

@@ -1,6 +1,6 @@
 package org.ndexbio.task;
-import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.persistence.orientdb.NdexTaskService;
+import org.ndexbio.model.exceptions.NdexException;
 
 public class TestNdexTaskService {
 

@@ -9,8 +9,8 @@ import java.util.concurrent.ExecutionException;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 
-import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.persistence.orientdb.NdexPersistenceService;
+import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.task.parsingengines.XbelParser;
 import org.ndexbio.xbel.model.Annotation;
 import org.ndexbio.xbel.model.AnnotationGroup;

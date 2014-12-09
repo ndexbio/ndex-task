@@ -3,7 +3,7 @@ package org.ndexbio.xgmml.parser.handler;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.ndexbio.common.exceptions.NdexException;
+import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.object.NdexPropertyValuePair;
 import org.ndexbio.xgmml.parser.ParseState;
 import org.xml.sax.Attributes;

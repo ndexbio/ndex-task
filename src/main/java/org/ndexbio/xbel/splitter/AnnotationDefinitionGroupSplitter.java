@@ -6,9 +6,9 @@ import java.util.concurrent.ExecutionException;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 
-import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.models.object.network.RawNamespace;
 import org.ndexbio.common.persistence.orientdb.NdexPersistenceService;
+import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.object.network.Namespace;
 import org.ndexbio.xbel.model.AnnotationDefinitionGroup;
 import org.ndexbio.xbel.model.ExternalAnnotationDefinition;

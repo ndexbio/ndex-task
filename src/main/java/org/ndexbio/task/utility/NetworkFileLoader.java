@@ -7,7 +7,7 @@ import java.nio.file.Paths;
 
 import org.ndexbio.common.access.NdexAOrientDBConnectionPool;
 import org.ndexbio.common.access.NdexDatabase;
-import org.ndexbio.common.exceptions.NdexException;
+import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.task.Configuration;
 import org.ndexbio.task.parsingengines.SifParser;
 import org.ndexbio.task.parsingengines.XbelParser;
