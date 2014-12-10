@@ -52,6 +52,7 @@ public class XGMMLNetworkExporter {
 	static final private String labelAttr = "label";
 	static final public String descAttr = "description";
 	static final private String docVersionAttr = "documentVersion";
+	static final private String NA = "N/A";
 	
 	private DocumentBuilder docBuilder;
 	public XGMMLNetworkExporter (ODatabaseDocumentTx db) throws ParserConfigurationException {
@@ -90,9 +91,11 @@ public class XGMMLNetworkExporter {
 	}
 	
 	private Document buildXMLDocument(Network network) throws SAXException, IOException {
-		boolean isXGMMLGraph = false; 
 
- 		// root elements
+		// a flags for the RDF block. We assume there was no RDF block if dc:date is missing in the network attribute.
+		boolean hasDate=false;
+		
+		// root elements
 		Document doc = docBuilder.newDocument();	
 		
 		Element networkElement = doc.createElement(networkTag);
@@ -102,15 +105,20 @@ public class XGMMLNetworkExporter {
 		networkElement.setAttribute(HandleGraph.label, network.getName());
 		
 		//namespaces
+		networkElement.setAttributeNS(xmlns, "xmlns:rdf" ,"http://www.w3.org/1999/02/22-rdf-syntax-ns#");		
+		networkElement.setAttributeNS(xmlns, "xmlns:dc" ,"http://purl.org/dc/elements/1.1/");		
+        
+		// add the rest. The might overwrite the defaults.
 		for ( Namespace ns : network.getNamespaces().values()) {
 			if ( ns.getPrefix().equals("xmlns")) {
-				if ( ns.getUri().equals(defaultNS)) 
-					isXGMMLGraph = true;
+				if ( ns.getUri().equals(defaultNS)) {
+				}
 				networkElement.setAttributeNS(xmlns, ns.getPrefix(), ns.getUri());
 			} else {
 				networkElement.setAttributeNS(xmlns, "xmlns:"+ ns.getPrefix(), ns.getUri());		
 			}
 		} 
+		
 		
 		Element rdfElement = addBuiltInAttributesInGraph(doc, networkElement, network.getURI()); 
 		
@@ -133,10 +141,34 @@ public class XGMMLNetworkExporter {
 				Element metaData = doc.createElement(p.getPredicateString());
 				rdfElement.appendChild(metaData);
 				metaData.setTextContent(p.getValue());
+				if (p.getPredicateString().toLowerCase().equals("dc:date"))
+					hasDate=true;
 			}
 		  }
 		}
 
+		if ( !hasDate) {
+			Element dcType = doc.createElement("dc:type");
+			rdfElement.appendChild(dcType);
+			dcType.setTextContent(NA);
+
+			Element dcDate = doc.createElement("dc:date");
+			rdfElement.appendChild(dcDate);
+			dcDate.setTextContent("");
+			
+			Element dcID = doc.createElement("dc:identifier");
+			rdfElement.appendChild(dcID);
+			dcID.setTextContent(NA);
+			
+			Element dcsrc = doc.createElement("dc:source");
+			rdfElement.appendChild(dcsrc);
+			dcsrc.setTextContent("http://www.cytoscape.org/");
+			
+			Element dcfmt = doc.createElement("dc:format");
+			rdfElement.appendChild(dcfmt);
+			dcfmt.setTextContent("Cytoscape-XGMML");
+		}
+		
 
 		//set name attribute for the network
 		Element networkAttr = doc.createElement(attTag);
@@ -147,7 +179,7 @@ public class XGMMLNetworkExporter {
 
 		
 		//set description attribute for the network
-		if ( network.getDescription() != null && !network.getDescription().equals("N/A")) {
+		if ( network.getDescription() != null && !network.getDescription().equals(NA)) {
 			Element descElt = doc.createElement(attTag);
 			networkElement.appendChild(descElt);
 			descElt.setAttribute(nameAttr, descAttr);
@@ -162,7 +194,9 @@ public class XGMMLNetworkExporter {
 		// set dc:description to N/A so that it is consistent with Cytoscape.
 		Element desc = doc.createElement("dc:description");
 		rdfElement.appendChild(desc);
-		desc.setTextContent(network.getDescription());
+		desc.setTextContent(
+				network.getDescription().length() ==0 ? 
+				NA : network.getDescription()	);
 		
 		//network presentation property
 /*		for ( SimplePropertyValuePair p : network.getPresentationProperties()) {
