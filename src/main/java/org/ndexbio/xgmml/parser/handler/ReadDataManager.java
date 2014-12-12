@@ -249,7 +249,7 @@ public class ReadDataManager {
 	 * @throws ExecutionException 
 	 */
 	protected void addGraphicsAttribute(Long elementId, String attName, String attValue) throws ExecutionException {
-		this.networkService.setElementPresentationProperty(elementId, attName, attValue);
+		this.networkService.addElementPresentationProperty(elementId, attName, attValue);
 	}
 	
 	public List<SimplePropertyValuePair> getGraphicsAttributes(PropertiedObject element) {
@@ -471,7 +471,7 @@ public class ReadDataManager {
 	
 	protected void setElementProperty ( Long elementId, String key, String value,
 			String type) throws ExecutionException, NdexException {
-		this.networkService.setElementProperty(elementId, key, value,type);
+		this.networkService.addElementProperty(elementId, key, value,type);
 	}
 
 	protected Long getCurrentElementId() {

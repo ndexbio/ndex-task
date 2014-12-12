@@ -91,20 +91,20 @@ public class AnnotationDefinitionGroupSplitter extends XBelSplitter {
 								  internalAnnotationDefPrefix + internalAnnotationDefinition.getId()));
 			
 				String attDataType = "String";
-				this.networkService.setElementProperty(internalAnnotationNamespace.getId(),
+				this.networkService.addElementProperty(internalAnnotationNamespace.getId(),
 						property_Type, internal_annotation_def, attDataType);
 				
 				if (null != internalAnnotationDefinition.getDescription()){
-					this.networkService.setElementProperty(internalAnnotationNamespace.getId(),desc, 
+					this.networkService.addElementProperty(internalAnnotationNamespace.getId(),desc, 
 										internalAnnotationDefinition.getDescription(), "");
 				}
 				if (null != internalAnnotationDefinition.getPatternAnnotation()){
-					this.networkService.setElementProperty(internalAnnotationNamespace.getId(),
+					this.networkService.addElementProperty(internalAnnotationNamespace.getId(),
 							patternAnnotation, internalAnnotationDefinition.getPatternAnnotation(), attDataType);
 				}
 				if (null != internalAnnotationDefinition.getListAnnotation()){
 					for (String annotation : internalAnnotationDefinition.getListAnnotation().getListValue()){
-						this.networkService.setElementProperty(internalAnnotationNamespace.getId(),
+						this.networkService.addElementProperty(internalAnnotationNamespace.getId(),
 								list_annotation, annotation, attDataType); 
 						// Create a term in the namespace
 						this.networkService.getBaseTermId(internalAnnotationNamespace.getPrefix()+":"+ annotation);
@@ -130,7 +130,7 @@ public class AnnotationDefinitionGroupSplitter extends XBelSplitter {
 				Namespace externalAnnotationNamespace = this.networkService.getNamespace(
 						new RawNamespace(externalAnnotationDefinition.getId(), 
 						externalAnnotationDefinition.getUrl()));
-				this.networkService.setElementProperty(externalAnnotationNamespace.getId(),
+				this.networkService.addElementProperty(externalAnnotationNamespace.getId(),
 						"type", "ExternalAnnotationDefinition", "String");
 
 			} catch (NdexException e) {

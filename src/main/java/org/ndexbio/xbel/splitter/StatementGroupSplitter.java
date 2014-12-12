@@ -29,6 +29,10 @@ import com.google.common.base.Preconditions;
 
 public class StatementGroupSplitter extends XBelSplitter {
 	private static final String xmlElement = "statementGroup";
+	
+	public static final String nameAttr = "name";
+	public static final String commentAttr = "comment";
+
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(StatementGroupSplitter.class);
@@ -37,9 +41,9 @@ public class StatementGroupSplitter extends XBelSplitter {
 	
 	private int counter;
 
-	public StatementGroupSplitter(JAXBContext context,
+	public StatementGroupSplitter(JAXBContext jaxbContext,
 			NdexPersistenceService networkService) {
-		super(context, xmlElement);
+		super(jaxbContext, xmlElement);
 		this.networkService = networkService;
 		counter=0;
 	}
@@ -55,7 +59,7 @@ public class StatementGroupSplitter extends XBelSplitter {
 
 	private void processStatementGroup(StatementGroup sg)
 			throws ExecutionException, NdexException {
-		processStatementGroup(sg, null, null, null);
+		processStatementGroup(sg, null, null, null, null,null);
 	}
 
 	// In an XBEL document, only one Citation and one Support are in scope for
@@ -67,11 +71,16 @@ public class StatementGroupSplitter extends XBelSplitter {
 	// is true for Supports.
 	private void processStatementGroup(StatementGroup sg,
 			Long outerSupportId, Long outerCitationId,
-			Map<String, String> outerAnnotations) throws ExecutionException,
+			Map<String, String> outerAnnotations, String outerName, String outerComment) throws ExecutionException,
 			NdexException {
 
 		// process the Annotation group for this Statement Group
 		AnnotationGroup annotationGroup = sg.getAnnotationGroup();
+		
+		String name = sg.getName(); 
+		if ( name == null) name = outerName;
+		String comment = sg.getComment(); 
+		if ( comment == null) comment = outerComment;
 
 		Map<String, String> annotations = annotationsFromAnnotationGroup(annotationGroup);
 		if (null != outerAnnotations){
@@ -99,6 +108,16 @@ public class StatementGroupSplitter extends XBelSplitter {
 			// The Support will either be null or will be specified in the
 			// AnnotationGroup
 			outerSupportId = null;
+			
+			//add the name and comment as properties to citation and then clear the context 
+			if ( name != null ) {
+				this.networkService.addElementProperty(citationId, nameAttr, name, "string");
+				name = null;
+			}
+			if ( comment !=null ) {
+				this.networkService.addElementProperty(citationId, commentAttr, comment, "string");
+				comment = null;
+			}
 		} else {
 			// There was no Citation in the AnnotationGroup, so use the
 			// outerCitation
@@ -114,13 +133,23 @@ public class StatementGroupSplitter extends XBelSplitter {
 			// The AnnotationGroup had no Support, therefore use the
 			// outerSupport
 			supportId = outerSupportId;
+		} else {
+			//add the name and comment as properties to support and then clear the context 
+			if ( name != null ) {
+				this.networkService.addElementProperty(supportId, nameAttr, name, "string");
+				name = null;
+			}
+			if ( comment !=null ) {
+				this.networkService.addElementProperty(supportId, commentAttr, comment, "string");
+				comment = null;
+			}
 		}
 
 		// process the Statements belonging to this Statement Group
-		this.processStatements(sg, supportId, citationId, annotations);
+		this.processStatements(sg, supportId, citationId, annotations,name,comment);
 		// process any embedded StatementGroup(s)
 		for (StatementGroup isg : sg.getStatementGroup()) {
-			this.processStatementGroup(isg, supportId, citationId, annotations);
+			this.processStatementGroup(isg, supportId, citationId, annotations, name, comment);
 		}
 	}
 
@@ -128,7 +157,7 @@ public class StatementGroupSplitter extends XBelSplitter {
 			AnnotationGroup annotationGroup) {
 		if (null == annotationGroup)
 			return null;
-		Map<String,String> annotationMap = new HashMap<String, String>();
+		Map<String,String> annotationMap = new HashMap<>();
 		for (Object object : annotationGroup
 				.getAnnotationOrEvidenceOrCitation()) {
 			if (object instanceof Annotation) {
@@ -154,7 +183,9 @@ public class StatementGroupSplitter extends XBelSplitter {
 				// No explicit type for Evidence, therefore if it is a string,
 				// its an Evidence and we find/create an ISupport
 
-				return this.networkService.getSupportId((String) object, citationId);
+				Long supportId = this.networkService.getSupportId((String) object, citationId);
+				
+				return supportId;
 			}
 		}
 		return null;
@@ -193,11 +224,11 @@ public class StatementGroupSplitter extends XBelSplitter {
 	 * process statement group
 	 */
 	private void processStatements(StatementGroup sg, Long supportId,
-			Long citationId, Map<String,String> annotations) 
+			Long citationId, Map<String,String> annotations, String name,String comment) 
 					throws ExecutionException, NdexException {
 		List<Statement> statementList = sg.getStatement();
 		for (Statement statement : statementList) {
-			processStatement(statement, supportId, citationId, annotations, 0);
+			processStatement(statement, supportId, citationId, annotations, 0, name, comment);
 			counter ++;
 			if ( counter %2000 == 0 ) {
 				logger.info("processed " + counter + " edges so far. commit this batch.");
@@ -207,10 +238,13 @@ public class StatementGroupSplitter extends XBelSplitter {
 	}
 
 	private Long processStatement(Statement statement, Long supportId,
-			Long citationId, Map<String,String> outerAnnotations, int level) 
+			Long citationId, Map<String,String> outerAnnotations, int level, String name, String outerComment) 
 					throws ExecutionException, NdexException {
 		if (level > 1) throw new NdexException("Attempt to process XBEL nested statement at level greater than 1");
 
+		String comment = statement.getComment();
+		if ( comment == null) comment = outerComment;
+		
 		// process the Annotation group for this Statement
 		AnnotationGroup annotationGroup = statement.getAnnotationGroup();
 
@@ -234,9 +268,33 @@ public class StatementGroupSplitter extends XBelSplitter {
 		Long localCitationId = citationFromAnnotationGroup(annotationGroup);
 		if ( localCitationId == null)
 			localCitationId = citationId;
+		else {
+			//add the name and comment as properties to citation and then clear the context 
+			if ( name != null ) {
+				this.networkService.addElementProperty(citationId, nameAttr, name, "string");
+				name = null;
+			}
+			if ( comment !=null ) {
+				this.networkService.addElementProperty(citationId, commentAttr, comment, "string");
+				comment = null;
+			}
+			
+		}
 		Long localSupportId  = supportFromAnnotationGroup (annotationGroup, localCitationId);
 		if ( localSupportId == null)
 			localSupportId = supportId;
+		else {
+			//add the name and comment as properties to citation and then clear the context 
+			if ( name != null ) {
+				this.networkService.addElementProperty(supportId, nameAttr, name, "string");
+				name = null;
+			}
+			if ( comment !=null ) {
+				this.networkService.addElementProperty(supportId, commentAttr, comment, "string");
+				comment = null;
+			}
+			
+		}
 		
 		
 		if (null != statement.getSubject()) {
@@ -259,10 +317,24 @@ public class StatementGroupSplitter extends XBelSplitter {
 				Long objectNodeId = this.processStatementObject(statement
 						.getObject(), localSupportId, localCitationId, annotations, level);
 
-				return this.networkService.createEdge(subjectNodeId, objectNodeId,
+				Long edgeId = this.networkService.createEdge(subjectNodeId, objectNodeId,
 						predicateId, localSupportId, localCitationId, annotations);
+				
+/*				if( name != null ) {
+					this.networkService.addElementProperty(edgeId, nameAttr,name,"string");
+				} */
+				if( comment != null ) {
+					this.networkService.addElementProperty(edgeId, commentAttr,comment,"string");
+				}
+				return edgeId;
 			} 
 			
+/*			if( name != null ) {
+				this.networkService.addElementProperty(subjectNodeId, nameAttr,name,"string");
+			} */
+			if( comment != null ) {
+				this.networkService.addElementProperty(subjectNodeId, commentAttr,comment,"string");
+			}
 			//System.out.println("Handling subject-only statement for node: " + subjectNode.getJdexId() );
 			this.networkService.addMetaDataToNode(subjectNodeId, localSupportId, localCitationId, annotations);
 			return null;
@@ -318,7 +390,7 @@ public class StatementGroupSplitter extends XBelSplitter {
 				//  3. a object node which the term represents
 				//
 				Long reifiedEdgeId = this.processStatement(obj.getStatement(), supportId,
-						              citationId, annotations, level + 1);
+						              citationId, annotations, level + 1,null,null);
 				Long representedTermId = this.networkService.getReifiedEdgeTermIdFromEdgeId(reifiedEdgeId);
 				
 				Long objectNodeId = this.networkService.getNodeIdByReifiedEdgeTermId(representedTermId);
