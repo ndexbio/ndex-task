@@ -27,6 +27,7 @@ package org.ndexbio.xgmml.parser.handler;
 
 import java.util.concurrent.ExecutionException;
 
+import org.ndexbio.model.object.network.PropertyGraphNetwork;
 import org.ndexbio.task.utility.XGMMLNetworkExporter;
 import org.ndexbio.xgmml.parser.ParseState;
 import org.xml.sax.Attributes;
@@ -70,8 +71,10 @@ public class HandleGraphAttribute extends AbstractHandler {
 			manager.addNetworkGraphicsAttribute( attName, sb.toString());
 		*/	
 			
+		} else if ( attName.equals(PropertyGraphNetwork.uuid)) {
+			// do nothing.
+			
 		} else {
-
 			if ( ! (attName.equals("networkMetadata") && namespace.equals("http://www.cs.rpi.edu/XGMML"))) 	
 				AttributeValueUtil.setAttribute(manager.getCurrentNetwork(), attName, value, atts.getValue("type"));
 				
