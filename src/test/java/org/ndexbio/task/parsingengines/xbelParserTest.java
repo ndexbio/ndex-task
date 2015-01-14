@@ -64,7 +64,7 @@ public class xbelParserTest {
 	}
 
 	
-	@Test
+//	@Test
 	public void test0() throws Exception {
 		
 		NdexDatabase db = new NdexDatabase(Configuration.getInstance().getHostURI());
@@ -130,7 +130,7 @@ public class xbelParserTest {
 
 		String user = "cjtest"; //configuration.getSystmUserName();
 		  XbelParser parser = new XbelParser(
-				  "/home/chenjing/Dropbox/Network_test_files/pdmap130712.xgmml"
+				  "/home/chenjing/Dropbox/Network_test_files/tiny_corpus_2.xbel"
 				//  "/home/chenjing/Downloads/wiki-pain.xbel"
 				//  "/opt/ndex/exported-networks/157f410b-6539-11e4-9955-90b11c72aefa.xbel"
 				 //  "/home/chenjing/git/ndex-task/src/test/resources/small_corpus.xbel"

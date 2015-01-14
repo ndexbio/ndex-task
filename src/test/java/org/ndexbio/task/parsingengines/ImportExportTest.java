@@ -162,6 +162,7 @@ public class ImportExportTest {
 			 NetworkDAO dao = new NetworkDAO(conn);
 			 Network n = dao.getNetworkById(networkID);
 			 assertEquals(n.getName(), m.networkName);
+			 assertNotNull(n.getDescription());
 			 assertEquals(n.getNodeCount(), n.getNodes().size());
 			 assertEquals(n.getNodeCount(), m.nodeCnt);
 			 assertEquals(n.getEdgeCount(), m.edgeCnt);
@@ -179,7 +180,7 @@ public class ImportExportTest {
 				   i++;
 				 }  
 				 assertEquals(n.getBaseTerms().size(), m.basetermCnt);
-			 }
+			 } 
 			 if ( m.citationCnt >= 0 )
 				 assertEquals(n.getCitations().size(), m.citationCnt);
 	//		 if ( m.elmtPresPropCnt >= 0 )
