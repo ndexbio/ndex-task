@@ -27,6 +27,8 @@ package org.ndexbio.xgmml.parser.handler;
 
 import java.util.concurrent.ExecutionException;
 
+import org.ndexbio.model.object.network.PropertyGraphNetwork;
+import org.ndexbio.task.utility.XGMMLNetworkExporter;
 import org.ndexbio.xgmml.parser.ParseState;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -42,18 +44,24 @@ public class HandleGraphAttribute extends AbstractHandler {
 		ParseState nextState = current;
 
 		String attName = atts.getValue(AttributeValueUtil.ATTR_NAME);
+		String value = atts.getValue("value");
 		
-		if (attName == null && atts.getValue("value") == null)
+		if (attName == null && value == null)
 			return current;
 
 		// Look for "special" network attributes
 		if (attName.equals("documentVersion")) {
 			// Old format only!
 			manager.setDocumentVersion(attributeValueUtil.getAttributeValue(atts, attName));
+		} else if ( attName.equals("name")) { 
+			manager.setNetworkTitle(value);	
+		} else if ( attName.equals(XGMMLNetworkExporter.descAttr)) {
+			manager.setNetworkDesc(value);
 		} else if (attName.matches("backgroundColor|GRAPH_VIEW_ZOOM|GRAPH_VIEW_CENTER_[XY]|NODE_SIZE_LOCKED|__layoutAlgorithm")) {
 			
 		//	String attValue = attributeValueUtil.getAttributeValue(atts, attName);
-			
+		
+		/*  CJ: commented out for now until we decide how to handle presentation property.	
 			StringBuilder sb = new StringBuilder ();
 			sb.append("<"+qName );
 			for ( int i = 0 ; i < atts.getLength(); i++) {
@@ -61,11 +69,16 @@ public class HandleGraphAttribute extends AbstractHandler {
 			}
 			sb.append("/>");
 			manager.addNetworkGraphicsAttribute( attName, sb.toString());
+		*/	
+			
+		} else if ( attName.equals(PropertyGraphNetwork.uuid)) {
+			// do nothing.
 			
 		} else {
-			//TODO: this line is removed by cj. need to review it.
-		//	manager.setCurrentElement(manager.getCurrentNetwork());
-			nextState = attributeValueUtil.handleAttribute(atts, true);
+			if ( ! (attName.equals("networkMetadata") && namespace.equals("http://www.cs.rpi.edu/XGMML"))) 	
+				AttributeValueUtil.setAttribute(manager.getCurrentNetwork(), attName, value, atts.getValue("type"));
+				
+			nextState = ParseState.NONE; // attributeValueUtil.handleAttribute(atts, true);
 		}
 
 		if (nextState != ParseState.NONE)

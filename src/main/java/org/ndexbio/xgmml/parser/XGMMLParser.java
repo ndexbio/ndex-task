@@ -26,7 +26,7 @@ package org.ndexbio.xgmml.parser;
 
 import java.util.Stack;
 
-import org.ndexbio.common.exceptions.NdexException;
+import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.xgmml.parser.handler.ReadDataManager;
 import org.xml.sax.Attributes;
 import org.xml.sax.Locator;

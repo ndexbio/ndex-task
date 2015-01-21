@@ -2,19 +2,20 @@ package org.ndexbio.task.parsingengines;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.List;
+import java.util.UUID;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import org.ndexbio.common.NetworkSourceFormat;
 import org.ndexbio.common.access.NdexDatabase;
-import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.persistence.orientdb.NdexPersistenceService;
+import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.object.ProvenanceEntity;
 import org.ndexbio.model.object.SimplePropertyValuePair;
 import org.ndexbio.model.object.network.NetworkSummary;
@@ -32,85 +33,83 @@ import org.xml.sax.helpers.ParserAdapter;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
-import com.google.common.io.Files;
 
 public class XgmmlParser implements IParsingEngine {
     private final File xgmmlFile;
     private String ownerName;
+    private String networkTitle;
     private NdexPersistenceService networkService;
     private static final Logger logger = LoggerFactory.getLogger(XgmmlParser.class);
 
-	public XgmmlParser(String fn, String ownerName, NdexDatabase db) throws Exception {
+	public XgmmlParser(String fn, String ownerAccountName, NdexDatabase db, String defaultNetworkName) throws Exception {
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(fn),
 				"A filename is required");
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(fn),
 				"A network owner name is required");
-		this.ownerName = ownerName;
+		this.ownerName = ownerAccountName;
 		this.xgmmlFile = new File(fn);
 		this.networkService = new NdexPersistenceService(db);
+		this.networkTitle = defaultNetworkName;
+		
 	}  
 	
-	private void log (String string){
+	private static void log (String string){
 		System.out.println(string);
 	}
     
     
 	private void setNetwork() throws Exception {
-		String title = Files.getNameWithoutExtension(this.xgmmlFile.getName());
-		this.networkService.createNewNetwork(this.getOwnerName(), title, null);
+	//	String title = Files.getNameWithoutExtension(this.xgmmlFile.getName());
+		this.networkService.createNewNetwork(this.getOwnerName(), networkTitle, null);
 	}
 
 	@Override
 	public void parseFile() throws NdexException {
         
-		FileInputStream xgmmlFileStream = null;
-        try
-        {
-            xgmmlFileStream = new FileInputStream(this.getXgmmlFile());
-        }
-        catch (FileNotFoundException e1)
-        {
-            e1.printStackTrace();
-            log("Could not read " + this.getXgmmlFile());
-            this.networkService.abortTransaction();  //TODO: close connection to database
-            throw new NdexException("File not found: " + this.xgmmlFile.getName());
-        }
+		try (FileInputStream xgmmlFileStream = new FileInputStream(this.getXgmmlFile())) { 
 
-        try
-        {
+			try
+			{
         	
-            setNetwork();
-            readXGMML(xgmmlFileStream);
+				setNetwork();
+				readXGMML(xgmmlFileStream);
 
-			//add provenance to network
-			NetworkSummary currentNetwork = this.networkService.getCurrentNetwork();
+				this.networkService.setNetworkSourceFormat(NetworkSourceFormat.XGMML);
+
+				//add provenance to network
+				NetworkSummary currentNetwork = this.networkService.getCurrentNetwork();
 			
-			String uri = NdexDatabase.getURIPrefix();
+				String uri = NdexDatabase.getURIPrefix();
 
-			ProvenanceEntity provEntity = ProvenanceHelpers.createProvenanceHistory(currentNetwork,
+				// set the source format
+			
+				ProvenanceEntity provEntity = ProvenanceHelpers.createProvenanceHistory(currentNetwork,
 					uri, "FILE_UPLOAD", currentNetwork.getCreationTime(), (ProvenanceEntity)null);
-			provEntity.getCreationEvent().setEndedAtTime(new Timestamp(Calendar.getInstance().getTimeInMillis()));
+				provEntity.getCreationEvent().setEndedAtTime(new Timestamp(Calendar.getInstance().getTimeInMillis()));
 			
-			List<SimplePropertyValuePair> l = provEntity.getCreationEvent().getProperties();
-			l.add(	new SimplePropertyValuePair ( "filename",this.xgmmlFile.getName()) );
+				List<SimplePropertyValuePair> l = provEntity.getCreationEvent().getProperties();
+				l.add(	new SimplePropertyValuePair ( "filename",this.xgmmlFile.getName()) );
 			
-			this.networkService.setNetworkProvenance(provEntity);
+				this.networkService.setNetworkProvenance(provEntity);
 
             
-            // close database connection
-         	this.networkService.persistNetwork();
-        }
-        catch (Exception e)
-        {
-            // rollback current transaction and close the database connection
-            this.networkService.abortTransaction();
-            e.printStackTrace();
-            throw new NdexException("Error occurred when loading "
+				// close database connection
+				this.networkService.persistNetwork();
+			}
+			catch (Exception e)
+			{
+				// rollback current transaction and close the database connection
+				this.networkService.abortTransaction();
+				e.printStackTrace();
+				throw new NdexException("Error occurred when loading "
             		+ this.xgmmlFile.getName() + ". " + e.getMessage());
-        } finally {
-        	try {
-				xgmmlFileStream.close();
-			} catch (IOException e) {}
+			} 
+		}	catch (IOException e1) {
+        
+            e1.printStackTrace();
+            log("Could not read " + this.getXgmmlFile() + ": " + e1.getMessage());
+            this.networkService.abortTransaction();  //TODO: close connection to database
+            throw new NdexException("File not found: " + this.xgmmlFile.getName());
         }
 		
 	}
@@ -173,6 +172,16 @@ public class XgmmlParser implements IParsingEngine {
 
 	public File getXgmmlFile() {
 		return xgmmlFile;
+	}
+	
+	@Override
+	public UUID getUUIDOfUploadedNetwork() {
+		try { 
+			return networkService.getCurrentNetwork().getExternalId();
+		} catch ( Exception e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 }

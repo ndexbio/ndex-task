@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.util.UUID;
 
 import org.ndexbio.common.access.NdexAOrientDBConnectionPool;
-import org.ndexbio.common.exceptions.NdexException;
+import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.object.Task;
 import org.ndexbio.model.object.Status;
 import org.ndexbio.task.event.NdexTaskEventHandler;

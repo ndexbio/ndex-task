@@ -6,9 +6,9 @@ import java.util.concurrent.ExecutionException;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 
-import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.models.object.network.RawNamespace;
 import org.ndexbio.common.persistence.orientdb.NdexPersistenceService;
+import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.object.network.Namespace;
 import org.ndexbio.xbel.model.AnnotationDefinitionGroup;
 import org.ndexbio.xbel.model.ExternalAnnotationDefinition;
@@ -25,7 +25,10 @@ public class AnnotationDefinitionGroupSplitter extends XBelSplitter {
 	public static final String external_annotation_def = "ExternalAnnotationDefinition";
 	public static final String desc = "description";
 	public static final String list_annotation = "listAnnotation";
-	
+	public static final String patternAnnotation = "patternAnnotation";
+
+	private static final String internalAnnotationDefPrefix = "http://belframework.org/schema/1.0/xbel/internalAnnotation/"; 
+
 	private static final Logger logger = LoggerFactory
 			.getLogger(AnnotationDefinitionGroupSplitter.class);
 
@@ -73,6 +76,7 @@ public class AnnotationDefinitionGroupSplitter extends XBelSplitter {
 	 * @see org.ndexbio.xbel.splitter.XBelSplitter#process()
 	 */
 	protected void process() throws JAXBException, ExecutionException {
+
 		AnnotationDefinitionGroup annotationDefinitionGroup = (AnnotationDefinitionGroup) unmarshallerHandler
 				.getResult();
 		logger.info("The XBEL document has "
@@ -83,24 +87,25 @@ public class AnnotationDefinitionGroupSplitter extends XBelSplitter {
 
 			try {
 				Namespace internalAnnotationNamespace = this.networkService.getNamespace(
-						new RawNamespace(internalAnnotationDefinition.getId(),null));
+						new RawNamespace(internalAnnotationDefinition.getId(),
+								  internalAnnotationDefPrefix + internalAnnotationDefinition.getId()));
 			
 				String attDataType = "String";
-				this.networkService.setElementProperty(internalAnnotationNamespace.getId(),
+				this.networkService.addElementProperty(internalAnnotationNamespace.getId(),
 						property_Type, internal_annotation_def, attDataType);
 				
 				if (null != internalAnnotationDefinition.getDescription()){
-					this.networkService.setElementProperty(internalAnnotationNamespace.getId(),desc, 
+					this.networkService.addElementProperty(internalAnnotationNamespace.getId(),desc, 
 										internalAnnotationDefinition.getDescription(), "");
 				}
 				if (null != internalAnnotationDefinition.getPatternAnnotation()){
-					this.networkService.setElementProperty(internalAnnotationNamespace.getId(),
-							"patternAnnotation", internalAnnotationDefinition.getPatternAnnotation(), attDataType);
+					this.networkService.addElementProperty(internalAnnotationNamespace.getId(),
+							patternAnnotation, internalAnnotationDefinition.getPatternAnnotation(), attDataType);
 				}
 				if (null != internalAnnotationDefinition.getListAnnotation()){
 					for (String annotation : internalAnnotationDefinition.getListAnnotation().getListValue()){
-						this.networkService.setElementProperty(internalAnnotationNamespace.getId(),
-								"listAnnotation", annotation, attDataType); 
+						this.networkService.addElementProperty(internalAnnotationNamespace.getId(),
+								list_annotation, annotation, attDataType); 
 						// Create a term in the namespace
 						this.networkService.getBaseTermId(internalAnnotationNamespace.getPrefix()+":"+ annotation);
 					}
@@ -125,7 +130,7 @@ public class AnnotationDefinitionGroupSplitter extends XBelSplitter {
 				Namespace externalAnnotationNamespace = this.networkService.getNamespace(
 						new RawNamespace(externalAnnotationDefinition.getId(), 
 						externalAnnotationDefinition.getUrl()));
-				this.networkService.setElementProperty(externalAnnotationNamespace.getId(),
+				this.networkService.addElementProperty(externalAnnotationNamespace.getId(),
 						"type", "ExternalAnnotationDefinition", "String");
 
 			} catch (NdexException e) {

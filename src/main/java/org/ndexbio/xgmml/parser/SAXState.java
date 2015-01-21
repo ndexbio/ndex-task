@@ -39,9 +39,11 @@ public class SAXState {
 		this.handler = handler;
 	}
 	
+/*	
 	public boolean isCurrentState() {
 		return true;
 	}
+*/
 	
 	public ParseState getStartState() {
 		return this.startState;

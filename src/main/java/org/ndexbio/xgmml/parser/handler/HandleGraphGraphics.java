@@ -37,10 +37,12 @@ public class HandleGraphGraphics extends AbstractHandler {
 			throws SAXException, ExecutionException {
 		if (atts == null)
 			return current;
+
 		
 		manager.attState = current;
 		ParseState nextState = current;
-
+/*	
+ *    CJ: commented out for now until we decide how to handle presentation properties in gxmml.
 		if (tag.equals("graphics")) {
         	manager.addNetworkGraphicsAttributes( atts);
         } else if (tag.equals("att")) {
@@ -50,7 +52,7 @@ public class HandleGraphGraphics extends AbstractHandler {
             if (name != null && value != null)
             	manager.addNetworkGraphicsAttribute(name, value);
         }
-
+*/
 		if (nextState != ParseState.NONE)
 			return nextState;
 

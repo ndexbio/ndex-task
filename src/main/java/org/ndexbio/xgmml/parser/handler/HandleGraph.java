@@ -25,13 +25,14 @@ package org.ndexbio.xgmml.parser.handler;
  */
 
 
-import org.ndexbio.model.object.network.Network;
 import org.ndexbio.xgmml.parser.ObjectTypeMap;
 import org.ndexbio.xgmml.parser.ParseState;
 import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
 
 public class HandleGraph extends AbstractHandler {
+	
+	public static final String label = "label";
+	private static final String docVersionStr = "cy:documentVersion";
 	
 	@Override
 	public ParseState handle(String namespace, String tag, String qName,  Attributes atts, ParseState current) throws Exception {
@@ -39,10 +40,12 @@ public class HandleGraph extends AbstractHandler {
 		
 		if (manager.graphCount == 1) {
 			// Root <graph>...
-			final String docVersion = atts.getValue("cy:documentVersion");
+			final String docVersion = atts.getValue(docVersionStr);
 			
-			if (docVersion != null)
+			if (docVersion != null) 
 				manager.setDocumentVersion(docVersion); // version 3.0+
+		
+			
 		}
 		/*
 		if (manager.isSessionFormat()) {	
@@ -66,72 +69,9 @@ public class HandleGraph extends AbstractHandler {
 		return s == null || ObjectTypeMap.fromXGMMLBoolean(s);
 	}
 	
-	/**
-	 * Handles XGMML from Cytoscape 2.x session files only.
-	 * @param tag
-	 * @param atts
-	 * @param current
-	 * @return
-	 * @throws SAXException
-	 */
-/*	private ParseState handleCy2ModelAndView(String tag, Attributes atts, ParseState current) throws SAXException {
-		final CyRootNetwork parent = manager.getParentNetwork();
-		final CyNetwork currentNet;
-		
-		if (manager.graphCount == 1) {
-			// Root (graph) element...
-			if (parent == null) {
-				// This is a regular top-level network...
-				final CyRootNetwork rootNet = manager.createRootNetwork();
-				currentNet = rootNet.getBaseNetwork();
-			} else {
-				// This is a 2.x "child-network"...
-				currentNet = parent.addSubNetwork();
-			}
-		} else {
-			// Nested graph tag...
-			final CyRootNetwork rootNet = manager.getRootNetwork();
-			currentNet = rootNet.addSubNetwork();
-		}
-		
-		final String id = getLabel(atts); // This is the network ID in 2.x
-		addCurrentNetwork(id, currentNet, atts, true);
-		
-		return current;
-	}*/
+
 	
-	/**
-	 * Handles "CyNetwork-type" XGMML from Cytoscape 3 session files only.
-	 * @param tag
-	 * @param atts
-	 * @param current
-	 * @return
-	 * @throws SAXException
-	 */
-/*	private ParseState handleCy3Model(String tag, Attributes atts, ParseState current) throws SAXException {
-		final CyNetwork currentNet;
-		boolean register = isRegistered(atts);
-		
-		if (manager.graphCount == 1) {
-			// Root graph == CyRootNetwork 
-			currentNet = manager.createRootNetwork();
-			register = false;
-		} else if (manager.graphCount == 2) {
-			// First nested graph == base-network
-			final CyRootNetwork rootNet = manager.getRootNetwork();
-			currentNet = rootNet.getBaseNetwork();
-		} else {
-			// Other nested graphs == regular sub-networks
-			final CyRootNetwork rootNet = manager.getRootNetwork();
-			currentNet = rootNet.addSubNetwork();
-		}
-		
-		final Object id = getId(atts);
-		addCurrentNetwork(id, currentNet, atts, register);
-		
-		return current;
-	}
-	*/
+
 	/**
 	 * Handles standalone XGMML graphs, not associated with a session file.
 	 * @param tag
@@ -141,7 +81,7 @@ public class HandleGraph extends AbstractHandler {
 	 * @throws Exception 
 	 */
 	private ParseState handleGenericXGMMLGraph(String tag, Attributes atts, ParseState current) throws Exception {
-		final Network currentNet;
+		//final Network currentNet;
 
 		for (int i = 0 ; i < atts.getLength() ; i++ ) {
 	//		String name = atts.getLocalName(i);
@@ -151,8 +91,11 @@ public class HandleGraph extends AbstractHandler {
 			String v = atts.getValue(i);
 			
 		//	System.out.println(name + ","+qname+","+type+","+uri+","+v);
+			if ( qname.equals(label))
+				manager.setNetworkTitle(v);
 
-			AttributeValueUtil.setAttribute(manager.getCurrentNetwork(), qname, v);
+			else if ( !qname.equals(docVersionStr))
+				AttributeValueUtil.setAttribute(manager.getCurrentNetwork(), qname, v, null);
 	
 		}
 		

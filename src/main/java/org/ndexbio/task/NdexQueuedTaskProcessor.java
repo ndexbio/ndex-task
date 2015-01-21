@@ -8,7 +8,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import org.ndexbio.common.access.NdexDatabase;
-import org.ndexbio.common.exceptions.NdexException;
+import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.object.Status;
 import org.ndexbio.model.object.Task;
 import org.ndexbio.common.persistence.orientdb.NdexTaskService;
@@ -117,13 +117,16 @@ public class NdexQueuedTaskProcessor {
 			    }
 				// clear the stage flags in case error occurs.
 			   	try {
+	//				Thread.sleep(5000);
 					for ( Task t : taskService.getActiveTasks()) {
 						taskService.updateTaskStatus ( Status.COMPLETED_WITH_ERRORS, t);
+						logger.error ("Setting status of stale task " + t.getExternalId() + " from " + t.getStatus()
+							+" to "	+ Status.COMPLETED_WITH_ERRORS);
 					}
-				} catch (NdexException e) {
+				} catch (NdexException  e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
-					logger.error("Failed to cleanup the unfinished tasks."  + e.getMessage());
+					logger.error("Failed to cleanup the unfinished tasks: "  + e.getMessage());
 				} 
 		 
 				

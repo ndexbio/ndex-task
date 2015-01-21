@@ -30,6 +30,16 @@
 				<enabled>true</enabled>
 			</snapshots>
 		</repository>
+			
+		<repository>
+			<id>biopax.releases</id>
+			<name>BioPAX Repository at Sourceforge</name>
+			<url>http://biopax.sourceforge.net/m2repo/releases/</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+
 	</repositories>
 
 
@@ -58,7 +68,18 @@
 			<version>3.2.1</version>
 		</dependency>
 
-
+		<dependency>
+  	  		<groupId>org.apache.commons</groupId>
+    		<artifactId>commons-csv</artifactId>
+    		<version>1.0</version>
+		</dependency>
+  
+  		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.4</version>
+		</dependency>
+  
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
@@ -88,6 +109,12 @@
 			<groupId>org.apache.poi</groupId>
 			<artifactId>poi</artifactId>
 			<version>3.9</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.biopax.paxtools</groupId>
+			<artifactId>paxtools-core</artifactId>
+			<version>4.2.1</version>
 		</dependency>
 
 		<dependency>

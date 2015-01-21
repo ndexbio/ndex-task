@@ -9,10 +9,10 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.junit.BeforeClass;
 import org.ndexbio.common.access.NdexAOrientDBConnectionPool;
-import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.exceptions.ObjectNotFoundException;
 import org.ndexbio.common.models.dao.orientdb.CommonDAOValues;
 import org.ndexbio.common.models.dao.orientdb.NetworkDAO;
+import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.object.NdexPropertyValuePair;
 import org.ndexbio.model.object.network.BaseTerm;
 import org.ndexbio.model.object.network.Citation;
@@ -223,6 +223,33 @@ public class NdexJVMDataModelService implements NdexTaskModelService {
 		// return an empty list for error conditions
 		List<BaseTerm> btList = Lists.newArrayList();
 		return btList;
+	}
+
+	@Override
+	public Network getNoCitationSubnetwork(String networkId) throws NdexException {
+		Preconditions.checkArgument(!Strings.isNullOrEmpty(networkId), 
+				"A network id is required");
+		try {
+			return dao.getOrphanStatementsSubnetwork( networkId);
+		} catch (IllegalArgumentException | NdexException e) {
+			logger.error(e.getMessage());
+			e.printStackTrace();
+			throw new NdexException ("Error occurred when getting orphan statement subnetwork: " + e.getMessage());
+		}
+		
+	}
+
+	@Override
+	public Network getOrphanSupportNetwork(String networkID) throws NdexException {
+		Preconditions.checkArgument(!Strings.isNullOrEmpty(networkID), 
+				"A network id is required");
+		try {
+			return dao.getOrphanSupportsNetwork( networkID);
+		} catch (IllegalArgumentException | NdexException e) {
+			logger.error(e.getMessage());
+			e.printStackTrace();
+			throw new NdexException ("Error occurred when getting orphanSupport subnetwork: " + e.getMessage());
+		}
 	}
 
 	

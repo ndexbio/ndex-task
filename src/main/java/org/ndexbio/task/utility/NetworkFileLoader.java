@@ -7,7 +7,7 @@ import java.nio.file.Paths;
 
 import org.ndexbio.common.access.NdexAOrientDBConnectionPool;
 import org.ndexbio.common.access.NdexDatabase;
-import org.ndexbio.common.exceptions.NdexException;
+import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.task.Configuration;
 import org.ndexbio.task.parsingengines.SifParser;
 import org.ndexbio.task.parsingengines.XbelParser;
@@ -45,10 +45,11 @@ public class NetworkFileLoader {
       				XbelParser parser = new XbelParser(path.toString(), args[0], db);
       				parser.parseFile();
       			} else if ( type.equals("sif")) {
-      				SifParser parser2 = new SifParser(path.toString(),args[0], db);
+      				SifParser parser2 = new SifParser(path.toString(),args[0], db, 
+      						com.google.common.io.Files.getNameWithoutExtension(path.toString()));
       				parser2.parseFile();
       			} else if ( type.equals("xgmml")) {
-      				XgmmlParser parser = new XgmmlParser(path.toString(), args[0], db);
+      				XgmmlParser parser = new XgmmlParser(path.toString(), args[0], db, path.toString());
       				parser.parseFile();
       			} else {
       				System.out.println ("Error: " + type + " is not a supported file type of this loader.");

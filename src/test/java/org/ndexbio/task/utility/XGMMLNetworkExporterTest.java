@@ -15,7 +15,9 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.ndexbio.common.access.NdexAOrientDBConnectionPool;
-import org.ndexbio.common.exceptions.NdexException;
+import org.ndexbio.common.models.dao.orientdb.UserDAO;
+import org.ndexbio.model.exceptions.NdexException;
+import org.ndexbio.model.object.User;
 import org.ndexbio.task.Configuration;
 import org.ndexbio.task.utility.XGMMLNetworkExporter;
 import org.xml.sax.SAXException;
@@ -48,16 +50,36 @@ public class XGMMLNetworkExporterTest {
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
 	}
+	
+	@Test 
+	public void testConcurrency() throws NdexException {
+		ODatabaseDocumentTx conn1 = NdexAOrientDBConnectionPool.getInstance().acquire();
+		UserDAO dao1 = new UserDAO(conn1);
+		
+		User u1 = dao1.getUserByAccountName("cjtest");
+		ODatabaseDocumentTx conn2 = NdexAOrientDBConnectionPool.getInstance().acquire();
+		UserDAO dao2 = new UserDAO(conn2);
+		
+		User u2 = dao2.getUserByAccountName("cjtest");
+
+		System.out.println("U1 password:" + dao1.setNewPassword("cjtest"));
+		System.out.println("U2 password:" + dao2.setNewPassword("cjtest"));
+		dao1.commit();
+		dao2.commit();
+		System.out.print(u1.toString() + u2.toString());
+		conn1.close();
+		conn2.close();
+	}
 
 	@Test
 	public void test() throws NdexException, ParserConfigurationException, TransformerException, ClassCastException, SAXException, IOException {
-		ODatabaseDocumentTx db = NdexAOrientDBConnectionPool.getInstance().acquire();
+	/*	ODatabaseDocumentTx db = NdexAOrientDBConnectionPool.getInstance().acquire();
 		
 		XGMMLNetworkExporter exporter = new XGMMLNetworkExporter(db);
 		
-		exporter.exportNetwork(UUID.fromString("bcb2266f-5bd9-11e4-b6fc-90b11c72aefa"), System.out);
+		exporter.exportNetwork(UUID.fromString("ba902d91-7ffa-11e4-b6e2-90b11c72aefa"), System.out);
 		
-		db.close();
+		db.close(); */
 	}
 
 	

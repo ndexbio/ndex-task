@@ -34,12 +34,12 @@ import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Pattern;
 
-import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.exceptions.ObjectNotFoundException;
 import org.ndexbio.common.models.object.network.RawNamespace;
 import org.ndexbio.common.persistence.orientdb.NdexPersistenceService;
 import org.ndexbio.common.util.TermStringType;
 import org.ndexbio.common.util.TermUtilities;
+import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.object.NdexPropertyValuePair;
 import org.ndexbio.model.object.PropertiedObject;
 import org.ndexbio.model.object.SimplePropertyValuePair;
@@ -249,7 +249,7 @@ public class ReadDataManager {
 	 * @throws ExecutionException 
 	 */
 	protected void addGraphicsAttribute(Long elementId, String attName, String attValue) throws ExecutionException {
-		this.networkService.setElementPresentationProperty(elementId, attName, attValue);
+		this.networkService.addElementPresentationProperty(elementId, attName, attValue);
 	}
 	
 	public List<SimplePropertyValuePair> getGraphicsAttributes(PropertiedObject element) {
@@ -384,8 +384,8 @@ public class ReadDataManager {
 		return null;
 	}
 
-	public void addEdge(String subjectId,  String objectId) {
-		this.currentXGMMLEdge = new XGMMLEdge(subjectId, objectId);
+	public void addEdge(String subjectId, String predicateStr, String objectId) {
+		this.currentXGMMLEdge = new XGMMLEdge(subjectId, predicateStr, objectId);
 		
 
 	}
@@ -471,7 +471,7 @@ public class ReadDataManager {
 	
 	protected void setElementProperty ( Long elementId, String key, String value,
 			String type) throws ExecutionException, NdexException {
-		this.networkService.setElementProperty(elementId, key, value,type);
+		this.networkService.addElementProperty(elementId, key, value,type);
 	}
 
 	protected Long getCurrentElementId() {

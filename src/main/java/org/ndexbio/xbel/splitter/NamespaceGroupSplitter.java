@@ -3,9 +3,9 @@ package org.ndexbio.xbel.splitter;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 
-import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.models.object.network.RawNamespace;
 import org.ndexbio.common.persistence.orientdb.NdexPersistenceService;
+import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.xbel.model.Namespace;
 import org.ndexbio.xbel.model.NamespaceGroup;
 import org.slf4j.Logger;
@@ -42,20 +42,6 @@ public class NamespaceGroupSplitter extends XBelSplitter {
 		NamespaceGroup ng = (NamespaceGroup) unmarshallerHandler.getResult();
 		logger.info("The XBEL document has " + ng.getNamespace().size()
 				+ " namespaces");
-
-		try {
-			// create a few default name spaces. 
-			// BEL namespace
-			RawNamespace belNamespace = new RawNamespace("BEL","http://belframework.org/schema/1.0/xbel");
-			this.networkService.getNamespace(belNamespace);
-			// TextLocation 
-			RawNamespace textLocation = new RawNamespace("TextLocation","http://belframework.org/schema/1.0/xbel/TextLocation");
-			this.networkService.getNamespace(textLocation);
-			
-		} catch (NdexException e) {
-			logger.error(e.getMessage());
-			e.printStackTrace();
-		}
 
 		for (Namespace ns : ng.getNamespace()) {
 

@@ -16,9 +16,10 @@ public class XGMMLEdge {
 	
 	private List<SimplePropertyValuePair> presentationProps;
 
-	public XGMMLEdge(String subjectIdStr, String objectIdStr) {
+	public XGMMLEdge(String subjectIdStr, String predicateStr, String objectIdStr) {
 		this.subjectId = subjectIdStr;
 		this.objectId  = objectIdStr;
+		this.predicate = predicateStr;
 		props = new LinkedList<> ();
 		this.presentationProps = new LinkedList<>();
 	}
@@ -35,8 +36,8 @@ public class XGMMLEdge {
 		return predicate;
 	}
 
-	public void setPredicate(String predicate) {
-		this.predicate = predicate;
+	public void setPredicate(String predicateStr) {
+		this.predicate = predicateStr;
 	}
 
 	public String getObjectId() {
@@ -51,16 +52,16 @@ public class XGMMLEdge {
 		return props;
 	}
 
-	public void setProps(List<NdexPropertyValuePair> props) {
-		this.props = props;
+	public void setProps(List<NdexPropertyValuePair> properties) {
+		this.props = properties;
 	}
 
 	public List<SimplePropertyValuePair> getPresentationProps() {
 		return presentationProps;
 	}
 
-	public void setPresentationProps(List<SimplePropertyValuePair> presentationProps) {
-		this.presentationProps = presentationProps;
+	public void setPresentationProps(List<SimplePropertyValuePair> presentationProperties) {
+		this.presentationProps = presentationProperties;
 	}
 	
 	

@@ -1,6 +1,8 @@
 package org.ndexbio.task.parsingengines;
 
-import org.ndexbio.common.exceptions.NdexException;
+import java.util.UUID;
+
+import org.ndexbio.model.exceptions.NdexException;
 
 public interface IParsingEngine
 {
@@ -8,4 +10,6 @@ public interface IParsingEngine
     * Parses the specified file. 
     **************************************************************************/
     public void parseFile() throws  NdexException;
+	public UUID getUUIDOfUploadedNetwork()  ;
+
 }

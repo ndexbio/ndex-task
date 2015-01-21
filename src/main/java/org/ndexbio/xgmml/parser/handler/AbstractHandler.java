@@ -25,7 +25,7 @@ package org.ndexbio.xgmml.parser.handler;
  */
 
 
-import org.ndexbio.common.exceptions.NdexException;
+import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.xgmml.parser.Handler;
 import org.ndexbio.xgmml.parser.ObjectTypeMap;
 import org.ndexbio.xgmml.parser.ParseState;
@@ -38,6 +38,8 @@ public abstract class AbstractHandler implements Handler {
 
 	protected ReadDataManager manager;
 	protected AttributeValueUtil attributeValueUtil;
+	
+	protected static final String LABEL = "label";
 	
 	ObjectTypeMap typeMap;
 	
@@ -60,16 +62,16 @@ public abstract class AbstractHandler implements Handler {
 		this.attributeValueUtil = attributeValueUtil;
 	}
 	
-	protected String getLabel(Attributes atts) {
-		String label = atts.getValue("label");
+	protected static String getLabel(Attributes atts) {
+		String label = atts.getValue(LABEL);
 		
 		if (label == null || label.isEmpty())
 			label = atts.getValue("id");
 
 		return label;
 	}
-	
-	protected Object getId(Attributes atts) {
+/*	
+	protected static String getId(Attributes atts) {
 		Object id = atts.getValue("id");
 
 		if (id != null) {
@@ -86,8 +88,8 @@ public abstract class AbstractHandler implements Handler {
 		}
 		
 		if (id == null || id.toString().isEmpty())
-			id = atts.getValue("label");
+			id = atts.getValue(LABEL);
 		
 		return id;
-	}
+	} */
 }

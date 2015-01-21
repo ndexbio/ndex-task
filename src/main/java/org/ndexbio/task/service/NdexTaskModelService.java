@@ -3,6 +3,7 @@ package org.ndexbio.task.service;
 import java.util.Collection;
 import java.util.List;
 
+import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.object.network.BaseTerm;
 import org.ndexbio.model.object.network.Citation;
 import org.ndexbio.model.object.network.Edge;
@@ -21,6 +22,9 @@ public interface NdexTaskModelService {
 	
 	public Collection<Citation> getCitationsByNetworkId(String networkId);
 	public Network getSubnetworkByCitationId(String networkId, Long citationId); 
+	public Network getNoCitationSubnetwork(String networkId) throws NdexException;
+	public Network getOrphanSupportNetwork(String netwokrID) throws NdexException;    
+	
 	public Iterable<Edge> getEdgesBySupportId(String supportId);
 	public Iterable<Namespace> getNamespacesByNetworkId(String networkId);
 	// internal & external annotations are persisted as namespaces

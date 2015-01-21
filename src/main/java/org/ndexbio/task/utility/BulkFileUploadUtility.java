@@ -13,6 +13,7 @@ import java.util.UUID;
 import org.ndexbio.common.exceptions.*;
 import org.ndexbio.common.models.dao.orientdb.TaskDAO;
 import org.ndexbio.common.persistence.orientdb.OrientDBNoTxConnectionService;
+import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.object.Status;
 import org.ndexbio.model.object.Task;
 import org.ndexbio.model.object.TaskType;
@@ -29,6 +30,7 @@ import com.orientechnologies.orient.core.id.ORID;
  * The input parameter is a directory location. All regular files within the specified directory 
  * are processed
  */
+@Deprecated
 public class BulkFileUploadUtility {
 	
 	private final Path uploadDir;

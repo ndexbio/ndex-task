@@ -3,12 +3,14 @@ package org.ndexbio.task;
 import java.io.File;
 
 import org.ndexbio.common.access.NdexDatabase;
-import org.ndexbio.common.exceptions.NdexException;
+import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.object.Task;
 import org.ndexbio.model.object.Status;
 import org.ndexbio.task.parsingengines.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.io.Files;
 
 /*
  * This class represents a NdexTask subclass that is responsible
@@ -65,11 +67,12 @@ public class FileUploadTask extends NdexTask {
 		String fileExtension = com.google.common.io.Files
 				.getFileExtension(this.getFilename()).toUpperCase().trim();
 		logger.info("File extension = " + fileExtension);
+		String networkName = Files.getNameWithoutExtension(this.getTask().getDescription());
 		switch (fileExtension) {
 		case ("SIF"):
 			try {
 				final SifParser sifParser = new SifParser(
-						file.getAbsolutePath(), this.getTaskOwnerAccount(),db);
+						file.getAbsolutePath(), this.getTaskOwnerAccount(),db, networkName);
 				sifParser.parseFile();
 				this.taskStatus = Status.COMPLETED;
 			} catch (Exception e) {
@@ -80,7 +83,7 @@ public class FileUploadTask extends NdexTask {
 		case ("XGMML"):
 			try {
 				final XgmmlParser xgmmlParser = new XgmmlParser(
-						file.getAbsolutePath(), this.getTaskOwnerAccount(),db);
+						file.getAbsolutePath(), this.getTaskOwnerAccount(),db, networkName);
 				xgmmlParser.parseFile();
 				this.taskStatus = Status.COMPLETED;
 			} catch (Exception e) {

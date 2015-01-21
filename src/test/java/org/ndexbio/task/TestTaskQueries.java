@@ -2,7 +2,7 @@ package org.ndexbio.task;
 
 import java.util.List;
 
-import org.ndexbio.common.exceptions.NdexException;
+import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.object.Task;
 import org.ndexbio.common.persistence.orientdb.NdexTaskService;
 import org.slf4j.Logger;

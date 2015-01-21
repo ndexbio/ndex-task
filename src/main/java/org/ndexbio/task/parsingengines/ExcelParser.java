@@ -3,19 +3,24 @@ package org.ndexbio.task.parsingengines;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
+import org.ndexbio.common.NdexClasses;
+import org.ndexbio.common.NetworkSourceFormat;
 import org.ndexbio.common.access.NdexDatabase;
-import org.ndexbio.common.exceptions.NdexException;
 import org.ndexbio.common.persistence.orientdb.NdexPersistenceService;
 import org.ndexbio.common.util.TermStringType;
 import org.ndexbio.common.util.TermUtilities;
+import org.ndexbio.model.exceptions.NdexException;
+import org.ndexbio.model.object.NdexPropertyValuePair;
 import org.ndexbio.model.object.network.Network;
 
 import com.google.common.base.Preconditions;
@@ -124,6 +129,9 @@ public class ExcelParser implements IParsingEngine
 
             // persist the network domain model, commit the transaction, close
             // database connection
+			// set the source format
+			this.networkService.setNetworkSourceFormat(NetworkSourceFormat.EXCEL);
+
             this.networkService.persistNetwork();
         }
         catch (Exception e)
@@ -256,4 +264,15 @@ public class ExcelParser implements IParsingEngine
 	private void setOwnerName(String ownerName) {
 		this.ownerName = ownerName;
 	}
+	
+	@Override
+	public UUID getUUIDOfUploadedNetwork() {
+		try { 
+			return networkService.getCurrentNetwork().getExternalId();
+		} catch ( Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
 }

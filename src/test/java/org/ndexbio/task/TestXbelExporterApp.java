@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.IOException;
 
 import org.ndexbio.common.access.NdexAOrientDBConnectionPool;
-import org.ndexbio.common.exceptions.NdexException;
+import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.task.event.NdexNetworkState;
 import org.ndexbio.task.event.NdexTaskEventHandler;
 import org.ndexbio.task.service.NdexJVMDataModelService;
@@ -20,15 +20,24 @@ public class TestXbelExporterApp {
 	private static final String XBEL_FILE_EXTENSION = ".xbel";
 	public static void main(String[] args) throws IOException, NdexException {
 
-		String networkId = "74377e1d-41e4-11e4-96ed-90b11c72aefa"; // is for small corpus
-//		String networkId = "f003d77a-3f4e-11e4-bc7d-90b11c72aefa";
-		String userId =    "84443d6d-3dbf-11e4-a671-90b11c72aefa"; // dbowner
+		Configuration configuration = Configuration.getInstance();
+    	
+    	//and initialize the db connections
+    	NdexAOrientDBConnectionPool.createOrientDBConnectionPool(
+    			configuration.getDBURL(),
+    			configuration.getDBUser(),
+    			configuration.getDBPasswd(),1);
+		
+		
+//		String networkId = "5c5fa4a7-6376-11e4-98cb-90b11c72aefa"; // is for small corpus
+		String networkId = "02221e14-6ae6-11e4-b14b-000c29873918";
+		String userId =    "29969f4f-5e02-11e4-bac2-000c29873918"; // dbowner
 		//add shutdown hook
-		Runtime.getRuntime().addShutdownHook(new Thread() {
+/*		Runtime.getRuntime().addShutdownHook(new Thread() {
 			public void run() {
 				System.out.println("TextXbelExporter completed.");
 			}
-		});
+		}); */
 		
 		ODatabaseDocumentTx db = null;
 		try {
@@ -37,13 +46,13 @@ public class TestXbelExporterApp {
 			NdexTaskModelService  modelService = new NdexJVMDataModelService(db);
 			// initiate the network state
 			initiateStateForMonitoring(modelService, userId, networkId);
-			NdexTaskEventHandler eventHandler = new NdexTaskEventHandler("/opt/ndex/exported-networks/ndextaskevents.csv");
+//			NdexTaskEventHandler eventHandler = new NdexTaskEventHandler("/opt/ndex/exported-networks/ndextaskevents.csv");
 			XbelNetworkExporter exporter = new XbelNetworkExporter(userId, networkId, 
 				modelService,
 				resolveExportFile(modelService, userId, networkId));
 		//
 			exporter.exportNetwork();
-			eventHandler.shutdown();
+//			eventHandler.shutdown();
 		} finally { 
 			if ( db != null) db.close();
 		}

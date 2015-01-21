@@ -27,7 +27,7 @@ package org.ndexbio.xgmml.parser.handler;
 
 import java.util.concurrent.ExecutionException;
 
-import org.ndexbio.common.exceptions.NdexException;
+import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.xgmml.parser.ParseState;
 import org.xml.sax.Attributes;
@@ -38,7 +38,7 @@ public class HandleNode extends AbstractHandler {
 	@Override
 	public ParseState handle(final String namespace, final String tag, final String qName,  final Attributes atts, final ParseState current) throws SAXException, NdexException, ExecutionException {
 		final String href = atts.getValue(ReadDataManager.XLINK, "href");
-		Object id = null;
+		String id = null;
 		//String label = null;
 		String nodeName = null;
 		Long nodeId = null;
@@ -47,7 +47,7 @@ public class HandleNode extends AbstractHandler {
 		
 		if (href == null) {
 			
-			id = getId(atts);
+			id = atts.getValue("id");
 			// Create the node
 			
 			nodeName = atts.getValue("label");
@@ -55,7 +55,7 @@ public class HandleNode extends AbstractHandler {
 				nodeName = atts.getValue("name");
 			}
 			
-			nodeId = manager.findOrCreateNodeId(id.toString(), nodeName);
+			nodeId = manager.findOrCreateNodeId(id, nodeName);
 		} else {
 			throw new NdexException("Not yet handling XLINKs");
 		}
